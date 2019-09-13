@@ -4,7 +4,7 @@
 # ERRLOG  = yes
 
 CC      = gcc
-LIB     = libcgi.a
+LIB     = libmagi.a
 
 CFLAGS  = -xc -ansi -pedantic -Wall
 ifeq '$(DEBUG)' 'yes'

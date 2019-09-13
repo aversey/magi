@@ -12,7 +12,7 @@ CFLAGS  += -O3
 endif
 
 INCLUDE  = ../src
-LFLAGS   = -L.. -lcgi
+LFLAGS   = -L.. -lmagi
 
 
 default: $(EXAMPLES)
