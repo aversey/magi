@@ -154,6 +154,7 @@ static int cgi_env(struct magi_request *r)
     ok = ok && plain_env(&r->server_port,     "SERVER_PORT");
     ok = ok && lower_env(&r->server_protocol, "SERVER_PROTOCOL");
     ok = ok && plain_env(&r->server_software, "SERVER_SOFTWARE");
+    ok = ok && plain_env(&r->path_info,       "PATH_INFO");
     return ok;
 }
 

@@ -6,6 +6,24 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Request
+ * 
+ * Example for enivronmental variables:
+ *   Request:       http://example.com/cgi-bin/script/foo/bar?var2=url%20enc
+ * method:          get
+ * uri:             /cgi-bin/script/foo/bar?var2=url%20enc
+ * document_root:   { absolute path to root directory of domain }
+ * document_uri:    /cgi-bin/script/foo/bar
+ * script_name:     /cgi-bin/script
+ * script_filename: { absolute path to script on server machine }
+ * remote_addr:     { client IP }
+ * remote_port:     { client port }
+ * server_addr:     { server IP }
+ * server_name:     example.com
+ *  (^ Better to use http_params["HTTP_HOST"] -- server_name can be IP too.)
+ * server_port:     80
+ * server_protocol: http/1.1
+ * server_software: { name of web server software }
+ * path_info:       /foo/bar
  */
 struct magi_request {
     struct magi_field_list  *fields;
@@ -23,8 +41,9 @@ struct magi_request {
     char                    *server_port;
     char                    *server_protocol;
     char                    *server_software;
+    char                    *path_info;
     struct magi_param_list  *http_params;
-};  /* http[s]://{server_name}[:{server_port}]{script_name}[?...] */
+};
 
 
 /* Common Request Handling */
