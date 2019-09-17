@@ -1,5 +1,5 @@
-#ifndef MAGI_INCLUDED_REQUEST_H
-#define MAGI_INCLUDED_REQUEST_H
+#ifndef MAGI_INCLUDED_REQUEST
+#define MAGI_INCLUDED_REQUEST
 
 #include "field.h"
 

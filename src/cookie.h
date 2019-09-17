@@ -1,5 +1,5 @@
-#ifndef MAGI_INCLUDED_COOKIE_H
-#define MAGI_INCLUDED_COOKIE_H
+#ifndef MAGI_INCLUDED_COOKIE
+#define MAGI_INCLUDED_COOKIE
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

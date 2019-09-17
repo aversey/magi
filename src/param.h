@@ -1,5 +1,5 @@
-#ifndef MAGI_INCLUDED_PARAM_H
-#define MAGI_INCLUDED_PARAM_H
+#ifndef MAGI_INCLUDED_PARAM
+#define MAGI_INCLUDED_PARAM
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

@@ -1,5 +1,5 @@
-#ifndef MAGI_INCLUDED_FIELD_H
-#define MAGI_INCLUDED_FIELD_H
+#ifndef MAGI_INCLUDED_FIELD
+#define MAGI_INCLUDED_FIELD
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
