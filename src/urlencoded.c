@@ -31,33 +31,39 @@ static int is_hex(char c)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * URL Decoding
  */
-static int deurl(char *data)
+static int deurl(char **data)
 {
     int ok = 1;
-    int ti = 0;
-    int ci;
-    for (ci = 0; ok && data[ci]; ++ti, ++ci) {
-        if (data[ci] == '%') {
-            if (is_hex(data[ci + 1]) && is_hex(data[ci + 2])) {
-                /* Since chars can be signed, arithmetics are not safe. */
-                data[ti]  = from_hex(data[ci + 2]);       /* 00xx */
-                data[ti] |= from_hex(data[ci + 1]) << 4;  /* XXxx */
-                ci       += 2;
+    if (*data) {
+        char *val = *data;
+        int ti = 0;
+        int ci;
+        for (ci = 0; ok && val[ci]; ++ti, ++ci) {
+            if (val[ci] == '%') {
+                if (is_hex(val[ci + 1]) && is_hex(val[ci + 2])) {
+                    /* Since chars can be signed, arithmetics are not safe. */
+                    val[ti]  = from_hex(val[ci + 2]);       /* 00xx */
+                    val[ti] |= from_hex(val[ci + 1]) << 4;  /* XXxx */
+                    ci       += 2;
+                } else {
+                    ok = 0;
+                    magi_log(
+                        "[urlencoded] Waiting for two hex digits after '%%', "
+                        "readed: \\%o\\%o (render: %c%c)",
+                        val[ci + 1], val[ci + 2], val[ci + 1], val[ci + 2]
+                    );
+                }
+            } else if (val[ci] == '+') {
+                val[ti] = ' ';
             } else {
-                ok = 0;
-                magi_log(
-                    "[urlencoded] Waiting for two hex digits after '%%', "
-                    "readed: \\%o\\%o (render: %c%c)",
-                    data[ci + 1], data[ci + 2], data[ci + 1], data[ci + 2]
-                );
+                val[ti] = val[ci];
             }
-        } else if (data[ci] == '+') {
-            data[ti] = ' ';
-        } else {
-            data[ti] = data[ci];
         }
+        val[ti++] = 0;
+    } else {
+        *data  = malloc(1);
+        **data = 0;
     }
-    data[ti++] = 0;
     return ok;
 }
 
@@ -112,7 +118,7 @@ static enum st parse_name(struct automata *a, char c)
 static enum st end_data(struct automata *a)
 {
     enum st state = st_error;
-    if (deurl(a->field.name) && deurl(a->field.data)) {
+    if (deurl(&a->field.name) && deurl(&a->field.data)) {
         a->field.len = strlen(a->field.data);
         if (magi_field_list_add(a->list, &a->field)) {
             state         = st_name;
