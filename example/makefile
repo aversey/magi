@@ -11,14 +11,14 @@ else
 CFLAGS  += -O3
 endif
 
-INCLUDE  = ../src
+INCLUDE  = -I ../src
 LFLAGS   = -L.. -lmagi
 
 
 default: $(EXAMPLES)
 
 %: %.c
-	$(CC) $(CFLAGS) -I $(INCLUDE) $< $(LFLAGS) -o $@
+	$(CC) $(CFLAGS) $(INCLUDE) $< $(LFLAGS) -o $@
 
 clean:
 	rm -f $(EXAMPLES)

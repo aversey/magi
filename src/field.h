@@ -6,9 +6,9 @@
  * Form Field
  */
 struct magi_field {
-    char                   *name;    /* name: free(name) is valid. */
-    char                   *data;    /* data: free(data) is valid. */
-    int                    len;      /* Length of data. */
+    char *name;  /* name: free(name) is valid. */
+    char *data;  /* data: free(data) is valid. */
+    int  len;    /* Length of data. */
     struct magi_param_list *params;  /* Only used if field is for file. */
 };
 
