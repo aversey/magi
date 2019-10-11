@@ -117,9 +117,9 @@ static int cgi_http_env(struct magi_request *r)
             struct magi_param param;
             /* At least one '=' must be in *env, according to format. */
             char *name_end = strchr(*env, '=');
-            param.name     = str_alloc(name_end - *env);
+            param.name     = str_alloc(name_end - *env - 5);
             if (param.name) {
-                memcpy(param.name, *env, name_end - *env);
+                memcpy(param.name, *env + 5, name_end - *env - 5);
                 param.data = str_alloc(strlen(name_end + 1));
                 if (param.data) {
                     strcpy(param.data, name_end + 1);

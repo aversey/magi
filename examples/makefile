@@ -2,7 +2,7 @@
 # DEBUG    = yes
 
 CC       = gcc
-EXAMPLES = append cookie upload
+EXAMPLES = append cookie upload echo
 
 CFLAGS   = -xc -ansi -pedantic -Wall
 ifeq '$(DEBUG)' 'yes'
