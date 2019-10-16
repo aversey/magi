@@ -30,10 +30,10 @@ void print_webpage()
         "<html xmlns='http://www.w3.org/1999/xhtml'>"
         "<head><title>Append to File</title></head>"
         "<body>"
-        "<form action='/cgi-bin/append' method='GET'>"
+        "<form action='/cgi-bin/append' method='get'><fieldset>"
         "<input type='text' name='addon' value='Whatever you want to add.'/>"
         "<input type='submit' value='Append'/>"
-        "</form>"
+        "</fieldset></form>"
         "</body>"
         "</html>"
     );

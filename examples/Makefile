@@ -14,10 +14,15 @@ endif
 INCLUDE  = -I ../src
 LFLAGS   = -L.. -lmagi
 
+MAGI     = ../libmagi.a
+
 
 default: $(EXAMPLES)
 
-%: %.c
+$(MAGI):
+	cd ..; $(MAKE)
+
+%: %.c $(MAGI)
 	$(CC) $(CFLAGS) $(INCLUDE) $< $(LFLAGS) -o $@
 
 clean:
