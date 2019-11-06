@@ -1,8 +1,9 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <cgi.h>
 #include <cookie.h>
 #include <param.h>
 #include <request.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 
 void print_preamble()
@@ -76,7 +77,7 @@ void proceed_params(struct magi_param_list *params)
 void handle_request()
 {
     struct magi_request request;
-    if (magi_request_build_cgi(&request, 0, 0)) {
+    if (magi_cgi(&request, 0, 0)) {
         puts("<h1>Echo CGI Script</h1>");
         puts("I was called with method [");
         puts(request.method);

@@ -3,6 +3,7 @@
 #include <string.h>
 #include <request.h>
 #include <multipart.h>
+#include <cgi.h>
 
 void tempfile_callback(struct magi_field *field, char *buffer, int len)
 {
@@ -30,7 +31,7 @@ void tempfile_callback(struct magi_field *field, char *buffer, int len)
 void handle_request()
 {
     struct magi_request request;
-    if (magi_request_build_cgi(&request, tempfile_callback, 0)) {
+    if (magi_cgi(&request, tempfile_callback, 0)) {
         struct magi_field *name = magi_field_list_get(request.fields, "name");
         struct magi_field *data = magi_field_list_get(request.fields, "data");
         if (name && name->data && data) {

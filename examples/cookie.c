@@ -1,7 +1,8 @@
+#include <cgi.h>
 #include <cookie.h>
+#include <request.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <request.h>
 
 
 void print_preamble()
@@ -26,7 +27,7 @@ void print_webpage_top()
 void read_and_print_cookies()
 {
     struct magi_request request;
-    if (magi_request_build_cgi(&request, 0, 0)) {
+    if (magi_cgi(&request, 0, 0)) {
         struct magi_cookie_list *cookie;
         for (cookie = request.cookies; cookie; cookie = cookie->next) {
             printf(

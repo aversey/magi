@@ -1,12 +1,13 @@
+#include <cgi.h>
+#include <request.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <request.h>
 
 
 void handle_request()
 {
     struct magi_request request;
-    if (magi_request_build_cgi(&request, 0, 0)) {
+    if (magi_cgi(&request, 0, 0)) {
         struct magi_field *a = magi_field_list_get(request.fields, "addon");
         if (a && a->data) {
             FILE *file = fopen("file_to_append", "a");
