@@ -4,69 +4,9 @@
 #include "log.h"
 #include "param.h"
 #include <ctype.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Local Shortcuts
- */
-static int add(char **dest, int *len, int *size, char c)
-{
-    int ok = 1;
-    if (*len + 1 == *size) {
-        *size *= 2;
-        *dest  = realloc(*dest, *size);
-    }
-    if (*dest == 0) {
-        ok = 0;
-        magi_log("[multipart] Cannot allocate string.");
-    } else {
-        (*dest)[*len] = c;
-        ++*len;
-        (*dest)[*len] = 0;
-    }
-    return ok;
-}
-
-static void lowercase(char *str)
-{
-    if (str) {
-        while (*str) {
-            *str = tolower(*str);
-            ++str;
-        }
-    }
-}
-
-static char *create_str(char *begin, char *end)
-{
-    char *res;
-    res = malloc(end - begin + 1);
-    if (res) {
-        memcpy(res, begin, end - begin);
-        res[end - begin] = 0;
-    } else {
-        magi_log("[multipart] Cannot allocate string.");
-    }
-    return res;
-}
-
-static int is_token(char c)
-{
-    return 32 <= c && c <= 126 && !strchr("()<>@,;:\\\"/[]?={} \t", c);
-}
-
-static int is_str_token(char *str)
-{
-    int is = str && *str;  /* Empty string is not valid. */
-    while (is && *str) {
-        is = is_token(*str);
-        ++str;
-    }
-    return is;
-}
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -84,30 +24,30 @@ enum st {
 };
 
 struct automata {
-    struct magi_field_list **list;
-    struct magi_field      field;
-    struct magi_param      param;
-    char                   *buf;
-    int                    buf_size;
-    int                    size;
-    int                    len;
-    char                   *boundary;
-    int                    boundary_pos;
-    int                    boundary_len;
-    int                    is_end_suspected;
-    int                    is_CR_readed;
-    int                    is_quoted;
-    void (*callback)(struct magi_field *field, char *buffer, int size);
+    struct magi_field_list ** list;
+    struct magi_field         field;
+    struct magi_param         param;
+    char *                    buf;
+    int                       buf_size;
+    int                       size;
+    int                       len;
+    char *                    boundary;
+    int                       boundary_pos;
+    int                       boundary_len;
+    int                       is_end_suspected;
+    int                       is_CR_readed;
+    int                       is_quoted;
+    void (*callback)(struct magi_field * field, char * buffer, int size);
 };
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Automata Shortcuts
  */
-static int content_disposition(struct automata *a)
+static int content_disposition(struct automata * a)
 {
-    int  ok    = 1;
-    char *name = strchr(a->param.data, '=');
+    int    ok   = 1;
+    char * name = strchr(a->param.data, '=');
     if (name) {
         name += strspn(name, " \t") + 1;
         if (*name == '"') {
@@ -125,10 +65,9 @@ static int content_disposition(struct automata *a)
                 ok = 0;
             } else if (!is_str_token(a->field.name)) {
                 ok = 0;
-                magi_log(
-                    "[multipart] Content-disposition value is not valid, "
-                    "readed: %s.", a->field.name
-                );
+                magi_log("[multipart] Content-disposition value is not valid, "
+                         "readed: %s.",
+                    a->field.name);
             }
         }
         if (ok) {
@@ -144,14 +83,14 @@ static int content_disposition(struct automata *a)
     return ok;
 }
 
-static int param_end(struct automata *a)
+static int param_end(struct automata * a)
 {
     int ok = 1;
     lowercase(a->param.name);
     if (!strcmp(a->param.name, "content-disposition")) {
         ok = content_disposition(a);
     } else {
-        ok = magi_param_list_add(&a->field.params, &a->param);
+        ok            = magi_param_list_add(&a->field.params, &a->param);
         a->param.name = 0;
         a->param.data = 0;
     }
@@ -160,7 +99,7 @@ static int param_end(struct automata *a)
     return ok;
 }
 
-static int field_end(struct automata *a)
+static int field_end(struct automata * a)
 {
     int ok;
     if (a->field.name == 0) {
@@ -172,7 +111,7 @@ static int field_end(struct automata *a)
             a->buf_size = 0;
         }
         a->field.len = a->len;
-        ok = magi_field_list_add(a->list, &a->field);
+        ok           = magi_field_list_add(a->list, &a->field);
         if (!ok) {
             free(a->field.name);
             free(a->field.data);
@@ -192,9 +131,9 @@ static int field_end(struct automata *a)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Boundary interfaces
  */
-static char sepget(const struct automata *a)
+static char sepget(const struct automata * a)
 {
-    char c;
+    char      c;
     const int pos_after = a->boundary_pos - 4 - a->boundary_len;
     if (a->boundary_pos == 0) {
         c = '\r';
@@ -214,14 +153,14 @@ static char sepget(const struct automata *a)
     return c;
 }
 
-static int seplen(const struct automata *a)
+static int seplen(const struct automata * a)
 {
     return a->boundary_len + 6;
 }
 
-static char endget(const struct automata *a)
+static char endget(const struct automata * a)
 {
-    char c;
+    char      c;
     const int pos_after = a->boundary_pos - 4 - a->boundary_len;
     if (a->boundary_pos == 0) {
         c = '\r';
@@ -243,13 +182,13 @@ static char endget(const struct automata *a)
     return c;
 }
 
-static int endlen(const struct automata *a)
+static int endlen(const struct automata * a)
 {
     return a->boundary_len + 8;
 }
 
-static int is_semiend(const struct automata *a)
-{  /* Is end readed, expect last two chars, which are CR LF? */
+static int is_semiend(const struct automata * a)
+{ /* Is end readed, expect last two chars, which are CR LF? */
     return a->is_end_suspected && (a->boundary_pos == endlen(a) - 2);
 }
 
@@ -257,7 +196,7 @@ static int is_semiend(const struct automata *a)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * State analysers
  */
-static enum st parse_begin(struct automata *a, char c)
+static enum st parse_begin(struct automata * a, char c)
 {
     enum st state;
     if (sepget(a) == c) {
@@ -268,26 +207,26 @@ static enum st parse_begin(struct automata *a, char c)
             state = st_begin;
         }
     } else {
-        state = st_begin;
+        state           = st_begin;
         a->boundary_pos = 0;
     }
     return state;
 }
 
-static enum st parse_pname_pre(struct automata *a, char c)
+static enum st parse_pname_pre(struct automata * a, char c)
 {
     enum st state;
     if (a->is_CR_readed) {
         a->is_CR_readed = 0;
         if (c == '\n') {
-            state = st_data;
+            state           = st_data;
             a->boundary_pos = 0;
         } else {
             state = st_error;
             magi_log("[multipart] Waiting for name, CR is readed alone.");
         }
     } else if (c == '\r') {
-        state = st_pname_pre;
+        state           = st_pname_pre;
         a->is_CR_readed = 1;
     } else if (is_token(c)) {
         if (add(&a->param.name, &a->len, &a->size, c)) {
@@ -298,13 +237,12 @@ static enum st parse_pname_pre(struct automata *a, char c)
     } else {
         state = st_error;
         magi_log(
-            "[multipart] Waiting for name, readed: \\%o (render: %c).", c, c
-        );
+            "[multipart] Waiting for name, readed: \\%o (render: %c).", c, c);
     }
     return state;
 }
 
-static enum st parse_pname(struct automata *a, char c)
+static enum st parse_pname(struct automata * a, char c)
 {
     enum st state;
     if (c == ':') {
@@ -321,14 +259,12 @@ static enum st parse_pname(struct automata *a, char c)
         }
     } else {
         state = st_error;
-        magi_log(
-            "[multipart] Reading name, readed: \\%o (render: %c).", c, c
-        );
+        magi_log("[multipart] Reading name, readed: \\%o (render: %c).", c, c);
     }
     return state;
 }
 
-static enum st parse_pname_end(struct automata *a, char c)
+static enum st parse_pname_end(struct automata * a, char c)
 {
     enum st state;
     if (c == ':') {
@@ -339,15 +275,14 @@ static enum st parse_pname_end(struct automata *a, char c)
         state = st_pname_end;
     } else {
         state = st_error;
-        magi_log(
-            "[multipart] Waiting for name-value separator, "
-            "readed: \\%o (render: %c).", c, c
-        );
+        magi_log("[multipart] Waiting for name-value separator, "
+                 "readed: \\%o (render: %c).",
+            c, c);
     }
     return state;
 }
 
-static enum st parse_pdata(struct automata *a, char c)
+static enum st parse_pdata(struct automata * a, char c)
 {
     enum st state;
     if (a->is_CR_readed) {
@@ -380,7 +315,7 @@ static enum st parse_pdata(struct automata *a, char c)
     return state;
 }
 
-static void apply_callback(struct automata *a)
+static void apply_callback(struct automata * a)
 {
     if (a->callback && a->buf_size == magi_parse_multipart_callback_size) {
         a->callback(&a->field, a->buf, a->buf_size);
@@ -388,13 +323,13 @@ static void apply_callback(struct automata *a)
     }
 }
 
-static enum st data_add(struct automata *a, char c)
+static enum st data_add(struct automata * a, char c)
 {
     static int max_buf_size = magi_parse_multipart_callback_size + 1;
     enum st    state;
-    char       **dest;
-    int        *len;
-    int        *size;
+    char **    dest;
+    int *      len;
+    int *      size;
     int        pos  = a->boundary_pos;
     state           = st_data;
     a->boundary_pos = 0;
@@ -433,7 +368,7 @@ static enum st data_add(struct automata *a, char c)
     return state;
 }
 
-static enum st parse_data(struct automata *a, char c)
+static enum st parse_data(struct automata * a, char c)
 {
     enum st state;
     if (a->is_end_suspected) {
@@ -466,7 +401,7 @@ static enum st parse_data(struct automata *a, char c)
     return state;
 }
 
-static enum st parse_end(struct automata *a, char c)
+static enum st parse_end(struct automata * a, char c)
 {
     return st_end;
 }
@@ -475,22 +410,36 @@ static enum st parse_end(struct automata *a, char c)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Automata Runner
  */
-static int
-run_automata(struct automata *a, int (*next)(void *thing), void *thing)
+static int run_automata(
+    struct automata * a, int (*next)(void * thing), void * thing)
 {
     int     ok    = 1;
     enum st state = st_begin;
-    int c;
+    int     c;
     for (c = next(thing); state && c != EOF; c = next(thing)) {
         switch (state) {
-        case st_begin:     state = parse_begin(a, c);     break;
-        case st_pname_pre: state = parse_pname_pre(a, c); break;
-        case st_pname:     state = parse_pname(a, c);     break;
-        case st_pname_end: state = parse_pname_end(a, c); break;
-        case st_pdata:     state = parse_pdata(a, c);     break;
-        case st_data:      state = parse_data(a, c);      break;
-        case st_end:       state = parse_end(a, c);
-        default:           break;
+        case st_begin:
+            state = parse_begin(a, c);
+            break;
+        case st_pname_pre:
+            state = parse_pname_pre(a, c);
+            break;
+        case st_pname:
+            state = parse_pname(a, c);
+            break;
+        case st_pname_end:
+            state = parse_pname_end(a, c);
+            break;
+        case st_pdata:
+            state = parse_pdata(a, c);
+            break;
+        case st_data:
+            state = parse_data(a, c);
+            break;
+        case st_end:
+            state = parse_end(a, c);
+        default:
+            break;
         }
     }
     if (state == st_data && is_semiend(a)) {
@@ -512,23 +461,18 @@ run_automata(struct automata *a, int (*next)(void *thing), void *thing)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Automata Interfaces
  */
-int magi_parse_multipart(
-    struct magi_field_list **list,
-    int (*get_next)(void *),
-    void *get_next_arg,
-    char *boundary,
-    void (*callback)(struct magi_field *field, char *buffer, int len)
-)
+int magi_parse_multipart(struct magi_field_list ** list,
+    int (*get_next)(void *), void * get_next_arg, char * boundary,
+    void (*callback)(struct magi_field * field, char * buffer, int len))
 {
-    struct automata a = {
-        0, { 0, 0, 0 }, { 0, 0 }, 0, 0, 1, 0, 0, 2, 0, 0, 0
-    };
-    int ok            = 0;
-    a.list            = list;
-    a.boundary        = boundary;
-    a.boundary_len    = strlen(boundary);
-    a.callback        = callback;
-    a.buf             = malloc(magi_parse_multipart_callback_size + 1);
+    struct automata a
+        = { 0, { 0, 0, 0 }, { 0, 0 }, 0, 0, 1, 0, 0, 2, 0, 0, 0 };
+    int ok         = 0;
+    a.list         = list;
+    a.boundary     = boundary;
+    a.boundary_len = strlen(boundary);
+    a.callback     = callback;
+    a.buf          = malloc(magi_parse_multipart_callback_size + 1);
     if (a.buf) {
         ok = run_automata(&a, get_next, get_next_arg);
         free(a.buf);

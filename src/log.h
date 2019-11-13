@@ -2,7 +2,7 @@
 #define MAGI_INCLUDED_LOG
 
 
-void magi_log(const char *format, ...);
+void magi_log(const char * format, ...);
 
 
 #endif

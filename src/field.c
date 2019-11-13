@@ -9,11 +9,12 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Form Field
  */
-int magi_field_list_add(struct magi_field_list **list, struct magi_field *item)
+int magi_field_list_add(
+    struct magi_field_list ** list, struct magi_field * item)
 {
-    struct magi_field_list *old  = *list;
-    int ok = 1;
-    *list  = malloc(sizeof(**list));
+    struct magi_field_list * old = *list;
+    int                      ok  = 1;
+    *list                        = malloc(sizeof(**list));
     if (*list) {
         (*list)->next = old;
         (*list)->item = *item;
@@ -25,12 +26,10 @@ int magi_field_list_add(struct magi_field_list **list, struct magi_field *item)
     return ok;
 }
 
-struct magi_field *magi_field_list_get(
-    struct magi_field_list *list,
-    const char *name
-)
+struct magi_field * magi_field_list_get(
+    struct magi_field_list * list, const char * name)
 {
-    struct magi_field *item = 0;
+    struct magi_field * item = 0;
     if (list && name) {
         if (!strcmp(list->item.name, name)) {
             item = &list->item;
@@ -41,7 +40,7 @@ struct magi_field *magi_field_list_get(
     return item;
 }
 
-void magi_field_list_destroy(struct magi_field_list *list)
+void magi_field_list_destroy(struct magi_field_list * list)
 {
     if (list) {
         magi_field_list_destroy(list->next);

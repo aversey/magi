@@ -4,7 +4,7 @@
 #include "field.h"
 
 
-int magi_parse_urlencoded(struct magi_field_list **list, const char *input);
+int magi_parse_urlencoded(struct magi_field_list ** list, const char * input);
 
 
 #endif

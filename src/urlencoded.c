@@ -8,50 +8,28 @@
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Shortcuts
- */
-/* Shouldn't be called with 'c' as not hex digit. */
-static char from_hex(char c)
-{
-    char num;
-    if (isdigit(c)) {
-        num = c - '0';
-    } else {
-        num = toupper(c) - 'A' + 10;
-    }
-    return num;
-}
-
-static int is_hex(char c)
-{
-    return isdigit(c) || strchr("ABCDEF", toupper(c));
-}
-
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * URL Decoding
  */
-static int deurl(char **data)
+static int deurl(char ** data)
 {
     int ok = 1;
     if (*data) {
-        char *val = *data;
-        int ti = 0;
-        int ci;
+        char * val = *data;
+        int    ti  = 0;
+        int    ci;
         for (ci = 0; ok && val[ci]; ++ti, ++ci) {
             if (val[ci] == '%') {
                 if (is_hex(val[ci + 1]) && is_hex(val[ci + 2])) {
                     /* Since chars can be signed, arithmetics are not safe. */
-                    val[ti]  = from_hex(val[ci + 2]);       /* 00xx */
-                    val[ti] |= from_hex(val[ci + 1]) << 4;  /* XXxx */
-                    ci       += 2;
+                    val[ti] = from_hex(val[ci + 2]);       /* 00xx */
+                    val[ti] |= from_hex(val[ci + 1]) << 4; /* XXxx */
+                    ci += 2;
                 } else {
                     ok = 0;
                     magi_log(
                         "[urlencoded] Waiting for two hex digits after '%%', "
                         "readed: \\%o\\%o (render: %c%c)",
-                        val[ci + 1], val[ci + 2], val[ci + 1], val[ci + 2]
-                    );
+                        val[ci + 1], val[ci + 2], val[ci + 1], val[ci + 2]);
                 }
             } else if (val[ci] == '+') {
                 val[ti] = ' ';
@@ -71,21 +49,17 @@ static int deurl(char **data)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Urlencoded Automata
  */
-enum st {
-    st_error = 0,
-    st_name,
-    st_data
-};
+enum st { st_error = 0, st_name, st_data };
 
 struct automata {
-    struct magi_field_list **list;
-    struct magi_field      field;
-    int                    size;
-    int                    len;
+    struct magi_field_list ** list;
+    struct magi_field         field;
+    int                       size;
+    int                       len;
 };
 
 
-static enum st parse_name(struct automata *a, char c)
+static enum st parse_name(struct automata * a, char c)
 {
     enum st state;
     if (c != '&' && c != ';') {
@@ -95,7 +69,7 @@ static enum st parse_name(struct automata *a, char c)
             a->len  = 0;
         } else {
             if (a->len == a->size - 1) {
-                a->size      *= 2;
+                a->size *= 2;
                 a->field.name = realloc(a->field.name, a->size);
             }
             if (!a->field.name) {
@@ -110,12 +84,13 @@ static enum st parse_name(struct automata *a, char c)
         }
     } else {
         state = st_error;
-        magi_log("[urlencoded] Reading name, readed: \\%o (render: %c).", c, c);
+        magi_log(
+            "[urlencoded] Reading name, readed: \\%o (render: %c).", c, c);
     }
     return state;
 }
 
-static enum st end_data(struct automata *a)
+static enum st end_data(struct automata * a)
 {
     enum st state = st_error;
     if (deurl(&a->field.name) && deurl(&a->field.data)) {
@@ -131,7 +106,7 @@ static enum st end_data(struct automata *a)
     return state;
 }
 
-static enum st parse_data(struct automata *a, char c)
+static enum st parse_data(struct automata * a, char c)
 {
     enum st state;
     if (c != '=') {
@@ -139,7 +114,7 @@ static enum st parse_data(struct automata *a, char c)
             state = end_data(a);
         } else {
             if (a->len == a->size - 1) {
-                a->size      *= 2;
+                a->size *= 2;
                 a->field.data = realloc(a->field.data, a->size);
             }
             if (!a->field.data) {
@@ -154,22 +129,27 @@ static enum st parse_data(struct automata *a, char c)
         }
     } else {
         state = st_error;
-        magi_log("[urlencoded] Reading data, readed: \\%o (render: %c).", c, c);
+        magi_log(
+            "[urlencoded] Reading data, readed: \\%o (render: %c).", c, c);
     }
     return state;
 }
 
-int magi_parse_urlencoded(struct magi_field_list **list, const char *input)
+int magi_parse_urlencoded(struct magi_field_list ** list, const char * input)
 {
-    enum st state = st_name;
-    struct automata a = { 0, { 0, 0, 0 }, 1, 0 };
+    enum st         state = st_name;
+    struct automata a     = { 0, { 0, 0, 0 }, 1, 0 };
     if (input && *input) {
         a.list = list;
         while (state && *input) {
             switch (state) {
-            case st_name: state = parse_name(&a, *input); break;
-            case st_data: state = parse_data(&a, *input);
-            default:      break;
+            case st_name:
+                state = parse_name(&a, *input);
+                break;
+            case st_data:
+                state = parse_data(&a, *input);
+            default:
+                break;
             }
             ++input;
         }

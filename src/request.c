@@ -1,7 +1,7 @@
 #include "request.h"
 
-#include "field.h"
 #include "cookie.h"
+#include "field.h"
 #include "param.h"
 #include <stdlib.h>
 
@@ -9,7 +9,7 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Common Request Handling
  */
-void magi_request_destroy(struct magi_request *request)
+void magi_request_destroy(struct magi_request * request)
 {
     if (request) {
         magi_field_list_destroy(request->fields);

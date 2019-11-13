@@ -8,9 +8,11 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Request
- * 
- * Example for enivronmental variables:
- *   Request:       http://example.com/cgi-bin/script/foo/bar?var2=url%20enc
+ *
+ * Can be generated via CGI handler (magi_cgi_request) or
+ * as session in Fast CGI (magi_fast_cgi_request).
+ *
+ *     Example:     http://example.com/cgi-bin/script/foo/bar?var2=url%20enc
  * method:          get
  * uri:             /cgi-bin/script/foo/bar?var2=url%20enc
  * document_root:   { absolute path to root directory of domain }
@@ -28,30 +30,31 @@
  * path_info:       /foo/bar
  */
 struct magi_request {
-    struct magi_field_list  *fields;
-    struct magi_cookie_list *cookies;
-    char                    *method;
-    char                    *uri;
-    char                    *document_root;
-    char                    *document_uri;
-    char                    *script_name;
-    char                    *script_filename;
-    char                    *remote_addr;
-    char                    *remote_port;
-    char                    *server_addr;
-    char                    *server_name;
-    char                    *server_port;
-    char                    *server_protocol;
-    char                    *server_software;
-    char                    *path_info;
-    struct magi_param_list  *http_params;
+    struct magi_field_list *  fields;
+    struct magi_cookie_list * cookies;
+    char *                    method;
+    char *                    uri;
+    char *                    document_root;
+    char *                    document_uri;
+    char *                    script_name;
+    char *                    script_filename;
+    char *                    remote_addr;
+    char *                    remote_port;
+    char *                    server_addr;
+    char *                    server_name;
+    char *                    server_port;
+    char *                    server_protocol;
+    char *                    server_software;
+    char *                    path_info;
+    struct magi_param_list *  http_params;
+    /* TODO: error. */
 };
 
 
 /*
  * Destroys request; request is not valid after destruction.
  */
-void magi_request_destroy(struct magi_request *request);
+void magi_request_destroy(struct magi_request * request);
 
 
 #endif

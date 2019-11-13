@@ -12,18 +12,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-extern char **environ;
-
+extern char ** environ;
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * CGI Request Handling
  */
 /* Helpers for CGI Request Handling */
-static int plain_env(char **dest, char *env_name)
+static int plain_env(char ** dest, char * env_name)
 {
-    int        ok   = 1;
-    const char *env = getenv(env_name);
+    int          ok  = 1;
+    const char * env = getenv(env_name);
     if (env) {
         *dest = str_alloc(strlen(env));
         if (*dest) {
@@ -37,24 +35,24 @@ static int plain_env(char **dest, char *env_name)
     return ok;
 }
 
-static int lower_env(char **dest, char *env_name)
+static int lower_env(char ** dest, char * env_name)
 {
     int ok = plain_env(dest, env_name);
     lowercase(*dest);
     return ok;
 }
 
-static int cgi_http_env(struct magi_request *r)
+static int cgi_http_env(struct magi_request * r)
 {
-    int  ok        = 1;
-    char **env     = environ;
+    int     ok     = 1;
+    char ** env    = environ;
     r->http_params = 0;
     while (*env) {
         if (!strncmp(*env, "HTTP_", 5) && strncmp(*env, "HTTP_COOKIE=", 12)) {
             struct magi_param param;
             /* At least one '=' must be in *env, according to format. */
-            char *name_end = strchr(*env, '=');
-            param.name     = str_alloc(name_end - *env - 5);
+            char * name_end = strchr(*env, '=');
+            param.name      = str_alloc(name_end - *env - 5);
             if (param.name) {
                 memcpy(param.name, *env + 5, name_end - *env - 5);
                 param.data = str_alloc(strlen(name_end + 1));
@@ -75,31 +73,31 @@ static int cgi_http_env(struct magi_request *r)
     return ok;
 }
 
-static int cgi_env(struct magi_request *r)
+static int cgi_env(struct magi_request * r)
 {
     int ok = cgi_http_env(r);
-    ok = ok && lower_env(&r->method,          "REQUEST_METHOD");
-    ok = ok && plain_env(&r->uri,             "REQUEST_URI");
-    ok = ok && plain_env(&r->document_root,   "DOCUMENT_ROOT");
-    ok = ok && plain_env(&r->document_uri,    "DOCUMENT_URI");
-    ok = ok && plain_env(&r->script_name,     "SCRIPT_NAME");
-    ok = ok && plain_env(&r->script_filename, "SCRIPT_FILENAME");
-    ok = ok && plain_env(&r->remote_addr,     "REMOTE_ADDR");
-    ok = ok && plain_env(&r->remote_port,     "REMOTE_PORT");
-    ok = ok && plain_env(&r->server_addr,     "SERVER_ADDR");
-    ok = ok && lower_env(&r->server_name,     "SERVER_NAME");
-    ok = ok && plain_env(&r->server_port,     "SERVER_PORT");
-    ok = ok && lower_env(&r->server_protocol, "SERVER_PROTOCOL");
-    ok = ok && plain_env(&r->server_software, "SERVER_SOFTWARE");
-    ok = ok && plain_env(&r->path_info,       "PATH_INFO");
+    ok     = ok && lower_env(&r->method, "REQUEST_METHOD");
+    ok     = ok && plain_env(&r->uri, "REQUEST_URI");
+    ok     = ok && plain_env(&r->document_root, "DOCUMENT_ROOT");
+    ok     = ok && plain_env(&r->document_uri, "DOCUMENT_URI");
+    ok     = ok && plain_env(&r->script_name, "SCRIPT_NAME");
+    ok     = ok && plain_env(&r->script_filename, "SCRIPT_FILENAME");
+    ok     = ok && plain_env(&r->remote_addr, "REMOTE_ADDR");
+    ok     = ok && plain_env(&r->remote_port, "REMOTE_PORT");
+    ok     = ok && plain_env(&r->server_addr, "SERVER_ADDR");
+    ok     = ok && lower_env(&r->server_name, "SERVER_NAME");
+    ok     = ok && plain_env(&r->server_port, "SERVER_PORT");
+    ok     = ok && lower_env(&r->server_protocol, "SERVER_PROTOCOL");
+    ok     = ok && plain_env(&r->server_software, "SERVER_SOFTWARE");
+    ok     = ok && plain_env(&r->path_info, "PATH_INFO");
     return ok;
 }
 
-static int cgi_cookies(struct magi_cookie_list **list)
+static int cgi_cookies(struct magi_cookie_list ** list)
 {
-    int        ok   = 1;
-    const char *env = getenv("HTTP_COOKIE");
-    *list = 0;
+    int          ok  = 1;
+    const char * env = getenv("HTTP_COOKIE");
+    *list            = 0;
     if (env && *env) {
         ok = magi_parse_cookie(list, env);
     } else {
@@ -108,10 +106,10 @@ static int cgi_cookies(struct magi_cookie_list **list)
     return ok;
 }
 
-static int cgi_input_get(char **input)
+static int cgi_input_get(char ** input)
 {
-    int        ok         = 1;
-    const char *env_input = getenv("QUERY_STRING");
+    int          ok        = 1;
+    const char * env_input = getenv("QUERY_STRING");
     if (env_input) {
         *input = str_alloc(strlen(env_input));
         if (*input) {
@@ -123,7 +121,7 @@ static int cgi_input_get(char **input)
     return ok;
 }
 
-static int cgi_input_post(char **input, int max)
+static int cgi_input_post(char ** input, int max)
 {
     int ok        = 1;
     int input_len = strtoul(getenv("CONTENT_LENGTH"), 0, 10);
@@ -141,10 +139,10 @@ static int cgi_input_post(char **input, int max)
     return ok;
 }
 
-static char *bound(const char *type)
+static char * bound(const char * type)
 {
-    char *res = 0;
-    type = strchr(type, '=');
+    char * res = 0;
+    type       = strchr(type, '=');
     if (type) {
         type += strspn(type, " \t") + 1;
         if (*type == '"') {
@@ -157,44 +155,38 @@ static char *bound(const char *type)
     return res;
 }
 
-static int intput_getter(void *any)
+static int intput_getter(void * any)
 {
     return getchar();
 }
 
-
 /* Interfacial CGI Request Handling */
-int magi_cgi_request(
-    struct magi_request *request,
-    void (*callback)(struct magi_field *field, char *buffer, int len),
-    int max_post
-)
+int magi_cgi_request(struct magi_request * request,
+    void (*callback)(struct magi_field * field, char * buffer, int len),
+    int max_post)
 {
     int ok          = cgi_env(request) && cgi_cookies(&request->cookies);
     request->fields = 0;
     if (request->method) {
         if (!strcmp(request->method, "post")) {
-            const char *t = getenv("CONTENT_TYPE");
+            const char * t = getenv("CONTENT_TYPE");
             if (t) {
                 if (!strncmp(t, "multipart/form-data", 19)) {
-                    char *boundary = bound(t);
+                    char * boundary = bound(t);
                     if (boundary && *boundary) {
-                        ok = magi_parse_multipart(
-                            &request->fields,
-                            intput_getter,
-                            0,
-                            boundary,
-                            callback
-                        );
+                        ok = magi_parse_multipart(&request->fields,
+                            intput_getter, 0, boundary, callback);
                     } else {
                         ok = 0;
                         magi_log("[request:cgi] Multipart bound is not set.");
                     }
                     free(boundary);
                 } else if (!strcmp(t, "application/x-www-form-urlencoded")) {
-                    char *in = 0;
-                    ok = cgi_input_post(&in, max_post);
-                    ok = ok && magi_parse_urlencoded(&request->fields, in);
+                    char * in = 0;
+                    ok        = cgi_input_post(&in, max_post);
+                    if (ok) {
+                        ok = magi_parse_urlencoded(&request->fields, in);
+                    }
                     free(in);
                 } else {
                     ok = 0;
@@ -205,9 +197,9 @@ int magi_cgi_request(
                 magi_log("[request:cgi] Content-type is not set.");
             }
         } else if (!strcmp(request->method, "get")) {
-            char *in = 0;
-            ok = cgi_input_get(&in);
-            ok = ok && magi_parse_urlencoded(&request->fields, in);
+            char * in = 0;
+            ok        = cgi_input_get(&in);
+            ok        = ok && magi_parse_urlencoded(&request->fields, in);
             free(in);
         }
     }

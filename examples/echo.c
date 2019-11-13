@@ -8,17 +8,15 @@
 
 void print_preamble()
 {
-    puts(
-        "Content-type: application/xhtml+xml\r\n\r\n"
-        "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "
-            "'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>"
-        "<html xmlns='http://www.w3.org/1999/xhtml'>"
-        "<head><title>Echo</title></head>"
-        "<body>"
-    );
+    puts("Content-type: application/xhtml+xml\r\n\r\n"
+         "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "
+         "'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>"
+         "<html xmlns='http://www.w3.org/1999/xhtml'>"
+         "<head><title>Echo</title></head>"
+         "<body>");
 }
 
-void proceed_cookies(struct magi_cookie_list *cookies)
+void proceed_cookies(struct magi_cookie_list * cookies)
 {
     puts("<h2>Cookies:</h2>");
     while (cookies) {
@@ -46,7 +44,7 @@ void proceed_cookies(struct magi_cookie_list *cookies)
     puts("<hr/>");
 }
 
-void proceed_fields(struct magi_field_list *fields)
+void proceed_fields(struct magi_field_list * fields)
 {
     puts("<h2>Feilds:</h2>");
     while (fields) {
@@ -60,7 +58,7 @@ void proceed_fields(struct magi_field_list *fields)
     puts("<hr/>");
 }
 
-void proceed_params(struct magi_param_list *params)
+void proceed_params(struct magi_param_list * params)
 {
     puts("<h2>HTTP Parameters:</h2>");
     while (params) {
@@ -114,7 +112,7 @@ void print_footer()
     puts("</body></html>");
 }
 
-int main(int argc, char const *argv[])
+int main(int argc, char const * argv[])
 {
     print_preamble();
     handle_request();
