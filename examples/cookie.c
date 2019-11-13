@@ -5,45 +5,38 @@
 #include <stdlib.h>
 
 
-void print_preamble()
+void response_request(struct magi_request * req, struct magi_response * res)
 {
-    puts("Set-Cookie:cookie=monstre\r\n" /* Important to set cookies before: */
-         "Content-Type: application/xhtml+xml\r\n\r\n");
-}
+    struct magi_cookie_list * cookie;
 
-void print_webpage_top()
-{
-    puts("<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "
-         "'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>"
-         "<html xmlns='http://www.w3.org/1999/xhtml'>"
-         "<head><title>Cookie Listing and Setting</title></head>"
-         "<body>");
-}
+    magi_response_content_type(res, magi_xhtml);
+    magi_response_content(res,
+        "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "
+        "'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>"
+        "<html xmlns='http://www.w3.org/1999/xhtml'>"
+        "<head><title>Cookie Listing and Setting</title></head>"
+        "<body>");
 
-void read_and_print_cookies()
-{
-    struct magi_request request;
-    if (magi_cgi(&request, 0, 0)) {
-        struct magi_cookie_list * cookie;
-        for (cookie = request.cookies; cookie; cookie = cookie->next) {
-            printf("[%s] = [%s]<br/>", cookie->item.name, cookie->item.data);
-        }
-        magi_request_destroy(&request);
+    for (cookie = req->cookies; cookie; cookie = cookie->next) {
+        printf("[%s] = [%s]<br/>", cookie->item.name, cookie->item.data);
     }
-}
 
-void print_webpage_bottom()
-{
-    puts("</body>"
-         "</html>");
+    magi_response_content(res, "</body></html>");
+
+    magi_response_cookie_build(res, "cookie", "monstre", 0, 0, 0);
 }
 
 int main(int argc, char const * argv[])
 {
-    print_preamble();
-    /* Following probably will be much more pleasant with use of templates. */
-    print_webpage_top();
-    read_and_print_cookies();
-    print_webpage_bottom();
+    struct magi_request request;
+    if (magi_cgi(&request, 0, 0)) {
+        struct magi_response response;
+        response_request(&request, &response);
+        magi_cgi_response(&response);
+        magi_response_destroy();
+    } else {
+        magi_cgi_error(request.error);
+    }
+    magi_request_destroy(&request);
     return 0;
 }

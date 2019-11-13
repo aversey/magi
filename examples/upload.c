@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 void tempfile_callback(struct magi_field * field, char * buffer, int len)
 {
     static FILE * file = 0;
@@ -37,8 +38,10 @@ void handle_request()
         if (name && name->data && data) {
             rename("data", name->data);
         }
-        magi_request_destroy(&request);
+    } else {
+        magi_cgi_error(request.error);
     }
+    magi_request_destroy(&request);
 }
 
 void print_preamble()

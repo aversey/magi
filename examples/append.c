@@ -14,8 +14,10 @@ void handle_request()
             fputs(a->data, file);
             fclose(file);
         }
-        magi_request_destroy(&request);
+    } else {
+        magi_cgi_error(request.error);
     }
+    magi_request_destroy(&request);
 }
 
 void print_preamble()

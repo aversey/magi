@@ -10,7 +10,7 @@
  * Request
  *
  * Can be generated via CGI handler (magi_cgi_request) or
- * as session in Fast CGI (magi_fast_cgi_request).
+ * as session in Fast CGI (magi_fcgi_request).
  *
  *     Example:     http://example.com/cgi-bin/script/foo/bar?var2=url%20enc
  * method:          get
@@ -47,7 +47,7 @@ struct magi_request {
     char *                    server_software;
     char *                    path_info;
     struct magi_param_list *  http_params;
-    /* TODO: error. */
+    struct magi_error *       error;
 };
 
 
