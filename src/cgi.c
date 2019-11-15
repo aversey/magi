@@ -74,7 +74,7 @@ static int cgi_http_env(struct magi_request * r)
     return ok;
 }
 
-static void cgi_env(struct magi_error ** e, struct magi_request * r)
+static void cgi_env(enum magi_error * e, struct magi_request * r)
 {
     cgi_http_env(e, r);
     lower_env(e, &r->method, "REQUEST_METHOD");
@@ -93,15 +93,16 @@ static void cgi_env(struct magi_error ** e, struct magi_request * r)
     plain_env(e, &r->path_info, "PATH_INFO");
 }
 
-static void cgi_cookies(struct magi_error **       e,
-                        struct magi_cookie_list ** list)
+static void cgi_cookies(enum magi_error * e, struct magi_cookie_list ** list)
 {
-    const char * env = getenv("HTTP_COOKIE");
-    *list            = 0;
-    if (env && *env) {
-        magi_parse_cookie(e, list, env);
-    } else {
-        *list = 0;
+    if (!*e) {
+        const char * env = getenv("HTTP_COOKIE");
+        *list            = 0;
+        if (env && *env) {
+            magi_parse_cookie(e, list, env);
+        } else {
+            *list = 0;
+        }
     }
 }
 
@@ -120,22 +121,21 @@ static int cgi_input_get(char ** input)
     return ok;
 }
 
-static int cgi_input_post(char ** input, int max)
+static void cgi_input_post(enum magi_error * e, char ** input, int max)
 {
-    int ok        = 1;
-    int input_len = strtoul(getenv("CONTENT_LENGTH"), 0, 10);
-    if (input_len && (input_len < max || !max)) {
-        *input = str_alloc(input_len);
-        if (*input) {
-            if (fread(*input, 1, input_len, stdin) != input_len) {
-                ok = 0;
-                magi_error_set("[request:cgi] Content-length is not correct.");
+    if (!*e) {
+        int input_len = strtoul(getenv("CONTENT_LENGTH"), 0, 10);
+        if (input_len && (input_len < max || !max)) {
+            *input = str_alloc(input_len);
+            if (*input) {
+                if (fread(*input, 1, input_len, stdin) != input_len) {
+                    *e = magi_error_length;
+                }
+            } else {
+                *e = magi_error_input;
             }
-        } else {
-            ok = 0;
         }
     }
-    return ok;
 }
 
 static char * bound(const char * type)
@@ -161,13 +161,14 @@ static int intput_getter(void * any)
 
 /* Interfacial CGI Request Handling */
 int magi_cgi_request(struct magi_request * request,
-                     void (*callback)(struct magi_field * field, char * buffer,
-                                      int len),
+                     void (*callback)(struct magi_field * field,
+                                      char *              buffer,
+                                      int                 len),
                      int max_post)
 {
-    request->fields        = 0;
-    request->error         = 0;
-    struct magi_error ** e = &request->error;
+    request->fields     = 0;
+    request->error      = magi_error_none;
+    enum magi_error * e = &request->error;
     cgi_env(e, request);
     cgi_cookies(e, &request->cookies);
     if (request->method) {
@@ -181,8 +182,7 @@ int magi_cgi_request(struct magi_request * request,
                                              intput_getter, 0, boundary,
                                              callback);
                     } else {
-                        magi_error_add(
-                            e, "[request:cgi] Multipart bound is not set.");
+                        *e = magi_error_nobound;
                     }
                     free(boundary);
                 } else if (!strcmp(t, "application/x-www-form-urlencoded")) {
@@ -191,10 +191,10 @@ int magi_cgi_request(struct magi_request * request,
                     magi_parse_urlencoded(e, &request->fields, in);
                     free(in);
                 } else {
-                    magi_error_add(e, "[request:cgi] Unknown content type.");
+                    *e = magi_error_unknown;
                 }
             } else {
-                magi_error_add(e, "[request:cgi] Content-type is not set.");
+                *e = magi_error_notype;
             }
         } else if (!strcmp(request->method, "get")) {
             char * in = 0;
@@ -203,5 +203,5 @@ int magi_cgi_request(struct magi_request * request,
             free(in);
         }
     }
-    return !request->error;
+    return request->error == magi_error_none;
 }

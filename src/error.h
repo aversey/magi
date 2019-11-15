@@ -2,14 +2,19 @@
 #define MAGI_INCLUDED_ERROR
 
 
-struct magi_error {
-    struct magi_error * prev;
-    char *              message; /* enum magi_error_type { ... } type; */
+enum magi_error {
+    magi_error_none = 0,
+    magi_error_nobound,
+    magi_error_unknown,
+    magi_error_notype,
+    magi_error_length,
+    magi_error_memmory,
+    magi_error_cookies,
+    magi_error_urlenc,
+    magi_error_multipart
 };
 
-
-void magi_error_add(struct magi_error ** error, char * format, ...);
-void magi_error_destroy(struct magi_error * error);
+const char * magi_error_message(enum magi_error error);
 
 
 #endif

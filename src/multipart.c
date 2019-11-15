@@ -433,8 +433,9 @@ static enum st parse_end(struct automata * a, char c)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Automata Runner
  */
-static int run_automata(struct automata * a, int (*next)(void * thing),
-                        void *            thing)
+static int run_automata(struct automata * a,
+                        int (*next)(void * thing),
+                        void * thing)
 {
     int     ok    = 1;
     enum st state = st_begin;
@@ -485,13 +486,16 @@ static int run_automata(struct automata * a, int (*next)(void * thing),
  * Automata Interfaces
  */
 int magi_parse_multipart(struct magi_field_list ** list,
-                         int (*get_next)(void *), void * get_next_arg,
+                         int (*get_next)(void *),
+                         void * get_next_arg,
                          char * boundary,
                          void (*callback)(struct magi_field * field,
-                                          char * buffer, int len))
+                                          char *              buffer,
+                                          int                 len))
 {
-    struct automata a
-        = { 0, { 0, 0, 0 }, { 0, 0 }, 0, 0, 1, 0, 0, 2, 0, 0, 0 };
+    struct automata a = {
+        0, { 0, 0, 0 }, { 0, 0 }, 0, 0, 1, 0, 0, 2, 0, 0, 0
+    };
     int ok         = 0;
     a.list         = list;
     a.boundary     = boundary;
