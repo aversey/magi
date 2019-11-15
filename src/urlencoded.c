@@ -8,6 +8,27 @@
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Local Shortcuts
+ */
+/* Shouldn't be called with 'c' as not hex digit. */
+static char from_hex(char c)
+{
+    char num;
+    if (isdigit(c)) {
+        num = c - '0';
+    } else {
+        num = toupper(c) - 'A' + 10;
+    }
+    return num;
+}
+
+static int is_hex(char c)
+{
+    return isdigit(c) || strchr("ABCDEF", toupper(c));
+}
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * URL Decoding
  */
 static int deurl(char ** data)

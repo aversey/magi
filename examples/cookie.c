@@ -1,6 +1,7 @@
 #include <cgi.h>
 #include <cookie.h>
 #include <request.h>
+#include <response.h>
 #include <stdio.h>
 #include <stdlib.h>
 

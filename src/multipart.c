@@ -10,6 +10,25 @@
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Local Shortcuts
+ */
+static int is_token(char c)
+{
+    return 32 <= c && c <= 126 && !strchr("()<>@,;:\\\"/[]?={} \t", c);
+}
+
+static int is_str_token(char * str)
+{
+    int is = str && *str; /* Empty string is not valid. */
+    while (is && *str) {
+        is = is_token(*str);
+        ++str;
+    }
+    return is;
+}
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Automata for multipart/form-data
  */
 enum st {
