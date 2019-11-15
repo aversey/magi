@@ -1,5 +1,6 @@
 #include "utils.h"
 
+#include "error.h"
 #include <ctype.h>
 #include <stdlib.h>
 
@@ -22,7 +23,7 @@ char * magi_str_create_copy(const char * begin, const char * end)
         memcpy(res, begin, end - begin);
         res[end - begin] = 0;
     } else {
-        magi_log("Cannot allocate string.");
+        magi_error_set("Cannot allocate string.");
     }
     return res;
 }
@@ -33,7 +34,7 @@ char * magi_str_create(int len)
     if (str) {
         str[len] = 0;
     } else {
-        magi_log("Cannot allocate string.");
+        magi_error_set("Cannot allocate string.");
     }
     return str;
 }
@@ -47,7 +48,7 @@ int magi_str_add(char ** dest, int * len, int * size, char c)
     }
     if (*dest == 0) {
         ok = 0;
-        magi_log("Cannot allocate string.");
+        magi_error_set("Cannot allocate string.");
     } else {
         (*dest)[*len] = c;
         ++*len;

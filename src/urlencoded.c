@@ -1,7 +1,7 @@
 #include "urlencoded.h"
 
+#include "error.h"
 #include "field.h"
-#include "log.h"
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -47,7 +47,7 @@ static int deurl(char ** data)
                     ci += 2;
                 } else {
                     ok = 0;
-                    magi_log(
+                    magi_error_set(
                         "[urlencoded] Waiting for two hex digits after '%%', "
                         "readed: \\%o\\%o (render: %c%c)",
                         val[ci + 1], val[ci + 2], val[ci + 1], val[ci + 2]);
@@ -95,7 +95,7 @@ static enum st parse_name(struct automata * a, char c)
             }
             if (!a->field.name) {
                 state = st_error;
-                magi_log("[urlencoded] Cannot allocate field name.");
+                magi_error_set("[urlencoded] Cannot allocate field name.");
             } else {
                 state = st_name;
                 a->len++;
@@ -105,8 +105,8 @@ static enum st parse_name(struct automata * a, char c)
         }
     } else {
         state = st_error;
-        magi_log(
-            "[urlencoded] Reading name, readed: \\%o (render: %c).", c, c);
+        magi_error_set("[urlencoded] Reading name, readed: \\%o (render: %c).",
+                       c, c);
     }
     return state;
 }
@@ -140,7 +140,7 @@ static enum st parse_data(struct automata * a, char c)
             }
             if (!a->field.data) {
                 state = st_error;
-                magi_log("[urlencoded] Cannot allocate field data.");
+                magi_error_set("[urlencoded] Cannot allocate field data.");
             } else {
                 state = st_data;
                 a->len++;
@@ -150,8 +150,8 @@ static enum st parse_data(struct automata * a, char c)
         }
     } else {
         state = st_error;
-        magi_log(
-            "[urlencoded] Reading data, readed: \\%o (render: %c).", c, c);
+        magi_error_set("[urlencoded] Reading data, readed: \\%o (render: %c).",
+                       c, c);
     }
     return state;
 }
@@ -178,7 +178,7 @@ int magi_parse_urlencoded(struct magi_field_list ** list, const char * input)
             state = end_data(&a);
         } else if (state == st_name) {
             state = st_error;
-            magi_log("[urlencoded] Input ended while reading name.");
+            magi_error_set("[urlencoded] Input ended while reading name.");
         }
         free(a.field.name);
         free(a.field.data);

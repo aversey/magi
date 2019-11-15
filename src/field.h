@@ -22,15 +22,15 @@ struct magi_field_list {
  * Adds *item to the begining of *list, item and list are dereferencable;
  * Returns null in case of error.
  */
-int magi_field_list_add(
-    struct magi_field_list ** list, struct magi_field * item);
+int magi_field_list_add(struct magi_field_list ** list,
+                        struct magi_field *       item);
 
 /*
  * Searchs for first node in list: node.name == name, name is C-string;
  * Returns node itself if succeed, otherwise result is null.
  */
-struct magi_field * magi_field_list_get(
-    struct magi_field_list * list, const char * name);
+struct magi_field * magi_field_list_get(struct magi_field_list * list,
+                                        const char *             name);
 
 /*
  * Destroys list; list is not valid after destruction.

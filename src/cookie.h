@@ -27,8 +27,8 @@ int magi_parse_cookie(struct magi_cookie_list ** list, const char * input);
  * Adds *item to the begining of *list, item and list are dereferencable;
  * Returns null in case of error.
  */
-int magi_cookie_list_add(
-    struct magi_cookie_list ** list, struct magi_cookie * item);
+int magi_cookie_list_add(struct magi_cookie_list ** list,
+                         struct magi_cookie *       item);
 
 /*
  * Searchs for first node in list: node.name == name, name is C-string;

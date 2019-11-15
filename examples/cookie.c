@@ -11,12 +11,12 @@ void response_request(struct magi_request * req, struct magi_response * res)
     struct magi_cookie_list * cookie;
 
     magi_response_content_type(res, magi_xhtml);
-    magi_response_content(res,
-        "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "
-        "'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>"
-        "<html xmlns='http://www.w3.org/1999/xhtml'>"
-        "<head><title>Cookie Listing and Setting</title></head>"
-        "<body>");
+    magi_response_content(
+        res, "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "
+             "'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>"
+             "<html xmlns='http://www.w3.org/1999/xhtml'>"
+             "<head><title>Cookie Listing and Setting</title></head>"
+             "<body>");
 
     for (cookie = req->cookies; cookie; cookie = cookie->next) {
         printf("[%s] = [%s]<br/>", cookie->item.name, cookie->item.data);

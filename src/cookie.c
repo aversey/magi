@@ -1,6 +1,6 @@
 #include "cookie.h"
 
-#include "log.h"
+#include "error.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -61,7 +61,7 @@ static int buf_add(struct automata * a, char c)
         a->buf[a->buf_len]     = 0;
     } else {
         ok = 0;
-        magi_log("[cookie] Cannot allocate automata buffer.");
+        magi_error_set("[cookie] Cannot allocate automata buffer.");
     }
     return ok;
 }
@@ -119,7 +119,8 @@ static int end_data(struct automata * a)
     case dt_version:
         if (strcmp(a->buf, "1")) {
             ok = 0;
-            magi_log("[cookie] Version must be '1', readed: %s.", a->buf);
+            magi_error_set("[cookie] Version must be '1', readed: %s.",
+                           a->buf);
         }
     }
     buf_new(a);
@@ -138,7 +139,7 @@ static enum st parse_pre_name(struct automata * a, char c)
         }
     } else {
         state = st_error;
-        magi_log("[cookie] Pre-name, readed: \\%o (render: %c).", c, c);
+        magi_error_set("[cookie] Pre-name, readed: \\%o (render: %c).", c, c);
     }
     return state;
 }
@@ -163,7 +164,8 @@ static enum st parse_name(struct automata * a, char c)
         }
     } else {
         state = st_error;
-        magi_log("[cookie] Reading name, readed: \\%o (render: %c).", c, c);
+        magi_error_set("[cookie] Reading name, readed: \\%o (render: %c).", c,
+                       c);
     }
     return state;
 }
@@ -177,9 +179,9 @@ static enum st parse_post_name(struct automata * a, char c)
         state = st_post_name;
     } else {
         state = st_error;
-        magi_log("[cookie] Waiting for name-value separator, "
-                 "readed: \\%o (render: %c).",
-            c, c);
+        magi_error_set("[cookie] Waiting for name-value separator, "
+                       "readed: \\%o (render: %c).",
+                       c, c);
     }
     return state;
 }
@@ -199,7 +201,7 @@ static enum st parse_pre_data(struct automata * a, char c)
         }
     } else {
         state = st_error;
-        magi_log("[cookie] Pre-value, readed: \\%o (render: %c).", c, c);
+        magi_error_set("[cookie] Pre-value, readed: \\%o (render: %c).", c, c);
     }
     return state;
 }
@@ -225,9 +227,9 @@ static enum st parse_not_quoted_data(struct automata * a, char c)
         }
     } else {
         state = st_error;
-        magi_log("[cookie] Reading not-quoted value, "
-                 "readed: \\%o (render: %c).",
-            c, c);
+        magi_error_set("[cookie] Reading not-quoted value, "
+                       "readed: \\%o (render: %c).",
+                       c, c);
     }
     return state;
 }
@@ -260,8 +262,9 @@ static enum st parse_post_data(struct automata * a, char c)
         state = st_post_data;
     } else {
         state = st_error;
-        magi_log("[cookie] Waiting for separator between name-value pairs, "
-                 "readed: \\%o (render: %c).",
+        magi_error_set(
+            "[cookie] Waiting for separator between name-value pairs, "
+            "readed: \\%o (render: %c).",
             c, c);
     }
     return state;
@@ -281,13 +284,13 @@ static int parse_end(struct automata * a, enum st s)
                     buf_new(a);
                 }
             } else {
-                magi_log("[cookie] No cookies set.");
+                magi_error_set("[cookie] No cookies set.");
             }
         } else {
-            magi_log("[cookie] In quotation when reached input end.");
+            magi_error_set("[cookie] In quotation when reached input end.");
         }
     } else if (s != st_error) {
-        magi_log("[cookie] Input ended in not correct state.");
+        magi_error_set("[cookie] Input ended in not correct state.");
     }
     free(a->cookie.name);
     free(a->cookie.data);
@@ -334,8 +337,8 @@ int magi_parse_cookie(struct magi_cookie_list ** list, const char * input)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Cookie List
  */
-int magi_cookie_list_add(
-    struct magi_cookie_list ** list, struct magi_cookie * item)
+int magi_cookie_list_add(struct magi_cookie_list ** list,
+                         struct magi_cookie *       item)
 {
     struct magi_cookie_list * old = *list;
     int                       ok  = 1;
@@ -345,7 +348,7 @@ int magi_cookie_list_add(
         (*list)->item = *item;
     } else {
         ok = 0;
-        magi_log("[cookie:list] Cannot allocate new list node.");
+        magi_error_set("[cookie:list] Cannot allocate new list node.");
         *list = old;
     }
     return ok;

@@ -1,7 +1,7 @@
 /* Support for multifile controls are not provided. */
 #include "multipart.h"
 
-#include "log.h"
+#include "error.h"
 #include "param.h"
 #include <ctype.h>
 #include <stdio.h>
@@ -76,7 +76,8 @@ static int content_disposition(struct automata * a)
                 ok = 0;
             } else if (a->field.name[0] == 0) {
                 ok = 0;
-                magi_log("[multipart] Wrong content-disposition quotation.");
+                magi_error_set(
+                    "[multipart] Wrong content-disposition quotation.");
             }
         } else {
             a->field.name = create_str(name, name + strcspn(name, " \t"));
@@ -84,8 +85,9 @@ static int content_disposition(struct automata * a)
                 ok = 0;
             } else if (!is_str_token(a->field.name)) {
                 ok = 0;
-                magi_log("[multipart] Content-disposition value is not valid, "
-                         "readed: %s.",
+                magi_error_set(
+                    "[multipart] Content-disposition value is not valid, "
+                    "readed: %s.",
                     a->field.name);
             }
         }
@@ -97,7 +99,7 @@ static int content_disposition(struct automata * a)
         }
     } else {
         ok = 0;
-        magi_log("[multipart] Content-disposition has no '=' symbol.");
+        magi_error_set("[multipart] Content-disposition has no '=' symbol.");
     }
     return ok;
 }
@@ -123,7 +125,7 @@ static int field_end(struct automata * a)
     int ok;
     if (a->field.name == 0) {
         ok = 0;
-        magi_log("[multipart] Field name is empty or not specified.");
+        magi_error_set("[multipart] Field name is empty or not specified.");
     } else {
         if (a->callback) {
             a->callback(&a->field, a->buf, a->buf_size);
@@ -242,7 +244,8 @@ static enum st parse_pname_pre(struct automata * a, char c)
             a->boundary_pos = 0;
         } else {
             state = st_error;
-            magi_log("[multipart] Waiting for name, CR is readed alone.");
+            magi_error_set(
+                "[multipart] Waiting for name, CR is readed alone.");
         }
     } else if (c == '\r') {
         state           = st_pname_pre;
@@ -255,7 +258,7 @@ static enum st parse_pname_pre(struct automata * a, char c)
         }
     } else {
         state = st_error;
-        magi_log(
+        magi_error_set(
             "[multipart] Waiting for name, readed: \\%o (render: %c).", c, c);
     }
     return state;
@@ -278,7 +281,8 @@ static enum st parse_pname(struct automata * a, char c)
         }
     } else {
         state = st_error;
-        magi_log("[multipart] Reading name, readed: \\%o (render: %c).", c, c);
+        magi_error_set("[multipart] Reading name, readed: \\%o (render: %c).",
+                       c, c);
     }
     return state;
 }
@@ -294,9 +298,9 @@ static enum st parse_pname_end(struct automata * a, char c)
         state = st_pname_end;
     } else {
         state = st_error;
-        magi_log("[multipart] Waiting for name-value separator, "
-                 "readed: \\%o (render: %c).",
-            c, c);
+        magi_error_set("[multipart] Waiting for name-value separator, "
+                       "readed: \\%o (render: %c).",
+                       c, c);
     }
     return state;
 }
@@ -429,8 +433,8 @@ static enum st parse_end(struct automata * a, char c)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Automata Runner
  */
-static int run_automata(
-    struct automata * a, int (*next)(void * thing), void * thing)
+static int run_automata(struct automata * a, int (*next)(void * thing),
+                        void *            thing)
 {
     int     ok    = 1;
     enum st state = st_begin;
@@ -468,7 +472,7 @@ static int run_automata(
     if (state != st_end) {
         ok = 0;
         if (state != st_error) {
-            magi_log("[multipart] Input ended unexpectedly.");
+            magi_error_set("[multipart] Input ended unexpectedly.");
         }
         free(a->field.name);
         free(a->field.data);
@@ -481,8 +485,10 @@ static int run_automata(
  * Automata Interfaces
  */
 int magi_parse_multipart(struct magi_field_list ** list,
-    int (*get_next)(void *), void * get_next_arg, char * boundary,
-    void (*callback)(struct magi_field * field, char * buffer, int len))
+                         int (*get_next)(void *), void * get_next_arg,
+                         char * boundary,
+                         void (*callback)(struct magi_field * field,
+                                          char * buffer, int len))
 {
     struct automata a
         = { 0, { 0, 0, 0 }, { 0, 0 }, 0, 0, 1, 0, 0, 2, 0, 0, 0 };

@@ -3,13 +3,13 @@
 
 
 struct magi_error {
-    char * message;
+    struct magi_error * prev;
+    char *              message; /* enum magi_error_type { ... } type; */
 };
 
 
-struct magi_error * magi_error_get();
-void                magi_error_set(char * format, ...);
-void                magi_error_rid();
+void magi_error_add(struct magi_error ** error, char * format, ...);
+void magi_error_destroy(struct magi_error * error);
 
 
 #endif

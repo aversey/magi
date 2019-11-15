@@ -1,6 +1,6 @@
 #include "field.h"
 
-#include "log.h"
+#include "error.h"
 #include "param.h"
 #include <stdlib.h>
 #include <string.h>
@@ -9,8 +9,8 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Form Field
  */
-int magi_field_list_add(
-    struct magi_field_list ** list, struct magi_field * item)
+int magi_field_list_add(struct magi_field_list ** list,
+                        struct magi_field *       item)
 {
     struct magi_field_list * old = *list;
     int                      ok  = 1;
@@ -20,14 +20,14 @@ int magi_field_list_add(
         (*list)->item = *item;
     } else {
         ok = 0;
-        magi_log("[field:list] Cannot allocate new list node.");
+        magi_error_set("[field:list] Cannot allocate new list node.");
         *list = old;
     }
     return ok;
 }
 
-struct magi_field * magi_field_list_get(
-    struct magi_field_list * list, const char * name)
+struct magi_field * magi_field_list_get(struct magi_field_list * list,
+                                        const char *             name)
 {
     struct magi_field * item = 0;
     if (list && name) {

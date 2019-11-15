@@ -30,6 +30,7 @@
  * path_info:       /foo/bar
  */
 struct magi_request {
+    /* TODO: struct magi_param_list * url_params; */
     struct magi_field_list *  fields;
     struct magi_cookie_list * cookies;
     char *                    method;
