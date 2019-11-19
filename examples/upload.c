@@ -11,24 +11,19 @@ void tempfile_callback(struct magi_file * file,
                        int                len,
                        void *             _)
 {
-    static FILE * file = 0;
-    if (!strcmp(field->name, "data")) {
-        if (!file) {
-            remove(field->name);
-            file = fopen(field->name, "wb");
+    if (!strcmp(file->param_name, "data")) {
+        static FILE * f = 0;
+        if (!f) {
+            remove(file->param_name);
+            f = fopen(file->param_name, "wb");
         }
         if (len) {
-            fwrite(buffer, 1, len, file);
+            fwrite(buffer, 1, len, f);
         }
-        if (len < magi_parse_multipart_callback_size) {
-            fclose(file);
-            file = 0;
+        if (len < magi_file_callback_portion_max) {
+            fclose(f);
+            f = 0;
         }
-    } else if (len) {
-        field->data = realloc(field->data, field->len + len + 1);
-        memcpy(field->data + field->len, buffer, len);
-        field->len += len;
-        field->data[field->len] = 0;
     }
 }
 
