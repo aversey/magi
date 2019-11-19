@@ -6,7 +6,10 @@
 #include <string.h>
 
 
-void tempfile_callback(struct magi_field * field, char * buffer, int len)
+void tempfile_callback(struct magi_file * file,
+                       char *             buffer,
+                       int                len,
+                       void *             _)
 {
     static FILE * file = 0;
     if (!strcmp(field->name, "data")) {
@@ -57,7 +60,7 @@ void response_request(struct magi_request * req, struct magi_response * res)
 int main(int argc, char const * argv[])
 {
     struct magi_request request;
-    if (magi_cgi(&request, tempfile_callback, 0)) {
+    if (magi_cgi(&request, tempfile_callback, 0, 0)) {
         struct magi_response response;
         response_request(&request, &response);
         magi_cgi_response(&response);

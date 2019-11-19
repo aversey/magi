@@ -14,8 +14,10 @@ int magi_cgi(struct magi_request * request,
              /* Null callback disables callback system. */
              void (*callback)(struct magi_field * field,
                               char *              buffer,
-                              int                 len),
-             int max_post);
+                              int                 len,
+                              void *              thing),
+             void * thing,
+             int    max_post);
 
 
 #endif

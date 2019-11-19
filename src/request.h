@@ -30,8 +30,9 @@
  * path_info:       /foo/bar
  */
 struct magi_request {
-    /* TODO: struct magi_param_list * url_params; */
-    struct magi_field_list *  fields;
+    struct magi_param_list *  url_params;
+    struct magi_param_list *  params;
+    struct magi_file_list *   files;
     struct magi_cookie_list * cookies;
     char *                    method;
     char *                    uri;
@@ -48,7 +49,7 @@ struct magi_request {
     char *                    server_software;
     char *                    path_info;
     struct magi_param_list *  http_params;
-    struct magi_error *       error;
+    enum magi_error           error;
 };
 
 

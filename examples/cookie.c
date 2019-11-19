@@ -30,7 +30,7 @@ void response_request(struct magi_request * req, struct magi_response * res)
 int main(int argc, char const * argv[])
 {
     struct magi_request request;
-    if (magi_cgi(&request, 0, 0)) {
+    if (magi_cgi(&request, 0, 0, 0)) {
         struct magi_response response;
         response_request(&request, &response);
         magi_cgi_response(&response);

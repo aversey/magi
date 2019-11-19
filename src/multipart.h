@@ -13,8 +13,10 @@ int magi_parse_multipart(
     void * get_next_arg,
     char * boundary,
     /* End if size < magi_parse_multipart_callback_size. */
-    /* Null callback means filling list. */
-    void (*callback)(struct magi_field * field, char * buffer, int size));
+    /* Null callback means skipping. */
+    void (*callback)(
+        struct magi_file * file, char * buffer, int size, void * thing),
+    void * thing);
 
 
 #endif

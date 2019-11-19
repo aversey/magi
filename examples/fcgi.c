@@ -21,21 +21,24 @@ void response_request(struct magi_request * req, struct magi_resopnse * res)
 int main(int argc, char const * argv[])
 {
     struct magi_session session;
-    if (magi_fcgi(&session)) {
+    int                 sock = magi_socket_inet("localhost", 9973);
+    /* E.g. also magi_socket_file("fcgi.sock") can be used. */
+    if (magi_fcgi(&session, sock)) {
         struct magi_request request;
         while (magi_fcgi_accept(&request, &session)) {
             if (!request.error) {
                 struct magi_response response;
                 response_request(&request, &response);
-                magi_fcgi_response(response);
-                magi_reponse_destroy(response);
+                magi_fcgi_response(&response, &session);
+                magi_response_destroy(&response);
             } else {
                 magi_fcgi_error(request.error, &session);
             }
             magi_request_destroy(&request);
         }
     }
-    puts(session.error->message);
+    puts(magi_error_message(session.error));
     magi_session_destroy(&session);
+    magi_socket_close(sock);
     return 0;
 }

@@ -5,6 +5,8 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Parameter
  */
+enum { magi_param_max = 1024 };
+
 struct magi_param {
     char * name; /* name: free(name) is valid. */
     char * data; /* data: free(data) is valid. */
