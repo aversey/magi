@@ -5,7 +5,7 @@
 void   magi_str_lowercase(char * str);
 char * magi_str_create_copy(const char * begin, const char * end);
 char * magi_str_create(int len);
-int    magi_str_add(char ** dest, int * len, int * size, char c);
+char * magi_str_add(char * dest, int * len, int * size, char c);
 
 
 #endif

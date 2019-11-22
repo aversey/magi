@@ -485,13 +485,10 @@ static int run_automata(struct automata * a,
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Automata Interfaces
  */
-int magi_parse_multipart(struct magi_field_list ** list,
-                         int (*get_next)(void *),
-                         void * get_next_arg,
-                         char * boundary,
-                         void (*callback)(struct magi_field * field,
-                                          char *              buffer,
-                                          int                 len))
+int magi_parse_multipart(struct magi_request * request,
+                         char *                boundary,
+                         int (*get_next)(void * userdata),
+                         void * get_next_userdata)
 {
     struct automata a = {
         0, { 0, 0, 0 }, { 0, 0 }, 0, 0, 1, 0, 0, 2, 0, 0, 0

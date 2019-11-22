@@ -2,7 +2,8 @@
 #define MAGI_INCLUDED_REQUEST
 
 #include "cookie.h"
-#include "field.h"
+#include "error.h"
+#include "file.h"
 #include "param.h"
 
 
@@ -10,52 +11,71 @@
  * Request
  *
  * Can be generated via CGI handler (magi_cgi_request) or
- * as session in Fast CGI (magi_fcgi_request).
+ * in a Fast CGI session (magi_fcgi_request).
  *
- *     Example:     http://example.com/cgi-bin/script/foo/bar?var2=url%20enc
- * method:          get
- * uri:             /cgi-bin/script/foo/bar?var2=url%20enc
- * document_root:   { absolute path to root directory of domain }
- * document_uri:    /cgi-bin/script/foo/bar
- * script_name:     /cgi-bin/script
- * script_filename: { absolute path to script on server machine }
- * remote_addr:     { client IP }
- * remote_port:     { client port }
- * server_addr:     { server IP }
- * server_name:     example.com
- *  (^ Better to use http_params["HTTP_HOST"] -- server_name can be IP too.)
- * server_port:     80
- * server_protocol: http/1.1
- * server_software: { name of web server software }
- * path_info:       /foo/bar
+ *
+ * Request URL: http[s]://{server_name}[:{server_port}]{uri}
+ *                         example.com    80
+ * uri: {document_uri}[?{urlencode(url_params)}]
+ *                       alfar=9973&veles=on
+ * document_uri: {script_name}{path_info}
+ *                /bin/script  /article/magic
  */
 struct magi_request {
-    struct magi_param_list *  url_params;
-    struct magi_param_list *  params;
-    struct magi_file_list *   files;
+    /* * * Results * * */
+
+    /* Parsed */
     struct magi_cookie_list * cookies;
-    char *                    method;
-    char *                    uri;
-    char *                    document_root;
-    char *                    document_uri;
-    char *                    script_name;
-    char *                    script_filename;
-    char *                    remote_addr;
-    char *                    remote_port;
-    char *                    server_addr;
-    char *                    server_name;
-    char *                    server_port;
-    char *                    server_protocol;
-    char *                    server_software;
-    char *                    path_info;
-    struct magi_param_list *  http_params;
-    enum magi_error           error;
+    struct magi_param_list *  http_params; /* HTTP Header parameters */
+    struct magi_param_list *  url_params;  /* Urlencoded paramteres from URL */
+    struct magi_param_list *  params;      /* Parameters from 'post' body */
+    struct magi_file_list *   files;       /* Files loaded via multipart */
+
+    /* Environment Shortcuts */
+    char * method;          /* REQUEST_METHOD */
+    char * uri;             /* REQUEST_URI */
+    char * document_root;   /* DOCUMENT_ROOT */
+    char * document_uri;    /* DOCUMENT_URI */
+    char * script_name;     /* SCRIPT_NAME */
+    char * script_filename; /* SCRIPT_FILENAME */
+    char * remote_addr;     /* REMOTE_ADDR */
+    char * remote_port;     /* REMOTE_PORT */
+    char * server_addr;     /* SERVER_ADDR */
+    /* Following can be not a domain name, even if request is done with it.
+     * (Use http_params["HTTP_HOST"] instead.) */
+    char * server_name;     /* SERVER_NAME */
+    char * server_port;     /* SERVER_PORT */
+    char * server_protocol; /* SERVER_PROTOCOL */
+    char * server_software; /* SERVER_COFTWARE */
+    char * path_info;       /* PATH_INFO */
+
+    /* Request Error Code */
+    enum magi_error error;
+
+
+    /* * * Internal Data (no need for user to analyse) * * */
+
+    /* Callback for processing files */
+    void (*file_callback)(struct magi_file * file,
+                          char *             addon,
+                          int                addon_len,
+                          int                is_addon_last,
+                          void *             userdata);
+    void * file_callback_userdata;
+    int    file_callback_addon_len_max;
+
+    /* Limit for memory used (disables with zero) */
+    int max_cookies_size;
+    int max_http_params_size;
+    int max_params_size;
 };
 
 
-/*
- * Destroys request; request is not valid after destruction.
- */
+/* Setup request with default settings. */
+void magi_request_setup(struct magi_request * request);
+
+
+/* Destroys request. */
 void magi_request_destroy(struct magi_request * request);
 
 

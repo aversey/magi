@@ -1,5 +1,6 @@
 #include <cgi.h>
 #include <request.h>
+#include <response.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -7,7 +8,7 @@
 void response_request(struct magi_request * req, struct magi_response * res)
 {
     magi_response_content_type(res, magi_xhtml);
-    magi_response_content(
+    magi_response_add(
         res,
         "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "
         "'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>"
@@ -21,10 +22,10 @@ void response_request(struct magi_request * req, struct magi_response * res)
         "</body>"
         "</html>");
 
-    struct magi_field * a = magi_field_list_get(req->fields, "addon");
-    if (a && a->data) {
+    struct magi_param * addon = magi_param_list_get(req->url_params, "addon");
+    if (addon && addon->data) {
         FILE * file = fopen("file_to_append", "a");
-        fputs(a->data, file);
+        fputs(addon->data, file);
         fclose(file);
     }
 }
@@ -32,13 +33,14 @@ void response_request(struct magi_request * req, struct magi_response * res)
 int main(int argc, char const * argv[])
 {
     struct magi_request request;
-    if (magi_cgi(&request, 0, 0, 0)) {
+    magi_request_setup(&request);
+    if (magi_request_cgi(&request)) {
         struct magi_response response;
         response_request(&request, &response);
-        magi_cgi_response(&response);
-        magi_response_destroy();
+        magi_response_cgi(&response);
+        magi_response_destroy(&response);
     } else {
-        magi_cgi_error(request.error);
+        magi_error_cgi(request.error);
     }
     magi_request_destroy(&request);
     return 0;

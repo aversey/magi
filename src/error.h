@@ -8,7 +8,7 @@ enum magi_error {
     magi_error_unknown,
     magi_error_notype,
     magi_error_length,
-    magi_error_memmory,
+    magi_error_memory,
     magi_error_cookies,
     magi_error_urlenc,
     magi_error_multipart
