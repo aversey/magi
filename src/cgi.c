@@ -2,11 +2,11 @@
 
 #include "cookie.h"
 #include "error.h"
-#include "field.h"
+#include "file.h"
 #include "multipart.h"
 #include "param.h"
 #include "request.h"
-#include "urlencoded.h"
+#include "urlenc.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,9 +16,8 @@ extern char ** environ;
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * CGI Request Handling
+ * CGI Request
  */
-/* Helpers for CGI Request Handling */
 static int plain_env(char ** dest, char * env_name)
 {
     int          ok  = 1;
@@ -160,7 +159,7 @@ static int intput_getter(void * any)
 }
 
 /* Interfacial CGI Request Handling */
-int magi_cgi_request(struct magi_request * request,
+int magi_request_cgi(struct magi_request * request,
                      void (*callback)(struct magi_field * field,
                                       char *              buffer,
                                       int                 len),
@@ -205,3 +204,8 @@ int magi_cgi_request(struct magi_request * request,
     }
     return request->error == magi_error_none;
 }
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * CGI Response
+ */

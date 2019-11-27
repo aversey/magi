@@ -39,7 +39,7 @@ int main(int argc, char const * argv[])
             magi_request_destroy(&request);
         }
     }
-    puts(magi_error_message(session.error));
+    fputs(magi_error_message(session.error), stderr);
     magi_session_destroy(&session);
     magi_socket_close(sock);
     return 0;

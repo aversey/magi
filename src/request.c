@@ -3,19 +3,58 @@
 #include "cookie.h"
 #include "file.h"
 #include "param.h"
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 void magi_request_setup(struct magi_request * request)
 {
     if (request) {
-        request->file_callback               = 0;
-        request->file_callback_userdata      = 0;
-        request->file_callback_addon_len_max = 64;
-        request->max_cookies_size            = 0;
-        request->max_http_params_size        = 0;
-        request->max_params_size             = 0;
+        request->file_callback           = 0;
+        request->file_callback_userdata  = 0;
+        request->file_callback_addon_max = 64;
+        request->cookies_max             = 1024 * 8;
+        request->url_params_max          = 1024 * 2;
+        request->http_params_max         = 1024 * 16;
+        request->params_max              = 0;
     }
+}
+
+static void tempfiles(struct magi_file *      file,
+                      char *                  addon,
+                      int                     addon_len,
+                      int                     is_addon_last,
+                      struct magi_tempfiles * table)
+{
+    int pos;
+    for (pos = 0; pos != table->count; ++pos) {
+        if (!strcmp(table->param_names[pos], file->param_name)) {
+            static FILE * f = 0;
+            static int    left;
+            int           min;
+            if (!f) {
+                const char * loc = table->locations[pos];
+                f                = fopen(loc, "wb");
+                left             = table->maximums[pos];
+            }
+            min = left < addon_len ? left : addon_len;
+            fwrite(addon, 1, min, f);
+            left -= min;
+            if (is_addon_last) {
+                fclose(f);
+                f = 0;
+            }
+            return;
+        }
+    }
+}
+
+void magi_request_setup_tempfiles(struct magi_request *   request,
+                                  struct magi_tempfiles * table)
+{
+    request->file_callback          = tempfiles;
+    request->file_callback_userdata = table;
 }
 
 

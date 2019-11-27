@@ -10,9 +10,15 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Request
  *
- * Can be generated via CGI handler (magi_cgi_request) or
- * in a Fast CGI session (magi_fcgi_request).
+ * Can be created via 'magi_request_{gateway interface name}', but will have
+ * nullified 'post'-related fields ('params' & 'files').  Reason is unlimited
+ * 'post' body size, with possible dependence of wanted limits from data of
+ * headers (e.g. session id from cookies, enabling some users to load more).
+ * To proceed 'post' use 'magi_request_resume_{gateway interface name}',
+ * specifying settings if necessary.
  *
+ *
+ * Cheatsheet on environment:
  *
  * Request URL: http[s]://{server_name}[:{server_port}]{uri}
  *                         example.com    80
@@ -23,13 +29,14 @@
  */
 struct magi_request {
     /* * * Results * * */
+    /* All pointers of this section must be valid as 'free' arguments. */
 
     /* Parsed */
     struct magi_cookie_list * cookies;
     struct magi_param_list *  http_params; /* HTTP Header parameters */
     struct magi_param_list *  url_params;  /* Urlencoded paramteres from URL */
     struct magi_param_list *  params;      /* Parameters from 'post' body */
-    struct magi_file_list *   files;       /* Files loaded via multipart */
+    struct magi_file_list *   files;       /* 'Post' multipart files */
 
     /* Environment Shortcuts */
     char * method;          /* REQUEST_METHOD */
@@ -41,9 +48,9 @@ struct magi_request {
     char * remote_addr;     /* REMOTE_ADDR */
     char * remote_port;     /* REMOTE_PORT */
     char * server_addr;     /* SERVER_ADDR */
-    /* Following can be not a domain name, even if request is done with it.
-     * (Use http_params["HTTP_HOST"] instead.) */
     char * server_name;     /* SERVER_NAME */
+    /* server_name can be not a domain name, even if request is done with it.
+     * (Use http_params["HTTP_HOST"] instead.) */
     char * server_port;     /* SERVER_PORT */
     char * server_protocol; /* SERVER_PROTOCOL */
     char * server_software; /* SERVER_COFTWARE */
@@ -53,7 +60,7 @@ struct magi_request {
     enum magi_error error;
 
 
-    /* * * Internal Data (no need for user to analyse) * * */
+    /* * * Settings * * */
 
     /* Callback for processing files */
     void (*file_callback)(struct magi_file * file,
@@ -62,18 +69,29 @@ struct magi_request {
                           int                is_addon_last,
                           void *             userdata);
     void * file_callback_userdata;
-    int    file_callback_addon_len_max;
+    int    file_callback_addon_max;
 
-    /* Limit for memory used (disables with zero) */
-    int max_cookies_size;
-    int max_http_params_size;
-    int max_params_size;
+    /* Limits for memory used (null <=> unlimitted) */
+    int cookies_max;
+    int url_params_max;
+    int http_params_max;
+    int params_max;
 };
 
 
 /* Setup request with default settings. */
 void magi_request_setup(struct magi_request * request);
 
+struct magi_tempfiles {
+    int           count;
+    const char ** param_names;
+    const char ** locations;
+    int *         maximums; /* Null maximums[i] <=> unlimited tempfiles[i]. */
+};
+/* Setup request callback with files loaded into corresponding to their
+ * parameter names locations; paths are in magi_tempfiles struct. */
+void magi_request_setup_tempfiles(struct magi_request *   request,
+                                  struct magi_tempfiles * table);
 
 /* Destroys request. */
 void magi_request_destroy(struct magi_request * request);

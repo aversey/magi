@@ -33,4 +33,7 @@ void magi_response_cookie_delete(struct magi_response * response,
                                  const char *           name);
 
 
+void magi_response_destroy(struct magi_response * response);
+
+
 #endif

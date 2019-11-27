@@ -2,10 +2,8 @@
 #define MAGI_INCLUDED_COOKIE
 
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Cookie
- */
 struct magi_cookie {
+    /* All pointers must be valid as 'free' arguments. */
     char * name;
     char * data;
     char * path;
@@ -14,21 +12,21 @@ struct magi_cookie {
 };
 
 struct magi_cookie_list {
-    struct magi_cookie_list * next;
+    struct magi_cookie_list * next; /* Must be valid as 'free' arguments. */
     struct magi_cookie        item;
 };
 
 
-/* Returns null only in case of error. */
+/* Addition of item to top of list. Null <=> error. */
 int magi_cookie_list_add(struct magi_cookie_list ** list,
                          struct magi_cookie *       item);
 
-/* Searchs for first node in list: node.name == name, name is C-string;
- * Returns node.data if succeed, otherwise result is null. */
-char * magi_cookie_list_get(struct magi_cookie_list * list, const char * name);
+/* First node in list: node.name == name; else null. */
+struct magi_cookie * magi_cookie_list_get(struct magi_cookie_list * list,
+                                          const char *              name);
 
-/* Destroys list. */
-void magi_cookie_list_free(struct magi_cookie_list * list);
+/* Freeing and invalidation of list. */
+void magi_cookie_list_destroy(struct magi_cookie_list * list);
 
 
 #endif
