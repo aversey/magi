@@ -22,7 +22,7 @@ void response_request(struct magi_request * req, struct magi_response * res)
              "<html xmlns='http://www.w3.org/1999/xhtml'>"
              "<head><title>Upload File</title></head>"
              "<body>"
-             "<form action='/cgi-bin/echo' method='post' "
+             "<form action='/cgi-bin/upload' method='post' "
              "enctype='multipart/form-data'><fieldset>"
              "<input type='text' name='name' value='filename'/>"
              "<input type='file' name='data'/>"
@@ -39,7 +39,7 @@ int main(int argc, char const * argv[])
     magi_request_setup(&request);
     magi_tempfiles_add(&tmps, "data", "data", 0);
     magi_request_setup_tempfiles(&request, &tmps);
-    if (magi_request_cgi(&request)) {
+    if (magi_request_cgi(&request) && magi_request_resume_cgi(&request)) {
         struct magi_response response;
         magi_response_setup(&response);
         response_request(&request, &response);

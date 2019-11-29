@@ -185,15 +185,21 @@ static int next(void * any)
 /* Interfacial CGI Request Handling */
 int magi_request_cgi(struct magi_request * request)
 {
-    enum magi_error * e  = &request->error;
-    request->files       = 0;
-    request->params      = 0;
     request->url_params  = 0;
     request->http_params = 0;
     request->error       = magi_error_none;
     cgi_env(request);
     cgi_cookies(request);
     cgi_url(request);
+    return !request->error;
+}
+
+int magi_request_resume_cgi(struct magi_request * request)
+{
+    enum magi_error * e = &request->error;
+    request->files      = 0;
+    request->params     = 0;
+    request->error      = magi_error_none;
     if (request->method && !strcmp(request->method, "post")) {
         const char * t = getenv("CONTENT_TYPE");
         if (!t) {

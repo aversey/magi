@@ -32,7 +32,7 @@ int main(int argc, char const * argv[])
 {
     struct magi_request request;
     magi_request_setup(&request);
-    if (magi_request_cgi(&request)) {
+    if (magi_request_cgi(&request) && magi_request_resume_cgi(&request)) {
         struct magi_response response;
         magi_response_setup(&response);
         response_request(&request, &response);

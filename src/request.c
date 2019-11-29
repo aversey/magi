@@ -41,9 +41,9 @@ void magi_tempfiles_add(struct magi_tempfiles * tmps,
         tmps->locations   = malloc(sizeof(*tmps->locations));
         tmps->maximums    = malloc(sizeof(*tmps->maximums));
     }
-    tmps->param_names[tmps->count] = name;
-    tmps->locations[tmps->count]   = path;
-    tmps->maximums[tmps->count]    = max;
+    tmps->param_names[tmps->count - 1] = name;
+    tmps->locations[tmps->count - 1]   = path;
+    tmps->maximums[tmps->count - 1]    = max;
 }
 
 static void tempfiles(struct magi_file * file,
@@ -57,16 +57,21 @@ static void tempfiles(struct magi_file * file,
     for (pos = 0; pos != table->count; ++pos) {
         if (!strcmp(table->param_names[pos], file->param_name)) {
             static FILE * f = 0;
+            static int    unlimited;
             static int    left;
-            int           min;
             if (!f) {
                 const char * loc = table->locations[pos];
                 f                = fopen(loc, "wb");
                 left             = table->maximums[pos];
+                unlimited        = !left;
             }
-            min = left < addon_len ? left : addon_len;
-            fwrite(addon, 1, min, f);
-            left -= min;
+            if (unlimited) {
+                fwrite(addon, 1, addon_len, f);
+            } else {
+                int min = left < addon_len ? left : addon_len;
+                fwrite(addon, 1, min, f);
+                left -= min;
+            }
             if (is_addon_last) {
                 fclose(f);
                 f = 0;

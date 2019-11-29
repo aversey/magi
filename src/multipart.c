@@ -58,6 +58,7 @@ struct automata {
     int                   is_end_suspected;
     int                   is_CR_readed;
     int                   is_quoted;
+    int                   readed;
 };
 
 
@@ -102,6 +103,7 @@ static int content_disposition(struct automata * a)
     if (a->file.file_name) {
         a->file.param_name = a->param.name;
         a->file.params     = 0;
+        a->param.name      = 0;
     }
     free(a->subparam.name);
     free(a->subparam.data);
@@ -127,13 +129,10 @@ static int subparam_end(struct automata * a)
 
 static int param_end(struct automata * a)
 {
-    if (!a->param.name) {
-        a->request->error = magi_error_multipart;
-        return 0;
-    }
     if (a->file.file_name) {
         a->request->file_callback(&a->file, a->buf, a->buf_size, 1,
                                   a->request->file_callback_userdata);
+        a->readed -= a->buf_size;
         a->buf_size = 0;
         if (!magi_file_list_add(&a->request->files, &a->file)) {
             free(a->file.file_name);
@@ -149,6 +148,10 @@ static int param_end(struct automata * a)
         a->size            = 1;
         a->len             = 0;
         return 1;
+    }
+    if (!a->param.name) {
+        a->request->error = magi_error_multipart;
+        return 0;
     }
     if (!magi_param_list_add(&a->request->params, &a->param)) {
         free(a->param.name);
@@ -238,6 +241,7 @@ static void apply_callback(struct automata * a)
     if (a->file.file_name && full) {
         a->request->file_callback(&a->file, a->buf, a->buf_size, 0,
                                   a->request->file_callback_userdata);
+        a->readed -= a->buf_size;
         a->buf_size = 0;
     }
 }
@@ -409,7 +413,8 @@ static void run_automata(struct automata * a,
 {
     enum st state = st_begin;
     int     c     = next(next_userdata);
-    while (state && state != st_end && c != EOF) {
+    while (state && state != st_end && c != EOF &&
+           (!a->request->params_max || a->readed != a->request->params_max)) {
         switch (state) {
         case st_begin:
             state = parse_begin(a, c);
@@ -435,6 +440,11 @@ static void run_automata(struct automata * a,
             break;
         }
         c = next(next_userdata);
+        ++a->readed;
+    }
+    if (a->request->params_max && a->readed == a->request->params_max) {
+        a->request->error = magi_error_limit;
+        return;
     }
     if (state == st_data && is_semiend(a)) {
         state = st_end;
@@ -457,7 +467,7 @@ void magi_multipart(struct magi_request * request,
                     void * next_userdata)
 {
     struct automata a = { 0, { 0, 0, 0 }, { 0, 0 }, { 0, 0 }, 0, 0, 1,
-                          0, 0,           2,        0,        0, 0 };
+                          0, 0,           2,        0,        0, 0, 0 };
     a.request         = request;
     a.boundary        = boundary;
     a.boundary_len    = strlen(boundary);

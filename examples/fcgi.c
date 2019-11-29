@@ -27,7 +27,8 @@ int main(int argc, char const * argv[])
     if (magi_session_fcgi(&session, sock)) {
         struct magi_request request;
         magi_request_setup(&request);
-        while (magi_request_fcgi(&request, &session)) {
+        while (magi_request_fcgi(&request, &session) &&
+               magi_request_resume_fcgi(&request, &session)) {
             if (!request.error) {
                 struct magi_response response;
                 magi_response_setup(&response);
