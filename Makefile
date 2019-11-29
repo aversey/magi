@@ -1,7 +1,5 @@
 # Debug mode:
 # DEBUG   = yes
-# Error logging (writes to stderr):
-# ERRLOG  = yes
 
 CC      = gcc
 LIB     = libmagi.a
@@ -11,9 +9,6 @@ ifeq '$(DEBUG)' 'yes'
 CFLAGS += -g -O0
 else
 CFLAGS += -O3
-endif
-ifeq '$(ERRLOG)' 'yes'
-CFLAGS += -D ERRLOG
 endif
 
 SRC_DIR = src

@@ -26,7 +26,6 @@ void response_request(struct magi_request * req, struct magi_response * res)
     magi_response_add(res, "</body></html>");
 
     magi_response_cookie_easy(res, "cookie", "monster");
-    magi_response_cookie_delete(res, "monster");
 }
 
 int main(int argc, char const * argv[])
@@ -35,9 +34,10 @@ int main(int argc, char const * argv[])
     magi_request_setup(&request);
     if (magi_request_cgi(&request)) {
         struct magi_response response;
+        magi_response_setup(&response);
         response_request(&request, &response);
         magi_response_cgi(&response);
-        magi_response_destroy();
+        magi_response_destroy(&response);
     } else {
         magi_error_cgi(request.error);
     }

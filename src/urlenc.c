@@ -1,7 +1,6 @@
-#include "urlencoded.h"
+#include "urlenc.h"
 
-#include "error.h"
-#include "field.h"
+#include "utils.h"
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,21 +9,31 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Local Shortcuts
  */
-/* Shouldn't be called with 'c' as not hex digit. */
-static char from_hex(char c)
+/* Call only if is_hex(c). */
+static int from_hex(char c)
 {
-    char num;
     if (isdigit(c)) {
-        num = c - '0';
+        return c - '0';
     } else {
-        num = toupper(c) - 'A' + 10;
+        return toupper(c) - 'A' + 10;
     }
-    return num;
+}
+
+/* Call only if 0 <= num && num <= 15. */
+static char to_hex(int num)
+{
+    static const char * const hex = "0123456789ABCDEF";
+    return hex[num];
 }
 
 static int is_hex(char c)
 {
     return isdigit(c) || strchr("ABCDEF", toupper(c));
+}
+
+static int is_url(char c)
+{
+    return isalnum(c) || strchr("$-_.+ !*'(),", c);
 }
 
 
@@ -33,37 +42,32 @@ static int is_hex(char c)
  */
 static int deurl(char ** data)
 {
-    int ok = 1;
-    if (*data) {
-        char * val = *data;
-        int    ti  = 0;
-        int    ci;
-        for (ci = 0; ok && val[ci]; ++ti, ++ci) {
-            if (val[ci] == '%') {
-                if (is_hex(val[ci + 1]) && is_hex(val[ci + 2])) {
-                    /* Since chars can be signed, arithmetics are not safe. */
-                    val[ti] = from_hex(val[ci + 2]);       /* 00xx */
-                    val[ti] |= from_hex(val[ci + 1]) << 4; /* XXxx */
-                    ci += 2;
-                } else {
-                    ok = 0;
-                    magi_error_set(
-                        "[urlencoded] Waiting for two hex digits after '%%', "
-                        "readed: \\%o\\%o (render: %c%c)",
-                        val[ci + 1], val[ci + 2], val[ci + 1], val[ci + 2]);
-                }
-            } else if (val[ci] == '+') {
-                val[ti] = ' ';
-            } else {
-                val[ti] = val[ci];
-            }
-        }
-        val[ti++] = 0;
-    } else {
+    char * val = *data;
+    int    ti;
+    int    ci;
+    if (!val) {
         *data  = malloc(1);
         **data = 0;
+        return 1;
     }
-    return ok;
+    for (ti = 0, ci = 0; val[ci]; ++ti, ++ci) {
+        if (val[ci] == '%') {
+            if (is_hex(val[ci + 1]) && is_hex(val[ci + 2])) {
+                /* Since chars can be signed, arithmetics are not safe. */
+                val[ti] = from_hex(val[ci + 2]);       /* 0000xxxx */
+                val[ti] |= from_hex(val[ci + 1]) << 4; /* XXXXxxxx */
+                ci += 2; /* Two extra characters are readed from code. */
+            } else {
+                return 0;
+            }
+        } else if (val[ci] == '+') {
+            val[ti] = ' ';
+        } else {
+            val[ti] = val[ci];
+        }
+    }
+    val[ti] = 0;
+    return 1;
 }
 
 
@@ -73,8 +77,8 @@ static int deurl(char ** data)
 enum st { st_error = 0, st_name, st_data };
 
 struct automata {
-    struct magi_field_list ** list;
-    struct magi_field         field;
+    struct magi_param_list ** list;
+    struct magi_param         param;
     int                       size;
     int                       len;
 };
@@ -82,106 +86,106 @@ struct automata {
 
 static enum st parse_name(struct automata * a, char c)
 {
-    enum st state;
-    if (c != '&' && c != ';') {
-        if (c == '=') {
-            state   = st_data;
-            a->size = 1;
-            a->len  = 0;
-        } else {
-            if (a->len == a->size - 1) {
-                a->size *= 2;
-                a->field.name = realloc(a->field.name, a->size);
-            }
-            if (!a->field.name) {
-                state = st_error;
-                magi_error_set("[urlencoded] Cannot allocate field name.");
-            } else {
-                state = st_name;
-                a->len++;
-                a->field.name[a->len - 1] = c;
-                a->field.name[a->len]     = 0;
-            }
-        }
-    } else {
-        state = st_error;
-        magi_error_set("[urlencoded] Reading name, readed: \\%o (render: %c).",
-                       c, c);
+    if (c == '&' || c == ';') { /* Impossible character means error. */
+        return st_error;
     }
-    return state;
+    if (c == '=') { /* Separator ends name. */
+        a->size = 1;
+        a->len  = 0;
+        return st_data;
+    }
+
+    if (!magi_str_add(&a->param.name, &a->len, &a->size, c)) {
+        return st_error;
+    }
+    return st_name;
 }
 
 static enum st end_data(struct automata * a)
 {
-    enum st state = st_error;
-    if (deurl(&a->field.name) && deurl(&a->field.data)) {
-        a->field.len = strlen(a->field.data);
-        if (magi_field_list_add(a->list, &a->field)) {
-            state         = st_name;
+    if (deurl(&a->param.name) && deurl(&a->param.data)) {
+        if (magi_param_list_add(a->list, &a->param)) {
             a->size       = 1;
             a->len        = 0;
-            a->field.name = 0;
-            a->field.data = 0;
+            a->param.name = 0;
+            a->param.data = 0;
+            return st_name;
         }
     }
-    return state;
+    return st_error;
 }
 
 static enum st parse_data(struct automata * a, char c)
 {
-    enum st state;
-    if (c != '=') {
-        if (c == '&' || c == ';') {
-            state = end_data(a);
-        } else {
-            if (a->len == a->size - 1) {
-                a->size *= 2;
-                a->field.data = realloc(a->field.data, a->size);
-            }
-            if (!a->field.data) {
-                state = st_error;
-                magi_error_set("[urlencoded] Cannot allocate field data.");
-            } else {
-                state = st_data;
-                a->len++;
-                a->field.data[a->len - 1] = c;
-                a->field.data[a->len]     = 0;
-            }
-        }
-    } else {
-        state = st_error;
-        magi_error_set("[urlencoded] Reading data, readed: \\%o (render: %c).",
-                       c, c);
+    if (c == '=') { /* Impossible character means error. */
+        return st_error;
     }
-    return state;
+    if (c == '&' || c == ';') { /* Separator ends data. */
+        return end_data(a);
+    }
+
+    if (!magi_str_add(&a->param.data, &a->len, &a->size, c)) {
+        return st_error;
+    }
+    return st_data;
 }
 
-int magi_parse_urlencoded(struct magi_field_list ** list, const char * input)
+void magi_urlenc(struct magi_param_list ** list,
+                 struct magi_request *     request,
+                 const char *              encoded)
 {
-    enum st         state = st_name;
-    struct automata a     = { 0, { 0, 0, 0 }, 1, 0 };
-    if (input && *input) {
-        a.list = list;
-        while (state && *input) {
-            switch (state) {
-            case st_name:
-                state = parse_name(&a, *input);
-                break;
-            case st_data:
-                state = parse_data(&a, *input);
-            default:
-                break;
-            }
-            ++input;
-        }
-        if (state == st_data) {
-            state = end_data(&a);
-        } else if (state == st_name) {
-            state = st_error;
-            magi_error_set("[urlencoded] Input ended while reading name.");
-        }
-        free(a.field.name);
-        free(a.field.data);
+    enum st         state;
+    struct automata a = { 0, { 0, 0 }, 1, 0 };
+    a.list            = list;
+    *list             = 0;
+    if (!encoded || !*encoded) {
+        return;
     }
-    return state != st_error;
+    for (state = st_name; state && *encoded; ++encoded) {
+        if (state == st_name) {
+            state = parse_name(&a, *encoded);
+        } else {
+            state = parse_data(&a, *encoded);
+        }
+    }
+    if (state == st_name || !state || !end_data(&a)) {
+        free(a.param.name);
+        free(a.param.data);
+        request->error = magi_error_urlenc;
+    }
+}
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * URL Encoding
+ */
+int magi_urlenc_size(const char * plain)
+{
+    int size;
+    if (!plain) {
+        return 0;
+    }
+    for (size = 0; *plain; ++plain, ++size) {
+        if (!is_url(*plain)) {
+            size += 2;
+        }
+    }
+    return size;
+}
+
+void magi_urlencode(const char * plain, char * code)
+{
+    if (!plain || !code) {
+        return;
+    }
+    while (*plain) {
+        if (is_url(*plain)) {
+            *++code = *plain;
+        } else {
+            *++code = '%';
+            *++code = to_hex(*plain & 0x0F);
+            *++code = to_hex(*plain >> 4);
+        }
+        ++plain;
+    }
 }

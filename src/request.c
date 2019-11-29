@@ -21,13 +21,39 @@ void magi_request_setup(struct magi_request * request)
     }
 }
 
-static void tempfiles(struct magi_file *      file,
-                      char *                  addon,
-                      int                     addon_len,
-                      int                     is_addon_last,
-                      struct magi_tempfiles * table)
+void magi_tempfiles_add(struct magi_tempfiles * tmps,
+                        const char *            name,
+                        const char *            path,
+                        int                     max)
 {
-    int pos;
+    if (!tmps) {
+        return;
+    }
+    if (tmps->count++) {
+        tmps->param_names = realloc(tmps->param_names,
+                                    sizeof(*tmps->param_names) * tmps->count);
+        tmps->locations =
+            realloc(tmps->locations, sizeof(*tmps->locations) * tmps->count);
+        tmps->maximums =
+            realloc(tmps->maximums, sizeof(*tmps->maximums) * tmps->count);
+    } else {
+        tmps->param_names = malloc(sizeof(*tmps->param_names));
+        tmps->locations   = malloc(sizeof(*tmps->locations));
+        tmps->maximums    = malloc(sizeof(*tmps->maximums));
+    }
+    tmps->param_names[tmps->count] = name;
+    tmps->locations[tmps->count]   = path;
+    tmps->maximums[tmps->count]    = max;
+}
+
+static void tempfiles(struct magi_file * file,
+                      char *             addon,
+                      int                addon_len,
+                      int                is_addon_last,
+                      void *             userdata)
+{
+    struct magi_tempfiles * table = userdata;
+    int                     pos;
     for (pos = 0; pos != table->count; ++pos) {
         if (!strcmp(table->param_names[pos], file->param_name)) {
             static FILE * f = 0;
@@ -81,7 +107,7 @@ static void request_free(struct magi_request * request)
     free(request->path_info);
 }
 
-void magi_request_annul(struct magi_request * request)
+static void request_annul(struct magi_request * request)
 {
     request->cookies         = 0;
     request->http_params     = 0;

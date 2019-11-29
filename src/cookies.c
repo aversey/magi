@@ -1,5 +1,8 @@
+/* * *   TODO   * * */
 #include "cookies.h"
 
+#include "utils.h"
+#include <stdlib.h>
 #include <string.h>
 
 
@@ -27,6 +30,7 @@ struct automata {
     enum data_type             data_t;
 };
 
+
 static void nulify_cookie(struct automata * a)
 {
     a->cookie.name   = 0;
@@ -43,23 +47,6 @@ static void buf_new(struct automata * a)
     a->buf_size = 1;
 }
 
-static int buf_add(struct automata * a, char c)
-{
-    int ok = 1;
-    if (a->buf_len == a->buf_size - 1) {
-        a->buf_size *= 2;
-        a->buf = realloc(a->buf, a->buf_size);
-    }
-    if (a->buf) {
-        a->buf_len++;
-        a->buf[a->buf_len - 1] = c;
-        a->buf[a->buf_len]     = 0;
-    } else {
-        ok = 0;
-        magi_error_set("[cookie] Cannot allocate automata buffer.");
-    }
-    return ok;
-}
 
 static enum data_type what_is_name(const struct automata * a)
 {
@@ -77,6 +64,7 @@ static enum data_type what_is_name(const struct automata * a)
     }
     return data_t;
 }
+
 
 static int end_name(struct automata * a)
 {
@@ -114,13 +102,12 @@ static int end_data(struct automata * a)
     case dt_version:
         if (strcmp(a->buf, "1")) {
             ok = 0;
-            magi_error_set("[cookie] Version must be '1', readed: %s.",
-                           a->buf);
         }
     }
     buf_new(a);
     return ok;
 }
+
 
 static enum st parse_pre_name(struct automata * a, char c)
 {
@@ -129,12 +116,11 @@ static enum st parse_pre_name(struct automata * a, char c)
         state = st_name;
     } else if (32 <= c && c <= 126 && !strchr("()<>@,;:\\\"/[]?={}", c)) {
         state = st_name;
-        if (!buf_add(a, c)) {
+        if (!magi_str_add(&a->buf, &a->buf_len, &a->buf_size, c)) {
             state = st_error;
         }
     } else {
         state = st_error;
-        magi_error_set("[cookie] Pre-name, readed: \\%o (render: %c).", c, c);
     }
     return state;
 }
@@ -154,13 +140,11 @@ static enum st parse_name(struct automata * a, char c)
         }
     } else if (32 <= c && c <= 126 && !strchr("()<>@,;:\\\"/[]?={}", c)) {
         state = st_name;
-        if (!buf_add(a, c)) {
+        if (!magi_str_add(&a->buf, &a->buf_len, &a->buf_size, c)) {
             state = st_error;
         }
     } else {
         state = st_error;
-        magi_error_set("[cookie] Reading name, readed: \\%o (render: %c).", c,
-                       c);
     }
     return state;
 }
@@ -174,9 +158,6 @@ static enum st parse_post_name(struct automata * a, char c)
         state = st_post_name;
     } else {
         state = st_error;
-        magi_error_set("[cookie] Waiting for name-value separator, "
-                       "readed: \\%o (render: %c).",
-                       c, c);
     }
     return state;
 }
@@ -191,12 +172,11 @@ static enum st parse_pre_data(struct automata * a, char c)
         a->is_quoted = 1;
     } else if (32 <= c && c <= 126 && !strchr("()<>@,;:\\\"/[]?={}", c)) {
         state = st_data;
-        if (!buf_add(a, c)) {
+        if (!magi_str_add(&a->buf, &a->buf_len, &a->buf_size, c)) {
             state = st_error;
         }
     } else {
         state = st_error;
-        magi_error_set("[cookie] Pre-value, readed: \\%o (render: %c).", c, c);
     }
     return state;
 }
@@ -217,14 +197,11 @@ static enum st parse_not_quoted_data(struct automata * a, char c)
         }
     } else if (32 <= c && c <= 126 && !strchr("()<>@,;:\\\"/[]?={}", c)) {
         state = st_data;
-        if (!buf_add(a, c)) {
+        if (!magi_str_add(&a->buf, &a->buf_len, &a->buf_size, c)) {
             state = st_error;
         }
     } else {
         state = st_error;
-        magi_error_set("[cookie] Reading not-quoted value, "
-                       "readed: \\%o (render: %c).",
-                       c, c);
     }
     return state;
 }
@@ -257,73 +234,63 @@ static enum st parse_post_data(struct automata * a, char c)
         state = st_post_data;
     } else {
         state = st_error;
-        magi_error_set(
-            "[cookie] Waiting for separator between name-value pairs, "
-            "readed: \\%o (render: %c).",
-            c, c);
     }
     return state;
 }
 
-static int parse_end(struct automata * a, enum st s)
+
+static void parse_end(enum magi_error * e, struct automata * a, enum st s)
 {
-    int ok = 0;
-    if (s == st_post_data) {
-        ok = 1;
-    } else if (s == st_data) {
-        if (!a->is_quoted) {
-            if (a->cookie.name) {
-                if (end_data(a) && magi_cookie_list_add(a->list, &a->cookie)) {
-                    ok = 1;
-                    nulify_cookie(a);
-                    buf_new(a);
-                }
-            } else {
-                magi_error_set("[cookie] No cookies set.");
-            }
-        } else {
-            magi_error_set("[cookie] In quotation when reached input end.");
+    if (s == st_data) {
+        if (a->is_quoted || !a->cookie.name) {
+            *e = magi_error_cookies;
+            return;
         }
-    } else if (s != st_error) {
-        magi_error_set("[cookie] Input ended in not correct state.");
+        if (end_data(a) && magi_cookie_list_add(a->list, &a->cookie)) {
+            nulify_cookie(a);
+        } else {
+            *e = magi_error_cookies;
+        }
+    } else if (s != st_post_data) {
+        *e = magi_error_cookies;
     }
-    free(a->cookie.name);
-    free(a->cookie.data);
-    free(a->cookie.path);
-    free(a->cookie.domain);
-    free(a->cookie.port);
-    free(a->buf);
-    return ok;
 }
 
-int magi_parse_cookie(struct magi_cookie_list ** list, const char * input)
+
+void magi_cookies(struct magi_request * request, const char * data)
 {
-    struct automata a     = { 0, { 0, 0, 0, 0, 0 }, 0, 0, 1, 1, 0, 0, 0 };
-    enum st         state = st_pre_name;
-    a.list                = list;
-    while (*input && state) {
-        char c = *input++;
+    enum st         state;
+    struct automata a = { 0, { 0, 0, 0, 0, 0 }, 0, 0, 1, 1, 0, 0, 0 };
+    a.list            = &request->cookies;
+    request->cookies  = 0;
+    for (state = st_pre_name; state && *data; ++data) {
         switch (state) {
         case st_pre_name:
-            state = parse_pre_name(&a, c);
+            state = parse_pre_name(&a, *data);
             break;
         case st_name:
-            state = parse_name(&a, c);
+            state = parse_name(&a, *data);
             break;
         case st_post_name:
-            state = parse_post_name(&a, c);
+            state = parse_post_name(&a, *data);
             break;
         case st_pre_data:
-            state = parse_pre_data(&a, c);
+            state = parse_pre_data(&a, *data);
             break;
         case st_data:
-            state = parse_data(&a, c);
+            state = parse_data(&a, *data);
             break;
         case st_post_data:
-            state = parse_post_data(&a, c);
+            state = parse_post_data(&a, *data);
         default:
             break;
         }
     }
-    return parse_end(&a, state);
+    parse_end(&request->error, &a, state);
+    free(a.cookie.name);
+    free(a.cookie.data);
+    free(a.cookie.path);
+    free(a.cookie.domain);
+    free(a.cookie.port);
+    free(a.buf);
 }

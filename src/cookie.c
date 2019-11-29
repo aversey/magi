@@ -13,7 +13,7 @@ int magi_cookie_list_add(struct magi_cookie_list ** list,
         node->item = *item;
         *list      = node;
     }
-    return node;
+    return !!node;
 }
 
 struct magi_cookie * magi_cookie_list_get(struct magi_cookie_list * list,

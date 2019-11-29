@@ -12,7 +12,7 @@ int magi_file_list_add(struct magi_file_list ** list, struct magi_file * item)
         node->item = *item;
         *list      = node;
     }
-    return node;
+    return !!node;
 }
 
 struct magi_file * magi_file_list_get(struct magi_file_list * list,

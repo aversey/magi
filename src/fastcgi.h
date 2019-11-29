@@ -2,7 +2,9 @@
 #define MAGI_INCLUDED_FASTCGI
 
 
-/* TODO */
+/* * *   TODO   * * */
+
+enum { magi_to_avoid_warning };
 
 
 #endif

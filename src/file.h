@@ -1,6 +1,8 @@
 #ifndef MAGI_INCLUDED_FILE
 #define MAGI_INCLUDED_FILE
 
+#include "param.h"
+
 
 struct magi_file {
     /* All pointers must be valid as 'free' arguments. */

@@ -30,6 +30,7 @@ int main(int argc, char const * argv[])
         while (magi_request_fcgi(&request, &session)) {
             if (!request.error) {
                 struct magi_response response;
+                magi_response_setup(&response);
                 response_request(&request, &response);
                 magi_response_fcgi(&response, &session);
                 magi_response_destroy(&response);

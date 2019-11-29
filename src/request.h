@@ -88,6 +88,10 @@ struct magi_tempfiles {
     const char ** locations;
     int *         maximums; /* Null maximums[i] <=> unlimited tempfiles[i]. */
 };
+void magi_tempfiles_add(struct magi_tempfiles * tmps,
+                        const char *            name,
+                        const char *            path,
+                        int                     max);
 /* Setup request callback with files loaded into corresponding to their
  * parameter names locations; paths are in magi_tempfiles struct. */
 void magi_request_setup_tempfiles(struct magi_request *   request,

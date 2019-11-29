@@ -47,11 +47,23 @@ void proceed_params(struct magi_param_list * params,
     magi_response_add(response, "<hr/>");
 }
 
+void proceed_files(struct magi_file_list * files,
+                   struct magi_response *  response)
+{
+    while (files) {
+        magi_response_add_format(response, "[%s] was [%s] on userside<br/>",
+                                 files->item.param_name,
+                                 files->item.file_name);
+        files = files->next;
+    }
+    magi_response_add(response, "<hr/>");
+}
+
 void process_meta(struct magi_request * req, struct magi_response * res)
 {
     magi_response_add(res,
-                      "<h1>Echo CGI Script</h1>I was called with method [%s",
-                      req->method);
+                      "<h1>Echo CGI Script</h1>I was called with method [");
+    magi_response_add(res, req->method);
     if (req->uri) {
         magi_response_add(res, "] with URL [");
         magi_response_add(res, req->uri);
@@ -92,6 +104,8 @@ void response_request(struct magi_request * req, struct magi_response * res)
     proceed_params(req->url_params, res);
     magi_response_add(res, "<h2>HTTP Parameters:</h2>");
     proceed_params(req->http_params, res);
+    magi_response_add(res, "<h2>Files:</h2>");
+    proceed_files(req->files, res);
     magi_response_add(res, "</body></html>");
 }
 
@@ -101,6 +115,7 @@ int main(int argc, char const * argv[])
     magi_request_setup(&request);
     if (magi_request_cgi(&request)) {
         struct magi_response response;
+        magi_response_setup(&response);
         response_request(&request, &response);
         magi_response_cgi(&response);
         magi_response_destroy(&response);

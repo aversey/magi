@@ -11,7 +11,8 @@ enum magi_error {
     magi_error_memory,
     magi_error_cookies,
     magi_error_urlenc,
-    magi_error_multipart
+    magi_error_multipart,
+    magi_error_limit
 };
 
 const char * magi_error_message(enum magi_error error);

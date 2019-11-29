@@ -13,7 +13,7 @@ int magi_param_list_add(struct magi_param_list ** list,
         node->item = *item;
         *list      = node;
     }
-    return node;
+    return !!node;
 }
 
 char * magi_param_list_get(struct magi_param_list * list, const char * name)
@@ -21,7 +21,7 @@ char * magi_param_list_get(struct magi_param_list * list, const char * name)
     if (!list || !name) {
         return 0;
     } else if (!strcmp(list->item.name, name)) {
-        return &list->item.data;
+        return list->item.data;
     } else {
         return magi_param_list_get(list->next, name);
     }

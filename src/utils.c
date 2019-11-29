@@ -1,8 +1,8 @@
 #include "utils.h"
 
-#include "error.h"
 #include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 void magi_str_lowercase(char * str)
@@ -35,17 +35,16 @@ char * magi_str_create(int len)
     return str;
 }
 
-char * magi_str_add(char * dest, int * len, int * size, char c)
+int magi_str_add(char ** dest, int * len, int * size, char c)
 {
-    int ok = 1;
     if (*len + 1 == *size) {
         *size *= 2;
-        dest = realloc(dest, *size);
+        *dest = realloc(*dest, *size);
     }
-    if (dest) {
-        dest[*len] = c;
+    if (*dest) {
+        (*dest)[*len] = c;
         ++*len;
-        dest[*len] = 0;
+        (*dest)[*len] = 0;
     }
-    return dest;
+    return !!*dest;
 }

@@ -7,30 +7,14 @@
 #include <string.h>
 
 
-void tempfile_callback(struct magi_file * file,
-                       char *             addon,
-                       int                addon_len,
-                       int                is_addon_last,
-                       void *             unused)
-{
-    if (!strcmp(file->param_name, "data")) {
-        static FILE * f = 0;
-        if (!f) {
-            remove(file->param_name);
-            f = fopen(file->param_name, "wb");
-        }
-        if (addon_len) {
-            fwrite(addon, 1, addon_len, f);
-        }
-        if (is_addon_last) {
-            fclose(f);
-            f = 0;
-        }
-    }
-}
-
 void response_request(struct magi_request * req, struct magi_response * res)
 {
+    char *             name = magi_param_list_get(req->params, "name");
+    struct magi_file * data = magi_file_list_get(req->files, "data");
+    if (name && data) {
+        rename("data", name);
+    }
+
     magi_response_content_type(res, magi_xhtml);
     magi_response_add(
         res, "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "
@@ -38,7 +22,7 @@ void response_request(struct magi_request * req, struct magi_response * res)
              "<html xmlns='http://www.w3.org/1999/xhtml'>"
              "<head><title>Upload File</title></head>"
              "<body>"
-             "<form action='/cgi-bin/upload' method='post' "
+             "<form action='/cgi-bin/echo' method='post' "
              "enctype='multipart/form-data'><fieldset>"
              "<input type='text' name='name' value='filename'/>"
              "<input type='file' name='data'/>"
@@ -46,24 +30,21 @@ void response_request(struct magi_request * req, struct magi_response * res)
              "</fieldset></form>"
              "</body>"
              "</html>");
-
-    struct magi_param * name = magi_param_list_get(req->params, "name");
-    struct magi_param * data = magi_param_list_get(req->params, "data");
-    if (name && name->data && data) {
-        rename("data", name->data);
-    }
 }
 
 int main(int argc, char const * argv[])
 {
-    struct magi_request request;
+    struct magi_request   request;
+    struct magi_tempfiles tmps = { 0, 0, 0, 0 };
     magi_request_setup(&request);
-    request.file_callback = tempfile_callback;
+    magi_tempfiles_add(&tmps, "data", "data", 0);
+    magi_request_setup_tempfiles(&request, &tmps);
     if (magi_request_cgi(&request)) {
         struct magi_response response;
+        magi_response_setup(&response);
         response_request(&request, &response);
         magi_response_cgi(&response);
-        magi_response_destroy();
+        magi_response_destroy(&response);
     } else {
         magi_error_cgi(request.error);
     }
