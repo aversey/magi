@@ -21,7 +21,7 @@ struct magi_cookie_list {
 int magi_cookie_list_add(struct magi_cookie_list ** list,
                          struct magi_cookie *       item);
 
-/* First node in list: node.name == name; else null. */
+/* Data of the first node in list: node.name == name; else null. */
 char * magi_cookie_list_get(struct magi_cookie_list * list, const char * name);
 
 /* Freeing and invalidation of list. */
