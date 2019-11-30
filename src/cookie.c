@@ -16,13 +16,12 @@ int magi_cookie_list_add(struct magi_cookie_list ** list,
     return !!node;
 }
 
-struct magi_cookie * magi_cookie_list_get(struct magi_cookie_list * list,
-                                          const char *              name)
+char * magi_cookie_list_get(struct magi_cookie_list * list, const char * name)
 {
     if (!list || !name) {
         return 0;
     } else if (!strcmp(list->item.name, name)) {
-        return &list->item;
+        return list->item.data;
     } else {
         return magi_cookie_list_get(list->next, name);
     }

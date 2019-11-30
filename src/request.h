@@ -82,20 +82,26 @@ struct magi_request {
 /* Setup request with default settings. */
 void magi_request_setup(struct magi_request * request);
 
+
 struct magi_tempfiles {
     int           count;
     const char ** param_names;
     const char ** locations;
     int *         maximums; /* Null maximums[i] <=> unlimited tempfiles[i]. */
 };
+
 void magi_tempfiles_add(struct magi_tempfiles * tmps,
                         const char *            name,
                         const char *            path,
                         int                     max);
+
+void magi_tempfiles_destroy(struct magi_tempfiles * tmps);
+
 /* Setup request callback with files loaded into corresponding to their
  * parameter names locations; paths are in magi_tempfiles struct. */
 void magi_request_setup_tempfiles(struct magi_request *   request,
                                   struct magi_tempfiles * table);
+
 
 /* Destroys request. */
 void magi_request_destroy(struct magi_request * request);

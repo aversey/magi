@@ -21,6 +21,7 @@ void magi_request_setup(struct magi_request * request)
     }
 }
 
+
 void magi_tempfiles_add(struct magi_tempfiles * tmps,
                         const char *            name,
                         const char *            path,
@@ -44,6 +45,16 @@ void magi_tempfiles_add(struct magi_tempfiles * tmps,
     tmps->param_names[tmps->count - 1] = name;
     tmps->locations[tmps->count - 1]   = path;
     tmps->maximums[tmps->count - 1]    = max;
+}
+
+void magi_tempfiles_destroy(struct magi_tempfiles * tmps)
+{
+    if (!tmps) {
+        return;
+    }
+    free(tmps->param_names);
+    free(tmps->locations);
+    free(tmps->maximums);
 }
 
 static void tempfiles(struct magi_file * file,
