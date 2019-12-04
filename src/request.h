@@ -34,7 +34,7 @@ struct magi_request {
     /* Parsed */
     struct magi_cookie_list * cookies;
     struct magi_param_list *  http_params; /* HTTP Header parameters */
-    struct magi_param_list *  url_params;  /* Urlencoded paramteres from URL */
+    struct magi_param_list *  url_params;  /* Paramteres from URL */
     struct magi_param_list *  params;      /* Parameters from 'post' body */
     struct magi_file_list *   files;       /* 'Post' multipart files */
 
