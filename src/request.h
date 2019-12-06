@@ -83,11 +83,22 @@ struct magi_request {
 void magi_request_setup(struct magi_request * request);
 
 
+/* Destroys request. */
+void magi_request_destroy(struct magi_request * request);
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Tempfiles Callback
+ */
+struct magi_tempfile {
+    const char * param_name; /* Form field name, in which file is expected. */
+    const char * location;   /* Location to load file in. */
+    int          maximum;    /* Null <=> unlimited. */
+};
+
 struct magi_tempfiles {
-    int           count;
-    const char ** param_names;
-    const char ** locations;
-    int *         maximums; /* Null maximums[i] <=> unlimited tempfiles[i]. */
+    int                    count;
+    struct magi_tempfile * tmps;
 };
 
 void magi_tempfiles_add(struct magi_tempfiles * tmps,
@@ -101,10 +112,6 @@ void magi_tempfiles_destroy(struct magi_tempfiles * tmps);
  * parameter names locations; paths are in magi_tempfiles struct. */
 void magi_request_setup_tempfiles(struct magi_request *   request,
                                   struct magi_tempfiles * table);
-
-
-/* Destroys request. */
-void magi_request_destroy(struct magi_request * request);
 
 
 #endif

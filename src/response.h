@@ -35,6 +35,9 @@ void magi_response_cookie_easy(struct magi_response * response,
                                const char *           name,
                                const char *           value);
 
+void magi_response_cookie_discard(struct magi_response * response,
+                                  const char *           name);
+
 void magi_response_http(struct magi_response * response,
                         const char *           name,
                         const char *           data);

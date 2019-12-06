@@ -259,9 +259,9 @@ void output_cookies(struct magi_cookie_list * list)
             fputs("; Domain=", stdout);
             fputs(list->item.domain, stdout);
         }
-        if (list->item.port) {
-            fputs("; Port=", stdout);
-            fputs(list->item.port, stdout);
+        if (list->item.max_age) {
+            fputs("; Max-Age=", stdout);
+            fputs(list->item.max_age, stdout);
         }
         fputs("\r\n", stdout);
         list = list->next;

@@ -82,6 +82,16 @@ void magi_response_cookie_easy(struct magi_response * response,
     magi_cookie_list_add(&response->cookies, &cookie);
 }
 
+void magi_response_cookie_discard(struct magi_response * response,
+                                  const char *           name)
+{
+    struct magi_cookie cookie = { 0, 0, 0, 0, 0 };
+    cookie.name       = magi_str_create_copy(name, name + strlen(name));
+    cookie.max_age    = magi_str_create(1);
+    cookie.max_age[0] = '0';
+    magi_cookie_list_add(&response->cookies, &cookie);
+}
+
 void magi_response_http(struct magi_response * response,
                         const char *           name,
                         const char *           data)

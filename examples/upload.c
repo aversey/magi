@@ -35,7 +35,7 @@ void response_request(struct magi_request * req, struct magi_response * res)
 int main(int argc, char const * argv[])
 {
     struct magi_request   request;
-    struct magi_tempfiles tmps = { 0, 0, 0, 0 };
+    struct magi_tempfiles tmps = { 0, 0 };
     magi_request_setup(&request);
     magi_tempfiles_add(&tmps, "data", "data", 0);
     magi_request_setup_tempfiles(&request, &tmps);
