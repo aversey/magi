@@ -119,6 +119,9 @@ static void tempfiles(struct magi_file * file,
 {
     struct magi_tempfiles * table = userdata;
     int                     pos;
+    if (!file->file_name || !strcmp(file->file_name, "")) {
+        return;
+    }
     for (pos = 0; pos != table->count; ++pos) {
         if (!strcmp(table->tmps[pos].param_name, file->param_name)) {
             static FILE * f = 0;
