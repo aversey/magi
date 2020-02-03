@@ -1,6 +1,6 @@
 #include "response.h"
 
-#include "utils.h"
+#include "inner_tools.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,8 +27,8 @@ void magi_response_content_type(struct magi_response * response,
         "Content-Type: application/xhtml+xml", /* magi_xhtml */
     };
     if (!response->content_type) {
-        const char * end       = messages[type] + strlen(messages[type]);
-        response->content_type = magi_str_create_copy(messages[type], end);
+        response->content_type = magi_str_create_copy(messages[type],
+                                                      strlen(messages[type]));
     }
 }
 
@@ -77,8 +77,8 @@ void magi_response_cookie_easy(struct magi_response * response,
                                const char *           value)
 {
     struct magi_cookie cookie = { 0, 0, 0, 0, 0 };
-    cookie.name = magi_str_create_copy(name, name + strlen(name));
-    cookie.data = magi_str_create_copy(value, value + strlen(value));
+    cookie.name = magi_str_create_copy(name, strlen(name));
+    cookie.data = magi_str_create_copy(value, strlen(value));
     magi_cookie_list_add(&response->cookies, &cookie);
 }
 
@@ -86,7 +86,7 @@ void magi_response_cookie_discard(struct magi_response * response,
                                   const char *           name)
 {
     struct magi_cookie cookie = { 0, 0, 0, 0, 0 };
-    cookie.name       = magi_str_create_copy(name, name + strlen(name));
+    cookie.name       = magi_str_create_copy(name, strlen(name));
     cookie.max_age    = magi_str_create(1);
     cookie.max_age[0] = '0';
     magi_cookie_list_add(&response->cookies, &cookie);
@@ -97,8 +97,8 @@ void magi_response_http(struct magi_response * response,
                         const char *           data)
 {
     struct magi_param param = { 0, 0 };
-    param.name              = magi_str_create_copy(name, name + strlen(name));
-    param.data              = magi_str_create_copy(data, data + strlen(data));
+    param.name              = magi_str_create_copy(name, strlen(name));
+    param.data              = magi_str_create_copy(data, strlen(data));
     magi_param_list_add(&response->http_params, &param);
 }
 

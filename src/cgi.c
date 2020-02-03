@@ -4,11 +4,11 @@
 #include "cookies.h"
 #include "error.h"
 #include "file.h"
+#include "inner_tools.h"
 #include "multipart.h"
 #include "param.h"
 #include "request.h"
 #include "urlenc.h"
-#include "utils.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -169,9 +169,9 @@ static char * bound(const char * type)
         type += strspn(type, " \t") + 1;
         if (*type == '"') {
             ++type;
-            res = magi_str_create_copy(type, strchr(type, '"'));
+            res = magi_str_create_copy(type, type - strchr(type, '"'));
         } else {
-            res = magi_str_create_copy(type, type + strcspn(type, " \t"));
+            res = magi_str_create_copy(type, strcspn(type, " \t"));
         }
     }
     return res;

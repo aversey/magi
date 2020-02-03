@@ -1,0 +1,42 @@
+    Description
+Magi Library (libmagi) implements Gateway Interfaces, namely CGI and FastCGI.
+
+    Overview
+Magi is free and open-source software: legal info is in the 'license' file.
+It is written in ANSI C, without any dependecies, except for C standard
+library.  All source and header files are located in the 'src' directory.
+Files with 'inner' part in their names are not intended for external use.
+Since filenames in the project are short and simple consider placing
+header files in subdirectory 'magi' of your include.
+
+    Compiling
+Compilation and its options are described in the 'Makefile'.
+Running 'make' produces 'libmagi.a' file, which is precompiled library itself,
+ready to be statically linked into your project.
+
+    Examples
+Compilation and its options are described in the local 'examples/Makefile'.
+Running 'make' in the 'examples' directory produces 'append', 'cookie',
+'upload', and 'echo' CGI executables.  Descriptions and details are in
+corresponding source files.
+
+    Usage
+Magi main purpose is to analyse request and provide it in 'struct magi_request'
+variable.  It is described in 'src/request.h'; to setup defaults before actual
+processing run 'magi_request_setup'.  Next step is to analyse post-unrelated
+part of request via 'magi_request_cgi'.  Since post part can be realy big,
+it is generally useful to constrain its analysis biased on the rest of request.
+Post part analyse is done via 'magi_request_resume_cgi'.  You can destroy
+request structure via 'magi_request_destroy'.
+
+Also magi provide output capabilities via 'struct magi_response'.
+Similary to request, 'magi_response_setup' is initialisation of response with
+defaults.  Content type need to be specified for response, to set it run
+'magi_response_content_type'.  You can set cookie with 'magi_response_cookie',
+as well as discard them with 'magi_response_cookie_discard'.  You can set HTTP
+headers with 'magi_response_http'.  For filling response body use 
+'magi_response_add' and 'magi_response_add_format'.  To send response call
+'magi_response_cgi'.  Desctruction is provided in 'magi_response_destroy'.
+
+    Motivation
+Web must be fun.

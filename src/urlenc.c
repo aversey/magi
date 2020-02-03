@@ -1,6 +1,6 @@
 #include "urlenc.h"
 
-#include "utils.h"
+#include "inner_tools.h"
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
