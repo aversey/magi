@@ -5,42 +5,39 @@
 #include "param.h"
 
 
-enum magi_content_type { magi_xhtml = 0 };
-
-struct magi_response {
-    struct magi_cookie_list * cookies;
-    struct magi_param_list *  http_params;
-    char *                    content_type;
-    char *                    content;
-    int                       len;
-    int                       size;
-};
+typedef struct magi_response {
+    magi_cookie_list *cookies;
+    magi_param_list  *http_params;
+    char             *content_type;
+    char             *content;
+    int               len;
+    int               size;
+} magi_response;
 
 
-void magi_response_setup(struct magi_response * response);
+void magi_response_setup(magi_response *response);
 
 
-void magi_response_content_type(struct magi_response * response,
-                                enum magi_content_type type);
+void magi_response_content_type(magi_response *response, const char *type);
 
-void magi_response_add(struct magi_response * response, const char * addon);
-void magi_response_add_format(struct magi_response * response,
-                              const char *           addon,
-                              ...);
+void magi_response_add(magi_response *response, const char *addon);
+void magi_response_add_format(magi_response *response, const char *addon, ...);
 
-void magi_response_cookie(struct magi_response * response,
-                          struct magi_cookie *   cookie);
+void magi_response_cookie(magi_response *response, magi_cookie *cookie);
 
-void magi_response_cookie_easy(struct magi_response * response,
-                               const char *           name,
-                               const char *           value);
+void magi_response_cookie_easy(magi_response *response,
+                               const char    *name,
+                               const char    *value);
 
-void magi_response_http(struct magi_response * response,
-                        const char *           name,
-                        const char *           data);
+void magi_response_cookie_discard(magi_response *response,
+                                  const char    *name);
+
+void magi_response_http(magi_response *response,
+                        const char    *name,
+                        const char    *data);
 
 
-void magi_response_destroy(struct magi_response * response);
+void magi_response_destroy(magi_response *response);
 
 
 #endif

@@ -1,7 +1,5 @@
-#include <error.h>
-#include <fastcgi.h>
-#include <request.h>
-#include <response.h>
+/* * * TODO * * */
+#include <magi.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

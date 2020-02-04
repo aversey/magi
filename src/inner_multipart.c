@@ -1,5 +1,5 @@
 /* Support for multifile controls are not provided. */
-#include "multipart.h"
+#include "inner_multipart.h"
 
 #include "error.h"
 #include "param.h"

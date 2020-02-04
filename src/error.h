@@ -2,7 +2,7 @@
 #define MAGI_INCLUDED_ERROR
 
 
-enum magi_error {
+typedef enum magi_error {
     magi_error_none = 0,
     magi_error_nobound,
     magi_error_unknown,
@@ -13,9 +13,9 @@ enum magi_error {
     magi_error_urlenc,
     magi_error_multipart,
     magi_error_limit
-};
+} magi_error;
 
-const char * magi_error_message(enum magi_error error);
+const char *magi_error_message(magi_error error);
 
 
 #endif

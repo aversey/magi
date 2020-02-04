@@ -1,14 +1,14 @@
 #include "cgi.h"
 
 #include "cookie.h"
-#include "cookies.h"
 #include "error.h"
 #include "file.h"
-#include "multipart.h"
+#include "inner_cookies.h"
+#include "inner_multipart.h"
+#include "inner_tools.h"
+#include "inner_urlencoded.h"
 #include "param.h"
 #include "request.h"
-#include "urlenc.h"
-#include "utils.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -132,7 +132,7 @@ static void cgi_url(struct magi_request * request)
     char * in = 0;
     cgi_input_get(&request->error, &in, request->url_params_max);
     if (!request->error) {
-        magi_urlenc(&request->url_params, request, in);
+        magi_urlencoded(&request->url_params, request, in);
     }
     free(in);
 }
@@ -218,7 +218,7 @@ int magi_request_resume_cgi(struct magi_request * request)
             char * in = 0;
             cgi_input_post(e, &in, request->params_max);
             if (!*e) {
-                magi_urlenc(&request->params, request, in);
+                magi_urlencoded(&request->params, request, in);
             }
             free(in);
         } else {
@@ -227,6 +227,11 @@ int magi_request_resume_cgi(struct magi_request * request)
         }
     }
     return !request->error;
+}
+
+int magi_request_full_cgi(magi_request *request)
+{
+    return magi_request_cgi(request) && magi_request_resume_cgi(request);
 }
 
 
@@ -268,6 +273,7 @@ void output_cookies(struct magi_cookie_list * list)
     }
 }
 
+
 int magi_response_cgi(struct magi_response * response)
 {
     output_http_params(response->http_params);
@@ -278,14 +284,20 @@ int magi_response_cgi(struct magi_response * response)
     return 1;
 }
 
+int magi_response_cgi_clear(magi_response *response)
+{
+    int ok = magi_response_cgi(response);
+    magi_response_destroy(response);
+    return ok;
+}
+
+
 int magi_error_cgi(enum magi_error error)
 {
     struct magi_response res;
     magi_response_setup(&res);
     magi_response_http(&res, "Status", "400 Bad Request");
-    magi_response_content_type(&res, magi_xhtml);
-    magi_response_add_format(
-        &res,
+    magi_response_add_format(&res,
         "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "
         "'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>"
         "<html xmlns='http://www.w3.org/1999/xhtml'>"
@@ -296,11 +308,5 @@ int magi_error_cgi(enum magi_error error)
         "</body>"
         "</html>",
         magi_error_message(error));
-    if (magi_response_cgi(&res)) {
-        magi_response_destroy(&res);
-        return 1;
-    } else {
-        magi_response_destroy(&res);
-        return 0;
-    }
+    return magi_response_cgi_clear(&res);
 }

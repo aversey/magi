@@ -6,33 +6,33 @@
 #include <stdlib.h>
 #include <string.h>
 
-int vsnprintf(char * s, size_t n, const char * format, va_list arg);
+/* TODO: realise vsnprintf or eliminate need of it. (see musl) */
+int vsnprintf(char *s, size_t n, const char *format, va_list arg);
 
 
-void magi_response_setup(struct magi_response * response)
+void magi_response_setup(magi_response *response)
 {
     response->cookies      = 0;
     response->http_params  = 0;
     response->content_type = 0;
+    magi_response_content_type(response, "application/xhtml+xml");
     response->content      = magi_str_create(0);
     response->len          = 0;
     response->size         = 1;
 }
 
-
-void magi_response_content_type(struct magi_response * response,
-                                enum magi_content_type type)
+void magi_response_content_type(magi_response *response, const char *type)
 {
-    const char * const messages[] = {
-        "Content-Type: application/xhtml+xml", /* magi_xhtml */
-    };
-    if (!response->content_type) {
-        const char * end       = messages[type] + strlen(messages[type]);
-        response->content_type = magi_str_create_copy(messages[type], end);
-    }
+    static const char *const ct    = "Content-Type: ";
+    static const int         ctlen = 15;
+    const int                len   = strlen(type);
+    free(response->content_type);
+    response->content_type = malloc(ctlen + len + 1);
+    memcpy(response->content_type, ct, ctlen);
+    memcpy(response->content_type + ctlen, type, len + 1);
 }
 
-void magi_response_add(struct magi_response * r, const char * addon)
+void magi_response_add(magi_response *r, const char *addon)
 {
     int addon_len;
     if (!addon) {
@@ -46,11 +46,9 @@ void magi_response_add(struct magi_response * r, const char * addon)
     r->len += addon_len;
 }
 
-void magi_response_add_format(struct magi_response * response,
-                              const char *           addon,
-                              ...)
+void magi_response_add_format(magi_response *response, const char *addon, ...)
 {
-    char *  act_addon;
+    char   *act_addon;
     int     n;
     va_list args;
     va_start(args, addon);
@@ -66,34 +64,36 @@ void magi_response_add_format(struct magi_response * response,
     }
 }
 
-void magi_response_cookie(struct magi_response * response,
-                          struct magi_cookie *   cookie)
+void magi_response_cookie(magi_response *response, magi_cookie *cookie)
 {
     magi_cookie_list_add(&response->cookies, cookie);
 }
 
-void magi_response_cookie_easy(struct magi_response * response,
-                               const char *           name,
-                               const char *           value)
+void magi_response_cookie_easy(magi_response *response,
+                               const char    *name,
+                               const char    *value)
 {
-    struct magi_cookie cookie = { 0, 0, 0, 0, 0 };
-    cookie.name = magi_str_create_copy(name, name + strlen(name));
-    cookie.data = magi_str_create_copy(value, value + strlen(value));
+
+void magi_response_cookie_discard(magi_response *response, const char *name)
+{
+    magi_cookie cookie = { 0, 0, 0, 0, 0 };
+    cookie.name        = magi_str_create_copy(name, strlen(name));
+    cookie.max_age     = magi_str_create(1);
+    cookie.max_age[0]  = '0';
     magi_cookie_list_add(&response->cookies, &cookie);
 }
 
-void magi_response_http(struct magi_response * response,
-                        const char *           name,
-                        const char *           data)
+void magi_response_http(magi_response *response,
+                        const char    *name,
 {
-    struct magi_param param = { 0, 0 };
-    param.name              = magi_str_create_copy(name, name + strlen(name));
-    param.data              = magi_str_create_copy(data, data + strlen(data));
+    magi_param param = { 0, 0 };
+    param.name       = magi_str_create_copy(name, strlen(name));
+    param.data       = magi_str_create_copy(data, strlen(data));
     magi_param_list_add(&response->http_params, &param);
 }
 
 
-void magi_response_destroy(struct magi_response * response)
+void magi_response_destroy(magi_response *response)
 {
     if (!response) {
         return;
