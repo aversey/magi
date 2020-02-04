@@ -1,6 +1,6 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Compilation Options
-# Debug mode (uncoment to be able to debug the library via gdb):
+# Debug mode (allowing to debug the library via gdb):
 # DEBUG   = yes
 # Specify your favourite C compiler here (e.g. tcc):
 CC      = gcc
@@ -27,7 +27,7 @@ OBJ     = $(SRC:.c=.o)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Targets
-# 'make' will produce library by default:
+# 'make' produces library by default:
 default: $(LIB)
 
 # Cleaning means removing everything automatically produced:
