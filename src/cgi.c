@@ -3,11 +3,12 @@
 #include "cookie.h"
 #include "error.h"
 #include "file.h"
+#include "inner_cookies.h"
 #include "inner_tools.h"
-#include "multipart.h"
+#include "inner_multipart.h"
+#include "inner_urlencoded.h"
 #include "param.h"
 #include "request.h"
-#include "urlenc.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
