@@ -39,7 +39,7 @@ int main(int argc, char const *argv[])
         magi_response response;
         magi_response_setup(&response);
         response_request(&request, &response);
-        magi_response_cgi_clear(&response);
+        magi_response_cgi(&response);
     } else {
         magi_error_cgi(request.error);
     }

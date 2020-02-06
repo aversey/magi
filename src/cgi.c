@@ -274,21 +274,15 @@ void output_cookies(struct magi_cookie_list * list)
 }
 
 
-int magi_response_cgi(struct magi_response * response)
+int magi_response_cgi(struct magi_response *response)
 {
     output_http_params(response->http_params);
     output_cookies(response->cookies);
     fputs(response->content_type, stdout);
     fputs("\r\n\r\n", stdout);
     fputs(response->content, stdout);
-    return 1;
-}
-
-int magi_response_cgi_clear(magi_response *response)
-{
-    int ok = magi_response_cgi(response);
     magi_response_destroy(response);
-    return ok;
+    return 1;
 }
 
 
@@ -308,5 +302,5 @@ int magi_error_cgi(enum magi_error error)
         "</body>"
         "</html>",
         magi_error_message(error));
-    return magi_response_cgi_clear(&res);
+    return magi_response_cgi(&res);
 }

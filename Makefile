@@ -1,3 +1,4 @@
+### TODO: Partial compilation (e.g. cgi+urlenc, but without fcgi)
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Compilation Options
 # Debug mode (allowing to debug the library via gdb):

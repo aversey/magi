@@ -1,6 +1,11 @@
 #ifndef MAGI_INCLUDED_RESPONSE
 #define MAGI_INCLUDED_RESPONSE
-
+/** @file response.h
+ * @brief General response functionality.
+ *
+ * blah-blah-blah
+ */
+/* TODO: rewrite in such way, that only headers are in memory. */
 #include "cookie.h"
 #include "param.h"
 
@@ -21,7 +26,6 @@ void magi_response_setup(magi_response *response);
 void magi_response_content_type(magi_response *response, const char *type);
 
 void magi_response_add(magi_response *response, const char *addon);
-void magi_response_add_format(magi_response *response, const char *addon, ...);
 
 void magi_response_cookie(magi_response *response, magi_cookie *cookie);
 

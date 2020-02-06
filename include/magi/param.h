@@ -1,5 +1,10 @@
 #ifndef MAGI_INCLUDED_PARAM
 #define MAGI_INCLUDED_PARAM
+/** @file param.h
+ * @brief blah...
+ *
+ * blah-blah...
+ */
 
 
 typedef struct magi_param {

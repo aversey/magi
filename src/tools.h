@@ -1,8 +1,8 @@
-#ifndef MAGI_INCLUDED_INNER_TOOLS
-#define MAGI_INCLUDED_INNER_TOOLS
-/*     Magi Inner Tools
- * This file must not be included in header files intended for external use,
- * it contains some common utility functions for use in source files.
+#ifndef MAGI_INCLUDED_TOOLS
+#define MAGI_INCLUDED_TOOLS
+/* * Collection of helpful functions for internal use.
+ *
+ * blah...
  */
 
 

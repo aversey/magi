@@ -1,14 +1,18 @@
 #ifndef MAGI_INCLUDED_REQUEST
 #define MAGI_INCLUDED_REQUEST
-
+/** @file request.h
+ * @brief blah...
+ *
+ * blah-blah...
+ */
 #include "cookie.h"
 #include "error.h"
 #include "file.h"
 #include "param.h"
 
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Request
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ /**
+ * @brief Request
  *
  * Can be created via 'magi_request_{gateway interface name}', but will have
  * nullified 'post'-related fields ('params' & 'files').  Reason is unlimited
@@ -49,8 +53,6 @@ typedef struct magi_request {
     char *remote_port;     /* REMOTE_PORT */
     char *server_addr;     /* SERVER_ADDR */
     char *server_name;     /* SERVER_NAME */
-    /* server_name can be not a domain name, even if request is done with it.
-     * (Use http_params["HTTP_HOST"] instead.) */
     char *server_port;     /* SERVER_PORT */
     char *server_protocol; /* SERVER_PROTOCOL */
     char *server_software; /* SERVER_COFTWARE */

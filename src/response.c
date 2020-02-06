@@ -1,13 +1,9 @@
 #include "response.h"
 
-#include "inner_tools.h"
-#include <stdarg.h>
+#include "tools.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-/* TODO: realise vsnprintf or eliminate need of it. (see musl) */
-int vsnprintf(char *s, size_t n, const char *format, va_list arg);
 
 
 void magi_response_setup(magi_response *response)
@@ -44,24 +40,6 @@ void magi_response_add(magi_response *r, const char *addon)
     }
     memcpy(r->content + r->len, addon, addon_len + 1);
     r->len += addon_len;
-}
-
-void magi_response_add_format(magi_response *response, const char *addon, ...)
-{
-    char   *act_addon;
-    int     n;
-    va_list args;
-    va_start(args, addon);
-    n = vsnprintf(0, 0, addon, args);
-    va_end(args);
-    if (n >= 0) {
-        act_addon = malloc(n + 1);
-        va_start(args, addon);
-        vsnprintf(act_addon, n + 1, addon, args);
-        va_end(args);
-        magi_response_add(response, act_addon);
-        free(act_addon);
-    }
 }
 
 void magi_response_cookie(magi_response *response, magi_cookie *cookie)

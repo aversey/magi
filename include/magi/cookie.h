@@ -1,5 +1,10 @@
 #ifndef MAGI_INCLUDED_COOKIE
 #define MAGI_INCLUDED_COOKIE
+/** @file cookie.h
+ * @brief blah...
+ *
+ * blah-blah...
+ */
 
 
 typedef struct magi_cookie {

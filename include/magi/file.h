@@ -1,6 +1,10 @@
 #ifndef MAGI_INCLUDED_FILE
 #define MAGI_INCLUDED_FILE
-
+/** @file file.h
+ * @brief blah...
+ *
+ * blah-blah...
+ */
 #include "param.h"
 
 

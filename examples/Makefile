@@ -20,7 +20,7 @@ CFLAGS  += -O3
 endif
 
 # Including magi library headers and setting linker to use it:
-INCLUDE  = -I ../src
+INCLUDE  = -I ../include
 LFLAGS   = -L.. -lmagi
 
 # Specification of library file to produce it, if not provided:
