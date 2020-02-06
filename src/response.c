@@ -1,6 +1,6 @@
 #include "response.h"
 
-#include "utils.h"
+#include "inner_tools.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,6 +23,7 @@ void magi_response_setup(magi_response *response)
 
 void magi_response_content_type(magi_response *response, const char *type)
 {
+<<<<<<< HEAD
     static const char *const ct    = "Content-Type: ";
     static const int         ctlen = 15;
     const int                len   = strlen(type);
@@ -30,6 +31,15 @@ void magi_response_content_type(magi_response *response, const char *type)
     response->content_type = malloc(ctlen + len + 1);
     memcpy(response->content_type, ct, ctlen);
     memcpy(response->content_type + ctlen, type, len + 1);
+=======
+    const char * const messages[] = {
+        "Content-Type: application/xhtml+xml", /* magi_xhtml */
+    };
+    if (!response->content_type) {
+        response->content_type = magi_str_create_copy(messages[type],
+                                                      strlen(messages[type]));
+    }
+>>>>>>> master
 }
 
 void magi_response_add(magi_response *r, const char *addon)

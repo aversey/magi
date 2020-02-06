@@ -2,8 +2,8 @@
 #include "inner_multipart.h"
 
 #include "error.h"
+#include "inner_tools.h"
 #include "param.h"
-#include "utils.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -74,9 +74,9 @@ static char * extract_filename(char * n)
     n += strspn(n, " \t") + 1;
     if (*n == '"') {
         ++n;
-        return magi_str_create_copy(n, strchr(n, '"'));
+        return magi_str_create_copy(n, n - strchr(n, '"'));
     } else {
-        return magi_str_create_copy(n, n + strcspn(n, " \t"));
+        return magi_str_create_copy(n, strcspn(n, " \t"));
     }
 }
 
@@ -89,12 +89,12 @@ static int content_disposition(struct automata * a)
     n += strspn(n, " \t") + 1;
     if (*n == '"') {
         ++n;
-        a->param.name = magi_str_create_copy(n, strchr(n, '"'));
+        a->param.name = magi_str_create_copy(n, n - strchr(n, '"'));
         if (!a->param.name || !*a->param.name) {
             return 0;
         }
     } else {
-        a->param.name = magi_str_create_copy(n, n + strcspn(n, " \t"));
+        a->param.name = magi_str_create_copy(n, strcspn(n, " \t"));
         if (!a->param.name || !is_str_token(a->param.name)) {
             return 0;
         }

@@ -3,12 +3,11 @@
 #include "cookie.h"
 #include "error.h"
 #include "file.h"
-#include "inner_cookies.h"
-#include "inner_multipart.h"
 #include "inner_tools.h"
-#include "inner_urlencoded.h"
+#include "multipart.h"
 #include "param.h"
 #include "request.h"
+#include "urlenc.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -169,9 +168,9 @@ static char * bound(const char * type)
         type += strspn(type, " \t") + 1;
         if (*type == '"') {
             ++type;
-            res = magi_str_create_copy(type, strchr(type, '"'));
+            res = magi_str_create_copy(type, type - strchr(type, '"'));
         } else {
-            res = magi_str_create_copy(type, type + strcspn(type, " \t"));
+            res = magi_str_create_copy(type, strcspn(type, " \t"));
         }
     }
     return res;
@@ -185,6 +184,8 @@ static int next(void * any)
 /* Interfacial CGI Request Handling */
 int magi_request_cgi(struct magi_request * request)
 {
+    request->files       = 0;
+    request->params      = 0;
     request->url_params  = 0;
     request->http_params = 0;
     request->error       = magi_error_none;
@@ -197,8 +198,6 @@ int magi_request_cgi(struct magi_request * request)
 int magi_request_resume_cgi(struct magi_request * request)
 {
     enum magi_error * e = &request->error;
-    request->files      = 0;
-    request->params     = 0;
     request->error      = magi_error_none;
     if (request->method && !strcmp(request->method, "post")) {
         const char * t = getenv("CONTENT_TYPE");
@@ -264,9 +263,9 @@ void output_cookies(struct magi_cookie_list * list)
             fputs("; Domain=", stdout);
             fputs(list->item.domain, stdout);
         }
-        if (list->item.port) {
-            fputs("; Port=", stdout);
-            fputs(list->item.port, stdout);
+        if (list->item.max_age) {
+            fputs("; Max-Age=", stdout);
+            fputs(list->item.max_age, stdout);
         }
         fputs("\r\n", stdout);
         list = list->next;

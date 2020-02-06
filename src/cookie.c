@@ -16,16 +16,19 @@ int magi_cookie_list_add(struct magi_cookie_list ** list,
     return !!node;
 }
 
-struct magi_cookie * magi_cookie_list_get(struct magi_cookie_list * list,
-                                          const char *              name)
+char * magi_cookie_list_get(struct magi_cookie_list * list, const char * name)
 {
+    char * res = 0;
     if (!list || !name) {
         return 0;
-    } else if (!strcmp(list->item.name, name)) {
-        return &list->item;
-    } else {
-        return magi_cookie_list_get(list->next, name);
     }
+    while (list) {
+        if (!strcmp(list->item.name, name)) {
+            res = list->item.data;
+        }
+        list = list->next;
+    }
+    return res;
 }
 
 void magi_cookie_list_destroy(struct magi_cookie_list * list)
@@ -37,6 +40,6 @@ void magi_cookie_list_destroy(struct magi_cookie_list * list)
         free(list->item.data);
         free(list->item.path);
         free(list->item.domain);
-        free(list->item.port);
+        free(list->item.max_age);
     }
 }

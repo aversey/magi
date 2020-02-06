@@ -43,6 +43,7 @@ int main(int argc, char const *argv[])
     } else {
         magi_error_cgi(request.error);
     }
+    magi_tempfiles_destroy(&tmps);
     magi_request_destroy(&request);
     return 0;
 }

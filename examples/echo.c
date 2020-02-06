@@ -16,10 +16,6 @@ void proceed_cookies(magi_cookie_list *cookies, magi_response *response)
             magi_response_add(response, "] for domain [");
             magi_response_add(response, cookies->item.domain);
         }
-        if (cookies->item.port) {
-            magi_response_add(response, "] for port [");
-            magi_response_add(response, cookies->item.port);
-        }
         if (cookies->item.path) {
             magi_response_add(response, "] for path [");
             magi_response_add(response, cookies->item.path);

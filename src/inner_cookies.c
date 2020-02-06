@@ -1,7 +1,7 @@
 /* * *   TODO   * * */
 #include "inner_cookies.h"
 
-#include "utils.h"
+#include "inner_tools.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -16,7 +16,7 @@ enum st {
     st_post_data
 };
 
-enum data_type { dt_plain = 0, dt_version, dt_path, dt_domain, dt_port };
+enum data_type { dt_plain = 0, dt_version, dt_path, dt_domain };
 
 struct automata {
     struct magi_cookie_list ** list;
@@ -25,7 +25,7 @@ struct automata {
     int                        buf_len;
     int                        buf_size;
     int                        is_first;
-    int                        is_cookie2;
+    int                        is_advanced;
     int                        is_quoted;
     enum data_type             data_t;
 };
@@ -33,11 +33,11 @@ struct automata {
 
 static void nulify_cookie(struct automata * a)
 {
-    a->cookie.name   = 0;
-    a->cookie.data   = 0;
-    a->cookie.path   = 0;
-    a->cookie.domain = 0;
-    a->cookie.port   = 0;
+    a->cookie.name    = 0;
+    a->cookie.data    = 0;
+    a->cookie.path    = 0;
+    a->cookie.domain  = 0;
+    a->cookie.max_age = 0;
 }
 
 static void buf_new(struct automata * a)
@@ -53,13 +53,11 @@ static enum data_type what_is_name(const struct automata * a)
     enum data_type data_t = dt_plain;
     if (a->is_first && !strcmp(a->buf, "$Version")) {
         data_t = dt_version;
-    } else if (a->is_cookie2) {
+    } else if (a->is_advanced) {
         if (!strcmp(a->buf, "$Path")) {
             data_t = dt_path;
         } else if (!strcmp(a->buf, "$Domain")) {
             data_t = dt_domain;
-        } else if (!strcmp(a->buf, "$Port")) {
-            data_t = dt_port;
         }
     }
     return data_t;
@@ -95,9 +93,6 @@ static int end_data(struct automata * a)
         break;
     case dt_domain:
         a->cookie.domain = a->buf;
-        break;
-    case dt_port:
-        a->cookie.port = a->buf;
         break;
     case dt_version:
         if (strcmp(a->buf, "1")) {
@@ -291,6 +286,5 @@ void magi_cookies(struct magi_request * request, const char * data)
     free(a.cookie.data);
     free(a.cookie.path);
     free(a.cookie.domain);
-    free(a.cookie.port);
     free(a.buf);
 }

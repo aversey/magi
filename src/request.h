@@ -113,8 +113,5 @@ void magi_tempfiles_destroy(magi_tempfiles *tmps);
 void magi_request_setup_tempfiles(magi_request   *request,
                                   magi_tempfiles *table);
 
-/* Destroys request. */
-void magi_request_destroy(struct magi_request * request);
-
 
 #endif
