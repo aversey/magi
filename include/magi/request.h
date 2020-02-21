@@ -89,31 +89,4 @@ void magi_request_setup(magi_request *request);
 void magi_request_destroy(magi_request *request);
 
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Tempfiles Callback
- */
-typedef struct magi_tempfile {
-    const char *param_name; /* Form field name, in which file is expected. */
-    const char *location;   /* Location to load file in. */
-    int         maximum;    /* Null <=> unlimited. */
-} magi_tempfile;
-
-typedef struct magi_tempfiles {
-    int            count;
-    magi_tempfile *tmps;
-} magi_tempfiles;
-
-void magi_tempfiles_add(magi_tempfiles *tmps,
-                        const char     *name,
-                        const char     *path,
-                        int             max);
-
-void magi_tempfiles_destroy(magi_tempfiles *tmps);
-
-/* Setup request callback with files loaded into corresponding to their
- * parameter names locations; paths are in magi_tempfiles struct. */
-void magi_request_setup_tempfiles(magi_request   *request,
-                                  magi_tempfiles *table);
-
-
 #endif

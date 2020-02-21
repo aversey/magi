@@ -1,9 +1,9 @@
 /* Support for multifile controls are not provided. */
-#include "inner_multipart.h"
+#include "multipart.h"
 
 #include "error.h"
-#include "inner_tools.h"
 #include "param.h"
+#include "tools.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,7 +1,7 @@
 /* * *   TODO   * * */
-#include "inner_cookies.h"
+#include "cookies.h"
 
-#include "inner_tools.h"
+#include "tools.h"
 #include <stdlib.h>
 #include <string.h>
 

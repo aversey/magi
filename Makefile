@@ -1,9 +1,10 @@
-### TODO: Partial compilation (e.g. cgi+urlenc, but without fcgi)
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Compilation Options
 # Debug mode (allowing to debug the library via gdb):
 # DEBUG   = yes
-# Specify your favourite C compiler here (e.g. tcc):
+# Optional modules (remove unwanted ones):
+MODULES = cgi fastcgi loadfile urlenc
+# Specify your favourite C compiler here:
 CC      = gcc
 
 
@@ -20,9 +21,17 @@ else
 CFLAGS += -O3
 endif
 
+# Interfacial files to compile:
+INTER   = cookie error file param request response $(MODULES)
+
 # Object files listing:
+INC_DIR = include/magi
 SRC_DIR = src
-SRC     = $(wildcard $(SRC_DIR)/*.c)
+INTER_H = $(foreach name,$(INTER),$(INC_DIR)/$(name).h)
+INTER_C = $(foreach name,$(INTER),$(SRC_DIR)/$(name).c)
+INNER_H = $(wildcard $(SRC_DIR)/*.h)
+INNER_C = $(INNER_H:.h=.c)
+SRC     = $(INTER_C) $(INNER_C)
 OBJ     = $(SRC:.c=.o)
 
 
@@ -33,27 +42,15 @@ default: $(LIB)
 
 # Cleaning means removing everything automatically produced:
 clean:
-	rm -f $(OBJ) $(LIB) deps.mk
+	rm -f $(OBJ) $(LIB)
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Compilation
 # Compile object files from corresponding source and header:
-%.o: %.c %.h
-	$(CC) $(CFLAGS) -c $< -o $@
+%.o: %.c
+	$(CC) $(CFLAGS) -I $(INC_DIR) -c $< -o $@
 
 # Packing object files into library:
 $(LIB): $(OBJ)
 	ar rcs $@ $^
-
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#     Dependencies
-# Generating dependencies description file:
-deps.mk: $(SRC)
-	$(CC) -MM $^ > $@
-
-# While cleaning we need to remove it, not include:
-ifneq "clean" "$(MAKECMDGOALS)"
--include deps.mk
-endif

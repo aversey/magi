@@ -1,4 +1,4 @@
-#include "inner_tools.h"
+#include "tools.h"
 
 #include <ctype.h>
 #include <stdlib.h>
@@ -33,19 +33,22 @@ char *magi_str_create(int len)
     return str;
 }
 
-int magi_str_add(char **dest, int *len, int *size, char c)
+int magi_str_add(magi_str *str, char c)
 {
-    if (!*dest) {
-        *dest = magi_str_create(1);
-    } else if (*len + 1 == *size) {
-        *size *= 2;
-        *dest  = realloc(*dest, *size);
+    if (!str->data) {
+        str->len  = 0;
+        str->size = 2;
+        str->data = malloc(2);
+    } else if (str->len + 1 == str->size) {
+        str->size *= 2;
+        str->data  = realloc(str->data, str->size);
     }
-    if (!*dest) {
+    if (!str->dest) {
+        str->len  = 0;
+        str->size = 0;
         return 0;
     }
-    (*dest)[*len] = c;
-    ++*len;
-    (*dest)[*len] = 0;
+    str->data[str->len++] = c;
+    str->data[str->len]   = 0;
     return 1;
 }

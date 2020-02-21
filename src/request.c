@@ -3,9 +3,7 @@
 #include "cookie.h"
 #include "file.h"
 #include "param.h"
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 
 void magi_request_setup(struct magi_request * request)
@@ -79,79 +77,4 @@ void magi_request_destroy(struct magi_request * request)
         request_free(request);
         request_annul(request);
     }
-}
-
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Tempfiles Callback
- */
-void magi_tempfiles_add(struct magi_tempfiles * tmps,
-                        const char *            name,
-                        const char *            path,
-                        int                     max)
-{
-    if (!tmps) {
-        return;
-    }
-    if (tmps->count++) {
-        tmps->tmps = realloc(tmps->tmps, sizeof(*tmps->tmps) * tmps->count);
-    } else {
-        tmps->tmps = malloc(sizeof(*tmps->tmps));
-    }
-    tmps->tmps[tmps->count - 1].param_name = name;
-    tmps->tmps[tmps->count - 1].location   = path;
-    tmps->tmps[tmps->count - 1].maximum    = max;
-}
-
-void magi_tempfiles_destroy(struct magi_tempfiles * tmps)
-{
-    if (!tmps) {
-        return;
-    }
-    free(tmps->tmps);
-}
-
-static void tempfiles(struct magi_file * file,
-                      char *             addon,
-                      int                addon_len,
-                      int                is_addon_last,
-                      void *             userdata)
-{
-    struct magi_tempfiles * table = userdata;
-    int                     pos;
-    if (!file->file_name || !strcmp(file->file_name, "")) {
-        return;
-    }
-    for (pos = 0; pos != table->count; ++pos) {
-        if (!strcmp(table->tmps[pos].param_name, file->param_name)) {
-            static FILE * f = 0;
-            static int    unlimited;
-            static int    left;
-            if (!f) {
-                const char * loc = table->tmps[pos].location;
-                f                = fopen(loc, "wb");
-                left             = table->tmps[pos].maximum;
-                unlimited        = !left;
-            }
-            if (unlimited) {
-                fwrite(addon, 1, addon_len, f);
-            } else {
-                int min = left < addon_len ? left : addon_len;
-                fwrite(addon, 1, min, f);
-                left -= min;
-            }
-            if (is_addon_last) {
-                fclose(f);
-                f = 0;
-            }
-            return;
-        }
-    }
-}
-
-void magi_request_setup_tempfiles(struct magi_request *   request,
-                                  struct magi_tempfiles * table)
-{
-    request->file_callback          = tempfiles;
-    request->file_callback_userdata = table;
 }

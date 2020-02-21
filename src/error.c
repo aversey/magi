@@ -1,9 +1,9 @@
 #include "error.h"
 
 
-const char * magi_error_message(enum magi_error error)
+const char *magi_error_message(magi_error error)
 {
-    const char * const messages[] = {
+    const char *const messages[] = {
         0,                             /* magi_error_none */
         "No boundary for multipart.",  /* magi_error_nobound */
         "Content-Type is unknown.",    /* magi_error_unknown */

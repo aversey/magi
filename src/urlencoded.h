@@ -1,13 +1,12 @@
-#ifndef MAGI_INCLUDED_INNER_URLENCODED
-#define MAGI_INCLUDED_INNER_URLENCODED
+#ifndef MAGI_INCLUDED_URLENCODED
+#define MAGI_INCLUDED_URLENCODED
 
-#include "request.h"
+#include "error.h"
+#include "param.h"
 
 
-/* Fills request->url_params via parsing encoded data. */
-void magi_urlencoded(magi_param_list **list,
-                     magi_request     *request,
-                     const char       *encoded);
+/* Add decoded params from 'encoded' to 'list'. */
+magi_error magi_urlencoded(magi_param_list **list, const char *encoded);
 
 
 #endif

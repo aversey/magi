@@ -1,9 +1,5 @@
 #ifndef MAGI_INCLUDED_TOOLS
 #define MAGI_INCLUDED_TOOLS
-/* * Collection of helpful functions for internal use.
- *
- * blah...
- */
 
 
 void magi_str_lowercase(char *str);
@@ -12,8 +8,14 @@ void magi_str_lowercase(char *str);
 char *magi_str_create_copy(const char *first, int len);
 char *magi_str_create(int len);
 
-/* Null only in case of error; if *dest is null creates string. */
-int magi_str_add(char **dest, int *len, int *size, char c);
+
+typedef struct magi_str {
+    char *data;
+    int   size;
+    int   len;
+} magi_str;
+
+int magi_str_add(magi_str *str, char c);
 
 
 #endif

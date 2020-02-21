@@ -1,14 +1,14 @@
 #include "cgi.h"
 
 #include "cookie.h"
+#include "cookies.h"
 #include "error.h"
 #include "file.h"
-#include "inner_cookies.h"
-#include "inner_tools.h"
-#include "inner_multipart.h"
-#include "inner_urlencoded.h"
+#include "multipart.h"
 #include "param.h"
 #include "request.h"
+#include "tools.h"
+#include "urlencoded.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>

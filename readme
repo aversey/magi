@@ -4,11 +4,12 @@ Magi Library (libmagi) implements Gateway Interfaces, namely CGI and FastCGI.
     Overview
 Magi are free and open-source software: legal info is in the 'license' file.
 They are written in ANSI C, without any dependecies, except for C standard
-library.  All source and header files are located in the 'src' directory.
+library.  All source and inner header files are located in the 'src' directory.
 The 'include' directory is intended to be used in your include environment.
-Headers themselves are in 'magi' subdirectory of include, due to their short
-and simple names.  If you are not about choosing which header to include and
-just want everything to be included you can use 'magi.h'.
+Headers in it contain library interface and its documentation in comments.
+They are in subdirectory 'include/magi', due to their short and simple names.
+If you are not about choosing which header to include and just want everything
+to be included you can '#include <magi.h>'.
 
     Compiling
 Compilation and its options are described in the 'Makefile'.

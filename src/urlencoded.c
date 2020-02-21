@@ -1,6 +1,6 @@
-#include "inner_urlencoded.h"
+#include "urlencoded.h"
 
-#include "inner_tools.h"
+#include "tools.h"
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,30 +9,30 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Local Shortcuts
  */
+ static int is_hex(char c)
+{
+    return isdigit(c) || strchr("abcdef", tolower(c));
+}
+
 /* Call only if is_hex(c). */
 static int from_hex(char c)
 {
     if (isdigit(c)) {
         return c - '0';
     } else {
-        return toupper(c) - 'A' + 10;
+        return tolower(c) - 'a' + 10;
     }
-}
-
-static int is_hex(char c)
-{
-    return isdigit(c) || strchr("ABCDEF", toupper(c));
 }
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * URL Decoding
  */
-static int deurl(char ** data)
+static int deurl(char **data)
 {
-    char * val = *data;
-    int    ti;
-    int    ci;
+    char *val = *data;
+    int   ti;
+    int   ci;
     if (!val) {
         *data  = malloc(1);
         **data = 0;
@@ -40,14 +40,13 @@ static int deurl(char ** data)
     }
     for (ti = 0, ci = 0; val[ci]; ++ti, ++ci) {
         if (val[ci] == '%') {
-            if (is_hex(val[ci + 1]) && is_hex(val[ci + 2])) {
-                /* Since chars can be signed, arithmetics are not safe. */
-                val[ti] = from_hex(val[ci + 2]);       /* 0000xxxx */
-                val[ti] |= from_hex(val[ci + 1]) << 4; /* XXXXxxxx */
-                ci += 2; /* Two extra characters are readed from code. */
-            } else {
+            if (!is_hex(val[ci + 1]) || !is_hex(val[ci + 2])) {
                 return 0;
             }
+            /* Since chars can be signed, arithmetics are not safe. */
+            val[ti] = from_hex(val[ci + 2]) |     /* 0000xxxx */
+                      from_hex(val[ci + 1]) << 4; /* XXXXxxxx */
+            ci += 2; /* Two extra characters are readed from code. */
         } else if (val[ci] == '+') {
             val[ti] = ' ';
         } else {
@@ -62,83 +61,76 @@ static int deurl(char ** data)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Urlencoded Automata
  */
-enum st { st_error = 0, st_name, st_data };
+typedef struct automata {
+    magi_param_list **list;
+    magi_str          name;
+    magi_str          data;
+} automata;
+typedef void *(*state)(automata *a, char c);
 
-struct automata {
-    struct magi_param_list ** list;
-    struct magi_param         param;
-    int                       size;
-    int                       len;
-};
-
-
-static enum st parse_name(struct automata * a, char c)
+static void *state_parse_data(automata *a, char c);
+static void *state_parse_name(automata *a, char c)
 {
-    if (c == '&' || c == ';') { /* Impossible character means error. */
-        return st_error;
+    if (c == '&' || c == ';') {
+        return 0;
     }
-    if (c == '=') { /* Separator ends name. */
-        a->size = 1;
-        a->len  = 0;
-        return st_data;
-    }
-
-    if (!magi_str_add(&a->param.name, &a->len, &a->size, c)) {
-        return st_error;
-    }
-    return st_name;
-}
-
-static enum st end_data(struct automata * a)
-{
-    if (deurl(&a->param.name) && deurl(&a->param.data)) {
-        if (magi_param_list_add(a->list, &a->param)) {
-            a->size       = 1;
-            a->len        = 0;
-            a->param.name = 0;
-            a->param.data = 0;
-            return st_name;
+    if (c == '=') {
+        if (!deurl(&a->name.data)) {
+            return 0;
         }
+        return state_parse_name;
     }
-    return st_error;
+    magi_str_add(&a->name, c);
+    return a->name.size ? state_parse_name : 0;
 }
 
-static enum st parse_data(struct automata * a, char c)
+static int add_to_list(automata *a)
 {
-    if (c == '=') { /* Impossible character means error. */
-        return st_error;
+    magi_param param;
+    param.name = a->name.data;
+    param.data = a->data.data;
+    if (!magi_param_list_add(a->list, param)) {
+        return 0;
     }
-    if (c == '&' || c == ';') { /* Separator ends data. */
-        return end_data(a);
-    }
-
-    if (!magi_str_add(&a->param.data, &a->len, &a->size, c)) {
-        return st_error;
-    }
-    return st_data;
+    a->name.data = 0;
+    a->data.data = 0;
+    return 1;
 }
 
-void magi_urlencoded(struct magi_param_list ** list,
-                     struct magi_request *     request,
-                     const char *              encoded)
+static void state_parse_data(automata *a, char c)
 {
-    enum st         state;
-    struct automata a = { 0, { 0, 0 }, 1, 0 };
-    a.list            = list;
-    *list             = 0;
+    if (c == '=') {
+        return 0;
+    }
+    if (c == '&' || c == ';') {
+        if (!deurl(&a->data.data) || !add_to_list(a)) {
+            return 0;
+        }
+        return state_parse_name;
+    }
+    magi_str_add(&a->data, c);
+    return a->data.size ? state_parse_data : 0;
+}
+
+magi_error magi_urlencoded(magi_param_list **list, const char *encoded)
+{
+    st       state;
+    automata a = { 0, { 0, 0 }, 1, 0 };
+    a.list     = list;
+    *list      = 0;
     if (!encoded || !*encoded) {
-        return;
+        return 0;
     }
-    for (state = st_name; state && *encoded; ++encoded) {
-        if (state == st_name) {
-            state = parse_name(&a, *encoded);
-        } else {
-            state = parse_data(&a, *encoded);
+    for (; *encoded; ++encoded) {
+        s = s(&a, *encoded);
+        if (!s) {
+            return auto_free(a);
         }
     }
     if (state == st_name || !state || !end_data(&a)) {
         free(a.param.name);
         free(a.param.data);
-        request->error = magi_error_urlenc;
+        return auto_free(a);
     }
+    return 0;
 }

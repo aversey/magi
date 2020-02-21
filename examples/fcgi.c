@@ -1,4 +1,4 @@
-/* * * TODO * * */
+/* * * TODO -- not valid yet * * */
 #include <magi.h>
 #include <stdio.h>
 #include <stdlib.h>
