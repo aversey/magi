@@ -1,33 +1,41 @@
 #ifndef MAGI_INCLUDED_PARAM
 #define MAGI_INCLUDED_PARAM
 /** @file param.h
- * @brief blah...
- *
- * blah-blah...
+ * @brief Parameter as name-value pair.
  */
 
 
-typedef struct magi_param {
-    /* All pointers must be valid as 'free' arguments. */
-    char *name;
-    char *data;
-} magi_param;
+/** @brief Parameter as name-value pair. */
+struct magi_param {
+    char *name;  /**<@brief Cannot be null. */
+    char *data;  /**<@brief Cannot be null. */
+};
+typedef struct magi_param magi_param;
 
-typedef struct magi_param_list {
-    struct magi_param_list *next; /* Must be valid as 'free' argument. */
-    magi_param              item;
-} magi_param_list;
+/** @brief Parameters collection.
+ *
+ * Implemented as linked list. */
+struct magi_params {
+    struct magi_params *next;  /**<@brief Pointer to next parameter. */
+    magi_param          item;  /**<@brief Top parameter. */
+};
+typedef struct magi_params magi_params;
 
 
-/* Addition of item to top of list. Null <=> error. */
-int magi_param_list_add(magi_param_list **list,
-                        magi_param       *item);
+/** @brief Add @p newitem to @p params.
+ * @param[in,out] params to add into.
+ * @param[in] newitem to add onto top of @p params. */
+void magi_params_add(magi_params **params, magi_param *newitem);
 
-/* Data of the first node in list: node.name == name; else null. */
-char *magi_param_list_get(magi_param_list *list, const char *name);
+/** @brief Get data of parameter from @p params with @p name.
+ * @param[in] params to search in.
+ * @param[in] name of needed parameter.
+ * @return data of the first from top of @p params parameter with @p name,
+ *         null only if no parameter with @p name is in @p params. */
+char *magi_params_get(magi_param_list *params, const char *name);
 
 /* Freeing and invalidation of list. */
-void magi_param_list_destroy(magi_param_list *list);
+void magi_params_free(magi_params *params);
 
 
 #endif
