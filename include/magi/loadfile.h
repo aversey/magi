@@ -14,23 +14,22 @@
 
 
 /** @brief Rule of loading single file.
- * 
+ *
  * There is no need to form or edit it directly. */
-struct magi_loadfile {
+typedef struct magi_loadfile {
     const char *name;  /**<@brief Form field to load file from. */
     const char *path;  /**<@brief Path to load file in. */
     int         max;   /**<@brief Limit in bytes. Null means unlimited. */
-};
-typedef struct magi_loadfile magi_loadfile;
+} magi_loadfile;
 
 /** @brief Table of rules for loading files.
- * 
+ *
  * Set @c count and @c files as null to initialize. */
-struct magi_loadfiles {
-    int            count; /**<@brief Size of @c files.*/
-    magi_loadfile *files; /**<@brief Dynamic array of rules to load files. */
-};
-typedef struct magi_loadfiles magi_loadfiles;
+typedef struct magi_loadfiles {
+    int            count;  /**<@brief Size of @c files.*/
+    magi_loadfile *files;  /**<@brief Dynamic array of rules to load files. */
+} magi_loadfiles;
+
 
 /** @brief Add entity into @p table.
  * @param[in,out] table is the table to add into.
@@ -50,8 +49,7 @@ void magi_loadfiles_free(magi_loadfiles *table);
 /** @brief Setup @p request to use loadfiles callback with @p table.
  * @param[in,out] request to setup using loadfiles callback.
  * @param[in] table to use in loadfiles callback. */
-void magi_request_setup_loadfiles(magi_request   *request,
-                                  magi_loadfiles *table);
+void magi_loadfiles_set(magi_request *request, magi_loadfiles *table);
 
 
 #endif

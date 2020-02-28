@@ -1,118 +1,113 @@
 #include <magi.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 
-void proceed_cookies(magi_cookie_list *cookies, magi_response *response)
+void list_cookies(magi_request *r)
 {
-    while (cookies) {
-        magi_response_add(response, "Cookie with name [");
-        magi_response_add(response, cookies->item.name);
-        if (cookies->item.data) {
-            magi_response_add(response, "] is [");
-            magi_response_add(response, cookies->item.data);
+    magi_cookies *current = r->cookies;
+    for (current = r->cookies; current; current = current->next) {
+        magi_cookie *c = &current->item;
+        magi_response_add(r, "Cookie with name [");
+        magi_response_add(r, c->name);
+        if (c->data) {
+            magi_response_add(r, "] is [");
+            magi_response_add(r, c->data);
         }
-        if (cookies->item.domain) {
-            magi_response_add(response, "] for domain [");
-            magi_response_add(response, cookies->item.domain);
+        if (c->domain) {
+            magi_response_add(r, "] for domain [");
+            magi_response_add(r, c->domain);
         }
-        if (cookies->item.path) {
-            magi_response_add(response, "] for path [");
-            magi_response_add(response, cookies->item.path);
+        if (c->path) {
+            magi_response_add(r, "] for path [");
+            magi_response_add(r, c->path);
         }
-        magi_response_add(response, "]<br/>");
-        cookies = cookies->next;
+        magi_response_add(r, "]<br/>");
     }
 }
 
-void proceed_params(magi_param_list *params, magi_response *response)
+void list_params(magi_request *r, magi_params *current)
 {
-    while (params) {
-        magi_response_add_format(response,
-            "[%s] is [%s]<br/>", params->item.name, params->item.data);
-        params = params->next;
+    for (; current; current = current->next) {
+        magi_param *p = &current->item;
+        magi_response_format(r, "[%s] is [%s]<br/>", p->name, p->data);
     }
 }
 
-void proceed_files(magi_file_list *files, magi_response *response)
+void list_files(magi_request *r)
 {
-    while (files) {
-        magi_file f = files->item;
-        magi_response_add_format(response,
-            "[%s] was [%s] on userside<br/>", f.param_name, f.file_name);
-        files = files->next;
+    magi_files *current;
+    for (current = r->files; current; current = current->next) {
+        magi_file *f = &current->item;
+        magi_response_format(r, "[%s] was [%s] on clientside<br/>",
+                             f->param_name, f->file_name);
     }
 }
 
-void process_meta(magi_request *req, magi_response *res)
+void show_meta(magi_request *r)
 {
-    magi_response_add(res, "I was called with method [");
-    magi_response_add(res, req->method);
-    if (req->uri) {
-        magi_response_add(res, "] with URL [");
-        magi_response_add(res, req->uri);
+    magi_response_add(r, "I was called with method [");
+    magi_response_add(r, r->method);
+    if (r->uri) {
+        magi_response_add(r, "] with URL [");
+        magi_response_add(r, r->uri);
     }
-    if (req->server_name) {
-        magi_response_add(res, "] for server [");
-        magi_response_add(res, req->server_name);
+    if (r->server_name) {
+        magi_response_add(r, "] for server [");
+        magi_response_add(r, r->server_name);
     }
-    if (req->server_port) {
-        magi_response_add(res, "] on port [");
-        magi_response_add(res, req->server_port);
+    if (r->server_port) {
+        magi_response_add(r, "] on port [");
+        magi_response_add(r, r->server_port);
     }
-    if (req->server_protocol) {
-        magi_response_add(res, "] with protocol [");
-        magi_response_add(res, req->server_protocol);
+    if (r->server_protocol) {
+        magi_response_add(r, "] with protocol [");
+        magi_response_add(r, r->server_protocol);
     }
-    if (req->server_software) {
-        magi_response_add(res, "] and I am running on software [");
-        magi_response_add(res, req->server_software);
+    if (r->server_software) {
+        magi_response_add(r, "] and I am running on software [");
+        magi_response_add(r, r->server_software);
     }
-    magi_response_add(res, "]<br/>");
+    magi_response_add(r, "]<br/>");
 }
 
-void response_request(magi_request *req, magi_response *res)
+void response(magi_request *r)
 {
-    magi_response_add(res,
+    magi_response_add(r,
         "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "
         "'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>"
         "<html xmlns='http://www.w3.org/1999/xhtml'>"
         "<head><title>Echo</title></head>"
         "<body>");
 
-    magi_response_add(res, "<h1>Echo CGI Script</h1>");
-    process_meta(req, res);
+    magi_response_add(r, "<h1>Echo CGI Script</h1>");
+    show_meta(r);
 
-    magi_response_add(res, "<h2>Cookies:</h2>");
-    proceed_cookies(req->cookies, res);
+    magi_response_add(r, "<h2>Cookies:</h2>");
+    list_cookies(r);
 
-    magi_response_add(res, "<h2>Parameters:</h2>");
-    proceed_params(req->params, res);
+    magi_response_add(r, "<h2>Parameters:</h2>");
+    list_params(r, r->params);
 
-    magi_response_add(res, "<h2>URL Parameters:</h2>");
-    proceed_params(req->url_params, res);
+    magi_response_add(r, "<h2>URL Parameters:</h2>");
+    list_params(r, r->url_params);
 
-    magi_response_add(res, "<h2>HTTP Parameters:</h2>");
-    proceed_params(req->http_params, res);
+    magi_response_add(r, "<h2>HTTP Parameters:</h2>");
+    list_params(r, r->http_params);
 
-    magi_response_add(res, "<h2>Files:</h2>");
-    proceed_files(req->files, res);
+    magi_response_add(r, "<h2>Files:</h2>");
+    list_files(r);
 
-    magi_response_add(res, "</body></html>");
+    magi_response_add(r, "</body></html>");
 }
 
 int main(int argc, char const *argv[])
 {
     magi_request request;
-    magi_request_setup(&request);
-    if (magi_request_full_cgi(&request)) {
-        magi_response response;
-        magi_response_setup(&response);
-        response_request(&request, &response);
-        magi_response_cgi_clear(&response);
+    magi_request_init(&request);
+    if (magi_cgi(&request)) {
+        response(&request);
     } else {
-        magi_error_cgi(request.error);
+        magi_response_error(&request);
     }
-    magi_request_destroy(&request);
+    magi_request_free(&request);
     return 0;
 }

@@ -1,5 +1,5 @@
-#ifndef MAGI_INCLUDED
-#define MAGI_INCLUDED
+#ifndef MAGI_INCLUDED_EVERYTHING
+#define MAGI_INCLUDED_EVERYTHING
 /** @file magi.h
  * @brief All headers are included here.
  *
@@ -14,10 +14,4 @@
 #include "magi/request.h"
 #include "magi/response.h"
 #include "magi/urlenc.h"
-
-
-/** @mainpage Magi Gateway Interfaces Library
- */
-
-
 #endif

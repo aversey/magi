@@ -1,23 +1,23 @@
 #include <magi.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 
-void response_request(magi_request *req, magi_response *res)
+void response(magi_request *r)
 {
-    char *data = magi_param_list_get(req->params, "addon");
-    if (data) {
-        FILE *file = fopen("file_to_append", "a");
-        fputs(data, file);
-        fclose(file);
-    }
-
-    magi_response_add(res,
+    char *data = magi_request_param(r, "addon");
+    magi_response_add(r,
         "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "
         "'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>"
         "<html xmlns='http://www.w3.org/1999/xhtml'>"
         "<head><title>Append to File</title></head>"
-        "<body>"
+        "<body>");
+    if (data) {
+        FILE *file = fopen("file_to_append", "a");
+        fputs(data, file);
+        fclose(file);
+        magi_response_add(r, "<p>Appended!</p>");
+    }
+    magi_response_add(r,
         "<form action='/cgi-bin/append' method='post'><fieldset>"
         "<input type='text' name='addon' value='Whatever you want to add.'/>"
         "<input type='submit' value='Append'/>"
@@ -29,15 +29,12 @@ void response_request(magi_request *req, magi_response *res)
 int main(int argc, char const *argv[])
 {
     magi_request request;
-    magi_request_setup(&request);
-    if (magi_request_full_cgi(&request)) {
-        magi_response response;
-        magi_response_setup(&response);
-        response_request(&request, &response);
-        magi_response_cgi_clear(&response);
+    magi_request_init(&request);
+    if (magi_cgi(&request)) {
+        response(&request);
     } else {
-        magi_error_cgi(request.error);
+        magi_response_error(&request);
     }
-    magi_request_destroy(&request);
+    magi_request_free(&request);
     return 0;
 }

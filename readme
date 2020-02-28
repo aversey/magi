@@ -33,7 +33,7 @@ magi_request analyses incoming request, general workflow is to:
 3. Process post part of the CGI request via 'magi_request_resume_cgi';
 4. Now you have the full request analysed, so do your work;
 5. And finally, free memory via 'magi_request_destroy'.
-For more see 'src/request.h'.
+For more see 'include/magi/request.h'.
 
 magi_response provides output capabilities.  You can form the response with
 'magi_response_setup' used to setup defaults, and the following functions to
@@ -46,7 +46,7 @@ fill in your data ('...' means 'magi_response_'):
     ...add_format: add comething to the body, using format (similar to printf);
 Outputting itself can be done with 'magi_response_cgi'.
 To correctly free all occupied memory call 'magi_response_destroy'.
-For more see 'src/response.h'.
+For more see 'include/magi/response.h'.
 
     Motivation
 Web must be fun.

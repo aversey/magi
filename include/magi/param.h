@@ -6,20 +6,18 @@
 
 
 /** @brief Parameter as name-value pair. */
-struct magi_param {
+typedef struct magi_param {
     char *name;  /**<@brief Cannot be null. */
     char *data;  /**<@brief Cannot be null. */
-};
-typedef struct magi_param magi_param;
+} magi_param;
 
 /** @brief Parameters collection.
  *
- * Implemented as linked list. */
-struct magi_params {
-    struct magi_params *next;  /**<@brief Pointer to next parameter. */
-    magi_param          item;  /**<@brief Top parameter. */
-};
-typedef struct magi_params magi_params;
+ * Implemented as a linked list. */
+typedef struct magi_params {
+    struct magi_params *next;  /**<@brief Pointer to next parameters. */
+    magi_param          item;  /**<@brief Parameter on top. */
+} magi_params;
 
 
 /** @brief Add @p newitem to @p params.
@@ -31,10 +29,11 @@ void magi_params_add(magi_params **params, magi_param *newitem);
  * @param[in] params to search in.
  * @param[in] name of needed parameter.
  * @return data of the first from top of @p params parameter with @p name,
- *         null only if no parameter with @p name is in @p params. */
-char *magi_params_get(magi_param_list *params, const char *name);
+ *         null only if no such parameter. */
+char *magi_params_get(magi_params *params, const char *name);
 
-/* Freeing and invalidation of list. */
+/** @brief Free memory used by @p params.
+ * @param[in,out] params to be destructed. */
 void magi_params_free(magi_params *params);
 
 
