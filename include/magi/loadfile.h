@@ -13,25 +13,23 @@
 #include "request.h"
 
 
-/** @brief Rule of loading single file.
- *
+/** Rule of loading single file.
  * There is no need to form or edit it directly. */
 typedef struct magi_loadfile {
-    const char *name;  /**<@brief Form field to load file from. */
-    const char *path;  /**<@brief Path to load file in. */
-    int         max;   /**<@brief Limit in bytes. Null means unlimited. */
+    const char *name;  /**< Form field to load file from. */
+    const char *path;  /**< Path to load file in. */
+    int         max;   /**< Limit in bytes. Null means unlimited. */
 } magi_loadfile;
 
-/** @brief Table of rules for loading files.
- *
+/** Table of rules for loading files.
  * Set @c count and @c files as null to initialize. */
 typedef struct magi_loadfiles {
-    int            count;  /**<@brief Size of @c files.*/
-    magi_loadfile *files;  /**<@brief Dynamic array of rules to load files. */
+    int            count;  /**< Size of @c files.*/
+    magi_loadfile *files;  /**< Dynamic array of rules to load files. */
 } magi_loadfiles;
 
 
-/** @brief Add entity into @p table.
+/** Add entity into @p table.
  * @param[in,out] table is the table to add into.
  * @param[in] name is the form field name to load file from.
  * @param[in] path to load file in.
@@ -41,12 +39,12 @@ void magi_loadfiles_add(magi_loadfiles *table,
                         const char     *path,
                         int             max);
 
-/** @brief Free memmory used by @p table.
+/** Free memmory used by @p table.
  * @warning Request using @p table will become invalid.
  * @param[in,out] table to be destructed. */
 void magi_loadfiles_free(magi_loadfiles *table);
 
-/** @brief Setup @p request to use loadfiles callback with @p table.
+/** Setup @p request to use loadfiles callback with @p table.
  * @param[in,out] request to setup using loadfiles callback.
  * @param[in] table to use in loadfiles callback. */
 void magi_loadfiles_set(magi_request *request, magi_loadfiles *table);

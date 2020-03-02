@@ -15,12 +15,12 @@
  */
 
 
-/** @brief Count URL-code size for @p plain.
+/** Count URL-code size for @p plain.
  * @param[in] plain is a text to count code size for.
  * @return size of URL-code of @p plain. */
 int magi_urlenc_size(const char *plain);
 
-/** @brief Encode @p plain to url-code @p code.
+/** Encode @p plain to url-code @p code.
  * @warning @p code must be at least size of #magi_urlenc_size(@p plain).
  * @param[in] plain is a text to be encoded.
  * @param[out] code will be filled with URL-code of @p plain. */

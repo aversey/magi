@@ -6,7 +6,7 @@ void response(magi_request *r)
 {
     char      *name = magi_request_param(r, "name");
     magi_file *data = magi_request_file(r, "data");
-    magi_response_add(r,
+    magi_response(r,
         "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "
         "'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>"
         "<html xmlns='http://www.w3.org/1999/xhtml'>"
@@ -14,9 +14,9 @@ void response(magi_request *r)
         "<body>");
     if (name && data) {
         rename("data", name);
-        magi_response_add(r, "<p>Uploaded!</p>");
+        magi_response(r, "<p>Uploaded!</p>");
     }
-    magi_response_add(r,
+    magi_response(r,
         "<form action='/cgi-bin/upload' method='post' "
         "enctype='multipart/form-data'><fieldset>"
         "<input type='text' name='name' value='filename'/>"
