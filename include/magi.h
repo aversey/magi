@@ -1,8 +1,6 @@
 #ifndef MAGI_INCLUDED_EVERYTHING
 #define MAGI_INCLUDED_EVERYTHING
-/** @file magi.h
- * @brief All headers are included here.
- *
+/* All headers are included here.
  * You can include this, if you don't want to think about headers.
  */
 #include "magi/cgi.h"

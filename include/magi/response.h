@@ -11,6 +11,7 @@
  *          (Since storing possibly large body in memory is a bad idea,
  *           all headers should be sent before anything from the body.)
  */
+#include "request.h"
 
 
 void magi_response_status(magi_request *r, magi_status code);
