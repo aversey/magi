@@ -2,7 +2,7 @@
 #define MAGI_INCLUDED_TOOLS
 
 
-void magi_str_lowercase(char *str);
+char *magi_str_lowercase(char *str);
 
 /* Results of both create functions are malloced, so need to be freed. */
 char *magi_str_create_copy(const char *first, int len);

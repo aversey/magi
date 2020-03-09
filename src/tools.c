@@ -5,14 +5,15 @@
 #include <string.h>
 
 
-void magi_str_lowercase(char *str)
+char *magi_str_lowercase(char *str)
 {
     if (!str) {
-        return;
+        return str;
     }
     for (; *str; ++str) {
         *str = tolower(*str);
     }
+    return str;
 }
 
 char *magi_str_create_copy(const char *first, int len)

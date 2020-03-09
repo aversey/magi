@@ -1,5 +1,6 @@
 #include "request.h"
 
+#include "response.h"
 #include <stdlib.h>
 
 
@@ -25,22 +26,24 @@ static void request_free(magi_request *request)
     free(request->body);
     free(request->files);
     free(request->method);
-    free(request->address);
+    free(request->host);
     free(request->script);
     free(request->path);
+    free(request->response);
 }
 
 static void request_annul(magi_request *request)
 {
-    request->cookies = 0;
-    request->meta    = 0;
-    request->head    = 0;
-    request->body    = 0;
-    request->files   = 0;
-    request->method  = 0;
-    request->address = 0;
-    request->script  = 0;
-    request->path    = 0;
+    request->cookies  = 0;
+    request->meta     = 0;
+    request->head     = 0;
+    request->body     = 0;
+    request->files    = 0;
+    request->method   = 0;
+    request->host     = 0;
+    request->script   = 0;
+    request->path     = 0;
+    request->response = 0;
 }
 
 void magi_request_free(magi_request *request)
@@ -51,6 +54,14 @@ void magi_request_free(magi_request *request)
         magi_params_free(request->head);
         magi_params_free(request->body);
         magi_files_free(request->files);
+        request->response->methods->close(request->response->userdata);
+        free(request->response->userdata);
+        magi_params_free(request->response->head[0]);
+        magi_params_free(request->response->head[1]);
+        magi_params_free(request->response->head[2]);
+        free(request->response->head[0]);
+        free(request->response->head[1]);
+        free(request->response->head[2]);
         request_free(request);
         request_annul(request);
     }

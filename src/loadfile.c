@@ -1,6 +1,7 @@
 #include "loadfile.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 
@@ -18,40 +19,40 @@ void magi_loadfiles_add(magi_loadfiles *table,
     } else {
         table->files = malloc(size);
     }
-    table->files[table->count].param_name = name;
-    table->files[table->count].location   = path;
-    table->files[table->count].maximum    = max;
+    table->files[table->count].name = name;
+    table->files[table->count].path = path;
+    table->files[table->count].max  = max;
     table->count++;
 }
 
-void magi_loadfiles_destroy(magi_loadfiles *table)
+void magi_loadfiles_free(magi_loadfiles *table)
 {
     if (!table) {
         return;
     }
-    free(table->table);
+    free(table->files);
+    table->count = 0;
 }
 
-static void loadfiles(magi_file *file,
+static void loadfiles(void *userdata,
+                      magi_file *file,
                       char      *addon,
-                      int        addon_len,
-                      int        is_addon_last,
-                      void      *userdata)
+                      int        addon_len)
 {
     magi_loadfiles *table = userdata;
     int             pos;
-    if (!file->file_name || !strcmp(file->file_name, "")) {
+    if (!file->filename || !strcmp(file->filename, "")) {
         return;
     }
     for (pos = 0; pos != table->count; ++pos) {
-        if (!strcmp(table->files[pos].param_name, file->param_name)) {
+        if (!strcmp(table->files[pos].name, file->field)) {
             static FILE *f = 0;
             static int   unlimited;
             static int   left;
             if (!f) {
-                const char * loc = table->files[pos].location;
-                f                = fopen(loc, "wb");
-                left             = table->files[pos].maximum;
+                const char *path = table->files[pos].path;
+                f                = fopen(path, "wb");
+                left             = table->files[pos].max;
                 unlimited        = !left;
             }
             if (unlimited) {
@@ -61,7 +62,7 @@ static void loadfiles(magi_file *file,
                 fwrite(addon, 1, min, f);
                 left -= min;
             }
-            if (is_addon_last) {
+            if (!addon_len) {
                 fclose(f);
                 f = 0;
             }
@@ -70,8 +71,8 @@ static void loadfiles(magi_file *file,
     }
 }
 
-void magi_request_setup_loadfiles(magi_request *request, magi_loadfiles *table)
+void magi_loadfiles_set(magi_request *request, magi_loadfiles *table)
 {
-    request->file_callback          = loadfiles;
-    request->file_callback_userdata = table;
+    request->callback.act      = loadfiles;
+    request->callback.userdata = table;
 }

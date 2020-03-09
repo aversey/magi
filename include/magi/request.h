@@ -39,9 +39,10 @@ typedef struct magi_request {
     magi_params  *body;
     magi_files   *files;
 
+    char *document_root;
     char *method;
     int   is_secure;
-    char *address;
+    char *host;
     int   port;
     char *script;
     char *path;

@@ -115,6 +115,7 @@ void magi_response_head(magi_request *r)
     response_headers(r->response, r->response->head[0]);
     response_headers(r->response, r->response->head[1]);
     response_headers(r->response, r->response->head[2]);
+    r->response->methods->start_body(r->response->userdata);
     r->response->head_done = 1;
 }
 
@@ -134,4 +135,21 @@ void magi_response_file(magi_request *r, FILE *file)
 {
     magi_response_head(r);
     r->response->methods->file(r->response->userdata, file);
+}
+
+
+void magi_response_error(magi_request *r)
+{
+    /* TODO */
+    magi_response_status(r, 400, "Bad Request");
+    magi_response(r,
+        "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "
+        "'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>"
+        "<html xmlns='http://www.w3.org/1999/xhtml'>"
+        "<head><title>400 Bad Request</title></head>"
+        "<body>"
+        "<h1>400 <i>Bad Request</i></h1>"
+        "<h2>");
+    magi_response(r, magi_error_message(r->error));
+    magi_response(r, "</h2></body></html>");
 }
