@@ -4,35 +4,33 @@
 #include <string.h>
 
 
-int magi_param_list_add(struct magi_param_list ** list,
-                        struct magi_param *       item)
+void magi_params_add(magi_params **params, magi_param *newitem)
 {
-    struct magi_param_list * node = malloc(sizeof(*node));
+    magi_params *node = malloc(sizeof(*node));
     if (node) {
-        node->next = *list;
-        node->item = *item;
-        *list      = node;
+        node->next = *params;
+        node->item = *newitem;
+        *params     = node;
     }
-    return !!node;
 }
 
-char * magi_param_list_get(struct magi_param_list * list, const char * name)
+char *magi_params_get(magi_params *params, const char *name)
 {
-    if (!list || !name) {
+    if (!params || !name) {
         return 0;
-    } else if (!strcmp(list->item.name, name)) {
-        return list->item.data;
+    } else if (!strcmp(params->item.name, name)) {
+        return params->item.data;
     } else {
-        return magi_param_list_get(list->next, name);
+        return magi_params_get(params->next, name);
     }
 }
 
-void magi_param_list_destroy(struct magi_param_list * list)
+void magi_params_free(magi_params *params)
 {
-    if (list) {
-        magi_param_list_destroy(list->next);
-        free(list->next);
-        free(list->item.name);
-        free(list->item.data);
+    if (params) {
+        magi_params_free(params->next);
+        free(params->next);
+        free(params->item.name);
+        free(params->item.data);
     }
 }

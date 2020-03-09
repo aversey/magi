@@ -4,37 +4,35 @@
 #include <string.h>
 
 
-int magi_file_list_add(struct magi_file_list ** list, struct magi_file * item)
+void magi_files_add(magi_files **files, magi_file *newitem)
 {
-    struct magi_file_list * node = malloc(sizeof(*node));
+    magi_files *node = malloc(sizeof(*node));
     if (node) {
-        node->next = *list;
-        node->item = *item;
-        *list      = node;
+        node->next = *files;
+        node->item = *newitem;
+        *files     = node;
     }
-    return !!node;
 }
 
-struct magi_file * magi_file_list_get(struct magi_file_list * list,
-                                      const char *            name)
+magi_file *magi_files_get(magi_files *files, const char *name)
 {
-    if (!list || !name) {
+    if (!files || !name) {
         return 0;
-    } else if (!strcmp(list->item.param_name, name)) {
-        return &list->item;
+    } else if (!strcmp(files->item.field, name)) {
+        return &files->item;
     } else {
-        return magi_file_list_get(list->next, name);
+        return magi_files_get(files->next, name);
     }
 }
 
-void magi_file_list_destroy(struct magi_file_list * list)
+void magi_files_free(magi_files *files)
 {
-    if (list) {
-        magi_file_list_destroy(list->next);
-        free(list->next);
-        free(list->item.param_name);
-        free(list->item.file_name);
-        magi_param_list_destroy(list->item.params);
-        free(list->item.params);
+    if (files) {
+        magi_files_free(files->next);
+        free(files->next);
+        free(files->item.field);
+        free(files->item.filename);
+        magi_params_free(files->item.params);
+        free(files->item.params);
     }
 }

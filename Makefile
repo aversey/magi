@@ -13,7 +13,7 @@ CC      = gcc
 LIB     = libmagi.a
 
 # Compile under the most strict conditions:
-CFLAGS  = -xc -ansi -pedantic -Wall
+CFLAGS  = -xc -ansi -pedantic -Wall -Wextra
 # Debug and optimisation are not compatible:
 ifeq '$(DEBUG)' 'yes'
 CFLAGS += -g -O0

@@ -25,19 +25,20 @@ typedef struct magi_cookies {
     magi_cookie          item;  /**< Cookie on top. */
 } magi_cookies;
 
+
 /** Add @p newitem to @p cookies.
  * @param[in,out] cookies to add into.
  * @param[in] newitem to add onto top of @p cookies. */
 void magi_cookies_add(magi_cookies **cookies, magi_cookie *newitem);
 
-/** Get data of cookie from @p cookies with @p name.
+/** Get cookie from @p cookies with @p name.
  * @note Cookies in @p cookies are in reverse request order, and first cookie
  *       from request is the most accurate in terms of domain and path.
- * @param[in] params to search in.
- * @param[in] name of needed parameter.
- * @return data of the last from top of @p cookies cookie with @p name,
- *         null only if no such parameter. */
-char *magi_cookies_get(magi_cookies *cookies, const char *name);
+ * @param[in] cookies to search in.
+ * @param[in] name of needed cookie.
+ * @return the last from top of @p cookies cookie with @p name,
+ *         null only if no such cookie. */
+magi_cookie *magi_cookies_get(magi_cookies *cookies, const char *name);
 
 /** Free memory used by @p cookies.
  * @param[in,out] cookies to be destructed. */

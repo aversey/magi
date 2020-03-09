@@ -10,29 +10,26 @@
 #include "file.h"
 #include "param.h"
 
-typedef void (*magi_file_callback_act)(void *, magi_file *, char *, int);
-typedef struct magi_file_callback {
-    magi_file_callback_act act;
-    void                  *userdata;
-    int                    addon_max;
-} magi_file_callback;
 
 typedef struct magi_request_limits {
     int cookies;
-    int params_http;
+    int params_meta;
     int params_head;
     int params_body;
 } magi_request_limits;
 
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ /**
- * Request and response handler.
+ * Request handler.
  *
- * Can be created via 'magi_request_{gateway interface name}', but will have
- * nullified 'post'-related fields ('params' & 'files').  Reason is unlimited
- * 'post' body size, with possible dependence of wanted limits from data of
+ * Can be created via 'magi_{gateway interface name}_head', but will have
+ * nullified 'POST'-related fields ('params' & 'files').  Reason is unlimited
+ * 'POST' body size, with possible dependence of wanted limits from data of
  * headers (e.g. session id from cookies, enabling some users to load more).
- * To proceed 'post' use 'magi_request_resume_{gateway interface name}',
- * specifying settings if necessary. */
+ * To proceed 'post' use 'magi_{gateway interface name}_body', specifying
+ * settings if necessary.
+ *
+ * Or just use shortcut 'magi_{gateway interface_name}' to do both parts. */
 typedef struct magi_request {
     magi_error  error;
 
@@ -42,12 +39,12 @@ typedef struct magi_request {
     magi_params  *body;
     magi_files   *files;
 
-    magi_method method;
-    int         is_secure;
-    char       *domain;
-    int         port;
-    char       *script;
-    char       *path;
+    char *method;
+    int   is_secure;
+    char *address;
+    int   port;
+    char *script;
+    char *path;
 
     magi_file_callback  callback;
     magi_request_limits limits;
@@ -60,8 +57,7 @@ void magi_request_init(magi_request *r);
 void magi_request_free(magi_request *r);
 
 
-char *magi_request_meta(magi_request *r, magi_meta code);
-char *magi_request_meta_custom(magi_request *r, const char *name);
+char *magi_request_meta(magi_request *r, const char *name);
 
 char *magi_request_param(magi_request *r, const char *name);
 char *magi_request_urlparam(magi_request *r, const char *name);

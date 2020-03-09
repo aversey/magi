@@ -38,4 +38,15 @@ magi_file *magi_files_get(magi_files *files, const char *name);
 void magi_files_free(magi_files *files);
 
 
+typedef void (*magi_file_callback_act)(void *userdata,
+                                       magi_file *file_to_add_into,
+                                       char *addon,
+                                       int addon_len);
+typedef struct magi_file_callback {
+    magi_file_callback_act act;
+    void                  *userdata;
+    int                    addon_max;
+} magi_file_callback;
+
+
 #endif

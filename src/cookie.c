@@ -4,42 +4,39 @@
 #include <string.h>
 
 
-int magi_cookie_list_add(struct magi_cookie_list ** list,
-                         struct magi_cookie *       item)
+void magi_cookies_add(magi_cookies **cookies, magi_cookie *newitem)
 {
-    struct magi_cookie_list * node = malloc(sizeof(*node));
+    magi_cookies *node = malloc(sizeof(*node));
     if (node) {
-        node->next = *list;
-        node->item = *item;
-        *list      = node;
+        node->next = *cookies;
+        node->item = *newitem;
+        *cookies   = node;
     }
-    return !!node;
 }
 
-char * magi_cookie_list_get(struct magi_cookie_list * list, const char * name)
+magi_cookie *magi_cookies_get(magi_cookies *cookies, const char *name)
 {
-    char * res = 0;
-    if (!list || !name) {
+    magi_cookie *res = 0;
+    if (!cookies || !name) {
         return 0;
     }
-    while (list) {
-        if (!strcmp(list->item.name, name)) {
-            res = list->item.data;
+    for (; cookies; cookies = cookies->next) {
+        if (!strcmp(cookies->item.name, name)) {
+            res = &cookies->item;
         }
-        list = list->next;
     }
     return res;
 }
 
-void magi_cookie_list_destroy(struct magi_cookie_list * list)
+void magi_cookies_free(magi_cookies *cookies)
 {
-    if (list) {
-        magi_cookie_list_destroy(list->next);
-        free(list->next);
-        free(list->item.name);
-        free(list->item.data);
-        free(list->item.path);
-        free(list->item.domain);
-        free(list->item.max_age);
+    if (cookies) {
+        magi_cookies_free(cookies->next);
+        free(cookies->next);
+        free(cookies->item.name);
+        free(cookies->item.data);
+        free(cookies->item.path);
+        free(cookies->item.domain);
+        free(cookies->item.max_age);
     }
 }

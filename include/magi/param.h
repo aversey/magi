@@ -24,6 +24,12 @@ typedef struct magi_params {
  * @param[in] newitem to add onto top of @p params. */
 void magi_params_add(magi_params **params, magi_param *newitem);
 
+/** Set @p newitem in @p params.
+ * @param[in,out] params to add into.
+ * @param[in] newitem to replace item in @p params with same name
+              or to add, if no param with same name is in @p params. */
+void magi_params_set(magi_params **params, magi_param *newitem);
+
 /** Get data of parameter from @p params with @p name.
  * @param[in] params to search in.
  * @param[in] name of needed parameter.
