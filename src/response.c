@@ -21,7 +21,7 @@ void magi_response_status(magi_request *r, int code, const char *description)
     addon.data[2] = '0' + code % 10;
     addon.data[3] = ' ';
     memcpy(addon.data + 4, description, dlen + 1);
-    magi_params_set(r->response->head, &addon);
+    magi_params_set(&r->response->head_response, &addon);
 }
 
 void magi_response_cookie(magi_request *r, const char *name, const char *data)
@@ -32,7 +32,7 @@ void magi_response_cookie(magi_request *r, const char *name, const char *data)
     }
     addon.name = magi_str_create_copy("Set-Cookie", 10);
     /* TODO */
-    magi_params_add(r->response->head + 1, &addon);
+    magi_params_add(&r->response->head_general, &addon);
 }
 
 void magi_response_cookie_complex(magi_request *r, magi_cookie *c)
@@ -43,7 +43,7 @@ void magi_response_cookie_complex(magi_request *r, magi_cookie *c)
     }
     addon.name = magi_str_create_copy("Set-Cookie", 10);
     /* TODO */
-    magi_params_add(r->response->head + 1, &addon);
+    magi_params_add(&r->response->head_general, &addon);
 }
 
 void magi_response_cookie_discard(magi_request *r, const char *name)
@@ -54,7 +54,7 @@ void magi_response_cookie_discard(magi_request *r, const char *name)
     }
     addon.name = magi_str_create_copy("Set-Cookie", 10);
     /* TODO */
-    magi_params_add(r->response->head + 1, &addon);
+    magi_params_add(&r->response->head_general, &addon);
 }
 
 void magi_response_header(magi_request *r, const char *name, const char *data)
@@ -65,7 +65,7 @@ void magi_response_header(magi_request *r, const char *name, const char *data)
     }
     addon.name = magi_str_create_copy(name, strlen(name));
     addon.data = magi_str_create_copy(data, strlen(data));
-    magi_params_add(r->response->head + 1, &addon);
+    magi_params_add(&r->response->head_general, &addon);
 }
 
 void magi_response_content_length(magi_request *r, int length)
@@ -85,18 +85,18 @@ void magi_response_content_length(magi_request *r, int length)
         ++len;
     }
     addon.data[len] = 0;
-    magi_params_set(r->response->head + 2, &addon);
+    magi_params_set(&r->response->head_entity, &addon);
 }
 
 void magi_response_content_type(magi_request *r, const char *type)
 {
     magi_param addon;
-    if (r->response->head_done) {
+    if (r->response->head_done || !type) {
         return;
     }
     addon.name = magi_str_create_copy("Content-Type", 12);
     addon.data = magi_str_create_copy(type, strlen(type));
-    magi_params_set(r->response->head + 2, &addon);
+    magi_params_set(&r->response->head_entity, &addon);
 }
 
 static void response_headers(magi_response_implementation *r, magi_params *p)
@@ -108,13 +108,12 @@ static void response_headers(magi_response_implementation *r, magi_params *p)
 
 void magi_response_head(magi_request *r)
 {
-    magi_params *current;
     if (r->response->head_done) {
         return;
     }
-    response_headers(r->response, r->response->head[0]);
-    response_headers(r->response, r->response->head[1]);
-    response_headers(r->response, r->response->head[2]);
+    response_headers(r->response, r->response->head_response);
+    response_headers(r->response, r->response->head_general);
+    response_headers(r->response, r->response->head_entity);
     r->response->methods->start_body(r->response->userdata);
     r->response->head_done = 1;
 }
@@ -122,6 +121,9 @@ void magi_response_head(magi_request *r)
 void magi_response(magi_request *r, const char *addon)
 {
     magi_response_head(r);
+    if (!addon) {
+        return;
+    }
     r->response->methods->body(r->response->userdata, addon, strlen(addon));
 }
 

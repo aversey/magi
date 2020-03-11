@@ -38,33 +38,29 @@ void list_files(magi_request *r)
     for (current = r->files; current; current = current->next) {
         magi_file *f = &current->item;
         magi_response_format(r, "[%s] was [%s] on clientside<br/>",
-                             f->param_name, f->file_name);
+                             f->field, f->filename);
     }
 }
 
 void show_meta(magi_request *r)
 {
-    magi_response(r, "I was called with method [");
+    magi_response(r, "I was called ");
+    if (r->is_secure) {
+        magi_response(r, "securely ");
+    }
+    magi_response(r, "with method [");
     magi_response(r, r->method);
-    if (r->uri) {
-        magi_response(r, "] with URL [");
-        magi_response(r, r->uri);
+    if (r->host) {
+        magi_response(r, "] on server [");
+        magi_response(r, r->host);
     }
-    if (r->server_name) {
-        magi_response(r, "] for server [");
-        magi_response(r, r->server_name);
+    if (r->script) {
+        magi_response(r, "] being script on [");
+        magi_response(r, r->script);
     }
-    if (r->server_port) {
-        magi_response(r, "] on port [");
-        magi_response(r, r->server_port);
-    }
-    if (r->server_protocol) {
-        magi_response(r, "] with protocol [");
-        magi_response(r, r->server_protocol);
-    }
-    if (r->server_software) {
-        magi_response(r, "] and I am running on software [");
-        magi_response(r, r->server_software);
+    if (r->path) {
+        magi_response(r, "] with requested path [");
+        magi_response(r, r->path);
     }
     magi_response(r, "]<br/>");
 }
@@ -85,13 +81,13 @@ void response(magi_request *r)
     list_cookies(r);
 
     magi_response(r, "<h2>Parameters:</h2>");
-    list_params(r, r->params);
+    list_params(r, r->meta);
 
     magi_response(r, "<h2>URL Parameters:</h2>");
-    list_params(r, r->url_params);
+    list_params(r, r->head);
 
-    magi_response(r, "<h2>HTTP Parameters:</h2>");
-    list_params(r, r->http_params);
+    magi_response(r, "<h2>Body Parameters:</h2>");
+    list_params(r, r->body);
 
     magi_response(r, "<h2>Files:</h2>");
     list_files(r);
@@ -99,7 +95,7 @@ void response(magi_request *r)
     magi_response(r, "</body></html>");
 }
 
-int main(int argc, char const *argv[])
+int main()
 {
     magi_request request;
     magi_request_init(&request);

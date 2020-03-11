@@ -56,12 +56,12 @@ void magi_request_free(magi_request *request)
         magi_files_free(request->files);
         request->response->methods->close(request->response->userdata);
         free(request->response->userdata);
-        magi_params_free(request->response->head[0]);
-        magi_params_free(request->response->head[1]);
-        magi_params_free(request->response->head[2]);
-        free(request->response->head[0]);
-        free(request->response->head[1]);
-        free(request->response->head[2]);
+        magi_params_free(request->response->head_response);
+        magi_params_free(request->response->head_general);
+        magi_params_free(request->response->head_entity);
+        free(request->response->head_response);
+        free(request->response->head_general);
+        free(request->response->head_entity);
         request_free(request);
         request_annul(request);
     }

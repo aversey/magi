@@ -24,7 +24,7 @@ void response(magi_request *r)
     magi_response(r, "</p></body></html>");
 }
 
-int main(int argc, char const *argv[])
+int main()
 {
     magi_request request;
     magi_request_init(&request);

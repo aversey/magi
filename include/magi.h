@@ -8,6 +8,7 @@
 #include "magi/error.h"
 #include "magi/fastcgi.h"
 #include "magi/file.h"
+#include "magi/loadfile.h"
 #include "magi/param.h"
 #include "magi/request.h"
 #include "magi/response.h"

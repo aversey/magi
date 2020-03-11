@@ -19,37 +19,27 @@ char *magi_str_lowercase(char *str)
 char *magi_str_create_copy(const char *first, int len)
 {
     char *copy = magi_str_create(len);
-    if (copy) {
-        memcpy(copy, first, len);
-    }
+    memcpy(copy, first, len);
     return copy;
 }
 
 char *magi_str_create(int len)
 {
     char *str = malloc(len + 1);
-    if (str) {
-        str[len] = 0;
-    }
+    str[len] = 0;
     return str;
 }
 
-int magi_str_add(magi_str *str, char c)
+void magi_str_add(char **str, int *len, int *size, char c)
 {
-    if (!str->data) {
-        str->len  = 0;
-        str->size = 2;
-        str->data = malloc(2);
-    } else if (str->len + 1 == str->size) {
-        str->size *= 2;
-        str->data  = realloc(str->data, str->size);
+    if (!*str) {
+        *len  = 0;
+        *size = 2;
+        *str  = malloc(2);
+    } else if (*len + 1 == *size) {
+        *size *= 2;
+        *str   = realloc(*str, *size);
     }
-    if (!str->dest) {
-        str->len  = 0;
-        str->size = 0;
-        return 0;
-    }
-    str->data[str->len++] = c;
-    str->data[str->len]   = 0;
-    return 1;
+    *str[*len]   = c;
+    *str[++*len] = 0;
 }

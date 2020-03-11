@@ -10,7 +10,18 @@ void magi_params_add(magi_params **params, magi_param *newitem)
     if (node) {
         node->next = *params;
         node->item = *newitem;
-        *params     = node;
+        *params    = node;
+    }
+}
+
+void magi_params_set(magi_params **params, magi_param *newitem)
+{
+    if (!*params) {
+        magi_params_add(params, newitem);
+    } else if (!strcmp((*params)->item.name, newitem->name)) {
+        (*params)->item.data = newitem->data;
+    } else {
+        magi_params_set(&(*params)->next, newitem);
     }
 }
 

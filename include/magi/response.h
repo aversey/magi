@@ -32,7 +32,9 @@ typedef struct magi_response_methods {
 typedef struct magi_response_implementation {
     const magi_response_methods *methods;
     void        *userdata;
-    magi_params *head[3];
+    magi_params *head_response;
+    magi_params *head_general;
+    magi_params *head_entity;
     int          head_done;
 } magi_response_implementation;
 

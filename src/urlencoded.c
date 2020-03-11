@@ -61,76 +61,77 @@ static int deurl(char **data)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Urlencoded Automata
  */
-typedef struct automata {
-    magi_param_list **list;
-    magi_str          name;
-    magi_str          data;
-} automata;
-typedef void *(*state)(automata *a, char c);
+typedef struct automata automata;
+typedef void (*state)(automata *a, char c);
+struct automata {
+    state         s;
+    magi_params **list;
+    char         *name;
+    int           nlen;
+    int           nsize;
+    char         *data;
+    int           dlen;
+    int           dsize;
+};
 
-static void *state_parse_data(automata *a, char c);
-static void *state_parse_name(automata *a, char c)
+static void state_parse_data(automata *a, char c);
+static void state_parse_name(automata *a, char c)
 {
     if (c == '&' || c == ';') {
-        return 0;
+        a->s = 0;
+        return;
     }
     if (c == '=') {
-        if (!deurl(&a->name.data)) {
-            return 0;
+        if (!deurl(&a->name)) {
+            a->s = 0;
+            return;
         }
-        return state_parse_name;
+        a->s = state_parse_data;
     }
-    magi_str_add(&a->name, c);
-    return a->name.size ? state_parse_name : 0;
+    magi_str_add(&a->name, &a->nlen, &a->nsize, c);
 }
 
-static int add_to_list(automata *a)
+static void add_to_list(automata *a)
 {
     magi_param param;
-    param.name = a->name.data;
-    param.data = a->data.data;
-    if (!magi_param_list_add(a->list, param)) {
-        return 0;
-    }
-    a->name.data = 0;
-    a->data.data = 0;
-    return 1;
+    param.name = a->name;
+    param.data = a->data;
+    magi_params_add(a->list, &param);
+    a->name = 0;
+    a->data = 0;
 }
 
 static void state_parse_data(automata *a, char c)
 {
     if (c == '=') {
-        return 0;
+        a->s = 0;
+        return;
     }
     if (c == '&' || c == ';') {
-        if (!deurl(&a->data.data) || !add_to_list(a)) {
-            return 0;
+        if (!deurl(&a->data)) {
+            a->s = 0;
+            return;
         }
-        return state_parse_name;
+        add_to_list(a);
+        a->s = state_parse_name;
     }
-    magi_str_add(&a->data, c);
-    return a->data.size ? state_parse_data : 0;
+    magi_str_add(&a->data, &a->dlen, &a->dsize, c);
 }
 
-magi_error magi_urlencoded(magi_param_list **list, const char *encoded)
+magi_error magi_parse_urlencoded(magi_params **list, const char *encoded)
 {
-    st       state;
-    automata a = { 0, { 0, 0 }, 1, 0 };
+    automata a = { state_parse_name, 0, 0, 0, 0, 0, 0, 0 };
     a.list     = list;
     *list      = 0;
     if (!encoded || !*encoded) {
         return 0;
     }
-    for (; *encoded; ++encoded) {
-        s = s(&a, *encoded);
-        if (!s) {
-            return auto_free(a);
-        }
+    for (; *encoded && a.s; ++encoded) {
+        a.s(&a, *encoded);
     }
-    if (state == st_name || !state || !end_data(&a)) {
-        free(a.param.name);
-        free(a.param.data);
-        return auto_free(a);
+    if (a.s == state_parse_name || !a.s || !deurl(&a.data)) {
+        return magi_error_urlenc;
     }
+    add_to_list(&a);
     return 0;
 }

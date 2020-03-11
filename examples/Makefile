@@ -3,7 +3,7 @@
 # Debug mode (allowing to debug the examples via gdb):
 # DEBUG    = yes
 # Examples to build by default:
-EXAMPLES = append cookie echo upload fastcgi
+EXAMPLES = append cookie echo upload
 # Specify your favourite C compiler here (e.g. tcc):
 CC       = gcc
 

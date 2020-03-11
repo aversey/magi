@@ -75,6 +75,9 @@ static void cgi_env(magi_request *r)
     if (getenv("SERVER_PORT")) {
         r->port      = atoi(getenv("SERVER_PORT"));
         r->is_secure = r->port == 443;
+    } else {
+        r->port      = 0;
+        r->is_secure = 0;
     }
     r->path = plain_env("PATH_INFO");
 }
@@ -191,13 +194,15 @@ static void setup_response(magi_request *r)
         mfile,
         mclose
     };
-    r->response            = malloc(sizeof(*r->response));
-    r->response->methods   = &m;
-    r->response->userdata  = 0;
-    r->response->head[0]   = 0;
-    r->response->head[1]   = 0;
-    r->response->head[2]   = 0;
-    r->response->head_done = 0;
+    r->response                = malloc(sizeof(*r->response));
+    r->response->methods       = &m;
+    r->response->userdata      = 0;
+    r->response->head_response = 0;
+    r->response->head_general  = 0;
+    r->response->head_entity   = 0;
+    r->response->head_done     = 0;
+    magi_response_content_type(r, "application/xhtml+xml");
+    magi_response_status(r, 200, "OK");
 }
 
 /* Interfacial CGI Request Handling */

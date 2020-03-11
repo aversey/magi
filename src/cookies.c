@@ -6,7 +6,7 @@
 #include <string.h>
 
 
-enum st {
+typedef enum st {
     st_error = 0,
     st_pre_name,
     st_name,
@@ -14,24 +14,24 @@ enum st {
     st_pre_data,
     st_data,
     st_post_data
-};
+} st;
 
-enum data_type { dt_plain = 0, dt_version, dt_path, dt_domain };
+typedef enum dt { dt_plain = 0, dt_version, dt_path, dt_domain } dt;
 
-struct automata {
-    struct magi_cookie_list ** list;
-    struct magi_cookie         cookie;
-    char *                     buf;
-    int                        buf_len;
-    int                        buf_size;
-    int                        is_first;
-    int                        is_advanced;
-    int                        is_quoted;
-    enum data_type             data_t;
-};
+typedef struct automata {
+    magi_cookies **list;
+    magi_cookie    cookie;
+    char          *buf;
+    int            buf_len;
+    int            buf_size;
+    int            is_first;
+    int            is_advanced;
+    int            is_quoted;
+    dt             datatype;
+} automata;
 
 
-static void nulify_cookie(struct automata * a)
+static void nulify_cookie(automata *a)
 {
     a->cookie.name    = 0;
     a->cookie.data    = 0;
@@ -40,7 +40,7 @@ static void nulify_cookie(struct automata * a)
     a->cookie.max_age = 0;
 }
 
-static void buf_new(struct automata * a)
+static void buf_new(automata *a)
 {
     a->buf      = 0;
     a->buf_len  = 0;
@@ -48,29 +48,28 @@ static void buf_new(struct automata * a)
 }
 
 
-static enum data_type what_is_name(const struct automata * a)
+static dt what_is_name(const automata *a)
 {
-    enum data_type data_t = dt_plain;
+    dt datatype = dt_plain;
     if (a->is_first && !strcmp(a->buf, "$Version")) {
-        data_t = dt_version;
+        datatype = dt_version;
     } else if (a->is_advanced) {
         if (!strcmp(a->buf, "$Path")) {
-            data_t = dt_path;
+            datatype = dt_path;
         } else if (!strcmp(a->buf, "$Domain")) {
-            data_t = dt_domain;
+            datatype = dt_domain;
         }
     }
-    return data_t;
+    return datatype;
 }
 
 
-static int end_name(struct automata * a)
+static void end_name(automata *a)
 {
-    int ok    = 1;
-    a->data_t = what_is_name(a);
-    if (a->data_t == dt_plain) {
+    a->datatype = what_is_name(a);
+    if (a->datatype == dt_plain) {
         if (a->cookie.name) {
-            ok = magi_cookie_list_add(a->list, &a->cookie);
+            magi_cookies_add(a->list, &a->cookie);
         }
         nulify_cookie(a);
         a->cookie.name = a->buf;
@@ -78,75 +77,56 @@ static int end_name(struct automata * a)
         free(a->buf);
     }
     buf_new(a);
-    return ok;
 }
 
-static int end_data(struct automata * a)
+static int end_data(automata *a)
 {
-    int ok = 1;
-    switch (a->data_t) {
-    case dt_plain:
-        a->cookie.data = a->buf;
-        break;
-    case dt_path:
-        a->cookie.path = a->buf;
-        break;
-    case dt_domain:
-        a->cookie.domain = a->buf;
-        break;
-    case dt_version:
-        if (strcmp(a->buf, "1")) {
-            ok = 0;
-        }
+    switch (a->datatype) {
+    case dt_plain:   a->cookie.data   = a->buf; break;
+    case dt_path:    a->cookie.path   = a->buf; break;
+    case dt_domain:  a->cookie.domain = a->buf; break;
+    case dt_version: if (strcmp(a->buf, "1")) { return 0; }
     }
     buf_new(a);
-    return ok;
+    return 1;
 }
 
 
-static enum st parse_pre_name(struct automata * a, char c)
+static st parse_pre_name(automata *a, char c)
 {
-    enum st state;
+    st state;
     if (c == ' ' || c == '\t') {
         state = st_name;
     } else if (32 <= c && c <= 126 && !strchr("()<>@,;:\\\"/[]?={}", c)) {
         state = st_name;
-        if (!magi_str_add(&a->buf, &a->buf_len, &a->buf_size, c)) {
-            state = st_error;
-        }
+        magi_str_add(&a->buf, &a->buf_len, &a->buf_size, c);
     } else {
         state = st_error;
     }
     return state;
 }
 
-static enum st parse_name(struct automata * a, char c)
+static st parse_name(automata *a, char c)
 {
-    enum st state;
+    st state;
     if (c == '=') {
         state = st_pre_data;
-        if (!end_name(a)) {
-            state = st_error;
-        }
+        end_name(a);
     } else if (c == ' ' || c == '\t') {
         state = st_post_name;
-        if (!end_name(a)) {
-            state = st_error;
-        }
+        end_name(a);
     } else if (32 <= c && c <= 126 && !strchr("()<>@,;:\\\"/[]?={}", c)) {
         state = st_name;
-        if (!magi_str_add(&a->buf, &a->buf_len, &a->buf_size, c)) {
-            state = st_error;
-        }
+        magi_str_add(&a->buf, &a->buf_len, &a->buf_size, c);
     } else {
         state = st_error;
     }
     return state;
 }
 
-static enum st parse_post_name(struct automata * a, char c)
+static st parse_post_name(automata *a, char c)
 {
-    enum st state;
+    st state;
     if (c == '=') {
         state = st_pre_data;
     } else if (c == ' ' || c == '\t') {
@@ -157,9 +137,9 @@ static enum st parse_post_name(struct automata * a, char c)
     return state;
 }
 
-static enum st parse_pre_data(struct automata * a, char c)
+static st parse_pre_data(automata *a, char c)
 {
-    enum st state;
+    st state;
     if (c == ' ' || c == '\t') {
         state = st_pre_data;
     } else if (c == '"') {
@@ -167,18 +147,16 @@ static enum st parse_pre_data(struct automata * a, char c)
         a->is_quoted = 1;
     } else if (32 <= c && c <= 126 && !strchr("()<>@,;:\\\"/[]?={}", c)) {
         state = st_data;
-        if (!magi_str_add(&a->buf, &a->buf_len, &a->buf_size, c)) {
-            state = st_error;
-        }
+        magi_str_add(&a->buf, &a->buf_len, &a->buf_size, c);
     } else {
         state = st_error;
     }
     return state;
 }
 
-static enum st parse_not_quoted_data(struct automata * a, char c)
+static st parse_not_quoted_data(automata *a, char c)
 {
-    enum st state;
+    st state;
     if (c == ';' || (c == ',' && a->is_first)) {
         state       = st_pre_name;
         a->is_first = 0;
@@ -192,18 +170,16 @@ static enum st parse_not_quoted_data(struct automata * a, char c)
         }
     } else if (32 <= c && c <= 126 && !strchr("()<>@,;:\\\"/[]?={}", c)) {
         state = st_data;
-        if (!magi_str_add(&a->buf, &a->buf_len, &a->buf_size, c)) {
-            state = st_error;
-        }
+        magi_str_add(&a->buf, &a->buf_len, &a->buf_size, c);
     } else {
         state = st_error;
     }
     return state;
 }
 
-static enum st parse_data(struct automata * a, char c)
+static st parse_data(automata *a, char c)
 {
-    enum st state;
+    st state;
     if (a->is_quoted) {
         if (c == '"') {
             state        = st_post_data;
@@ -220,9 +196,9 @@ static enum st parse_data(struct automata * a, char c)
     return state;
 }
 
-static enum st parse_post_data(struct automata * a, char c)
+static st parse_post_data(automata *a, char c)
 {
-    enum st state;
+    st state;
     if (c == ';' || (c == ',' && a->is_first)) {
         state = st_pre_name;
     } else if (c == ' ' || c == '\t') {
@@ -234,14 +210,15 @@ static enum st parse_post_data(struct automata * a, char c)
 }
 
 
-static void parse_end(enum magi_error * e, struct automata * a, enum st s)
+static void parse_end(magi_error *e, automata *a, st s)
 {
     if (s == st_data) {
         if (a->is_quoted || !a->cookie.name) {
             *e = magi_error_cookies;
             return;
         }
-        if (end_data(a) && magi_cookie_list_add(a->list, &a->cookie)) {
+        if (end_data(a)) {
+            magi_cookies_add(a->list, &a->cookie);
             nulify_cookie(a);
         } else {
             *e = magi_error_cookies;
@@ -252,33 +229,21 @@ static void parse_end(enum magi_error * e, struct automata * a, enum st s)
 }
 
 
-void magi_cookies(struct magi_request * request, const char * data)
+void magi_parse_cookies(magi_request *request, const char *data)
 {
-    enum st         state;
-    struct automata a = { 0, { 0, 0, 0, 0, 0 }, 0, 0, 1, 1, 0, 0, 0 };
-    a.list            = &request->cookies;
-    request->cookies  = 0;
+    st       state;
+    automata a       = { 0, { 0, 0, 0, 0, 0 }, 0, 0, 0, 1, 0, 0, 0 };
+    a.list           = &request->cookies;
+    request->cookies = 0;
     for (state = st_pre_name; state && *data; ++data) {
         switch (state) {
-        case st_pre_name:
-            state = parse_pre_name(&a, *data);
-            break;
-        case st_name:
-            state = parse_name(&a, *data);
-            break;
-        case st_post_name:
-            state = parse_post_name(&a, *data);
-            break;
-        case st_pre_data:
-            state = parse_pre_data(&a, *data);
-            break;
-        case st_data:
-            state = parse_data(&a, *data);
-            break;
-        case st_post_data:
-            state = parse_post_data(&a, *data);
-        default:
-            break;
+        case st_pre_name:  state = parse_pre_name(&a, *data);  break;
+        case st_name:      state = parse_name(&a, *data);      break;
+        case st_post_name: state = parse_post_name(&a, *data); break;
+        case st_pre_data:  state = parse_pre_data(&a, *data);  break;
+        case st_data:      state = parse_data(&a, *data);      break;
+        case st_post_data: state = parse_post_data(&a, *data); break;
+        default:                                               break;
         }
     }
     parse_end(&request->error, &a, state);

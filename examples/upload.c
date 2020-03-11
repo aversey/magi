@@ -29,18 +29,17 @@ void response(magi_request *r)
 
 void get(magi_request *r)
 {
-    magi_loadfiles rules;
-    magi_loadfiles_init(&rules);
+    magi_loadfiles rules = { 0, 0 };
     magi_loadfiles_add(&rules, "data", "data", 0);
-    magi_loadfiles_set(&r, &rules);
-    magi_cgi(&r);
+    magi_loadfiles_set(r, &rules);
+    magi_cgi(r);
     magi_loadfiles_free(&rules);
 }
 
-int main(int argc, char const *argv[])
+int main()
 {
     magi_request request;
-    magi_request_init(request);
+    magi_request_init(&request);
     get(&request);
     if (request.error) {
         magi_response_error(&request);
