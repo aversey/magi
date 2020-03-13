@@ -7,7 +7,11 @@ void list_cookies(magi_request *r)
     magi_response(r, "Cookies:");
     for (current = r->cookies; current; current = current->next) {
         magi_cookie *c = &current->item;
-        magi_response_format(r, "<br/>[%s] = [%s]", c->name, c->data);
+        magi_response(r, "<br/>[");
+        magi_response(r, c->name);
+        magi_response(r, "] = [");
+        magi_response(r, c->data);
+        magi_response(r, "]");
     }
 }
 

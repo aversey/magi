@@ -27,11 +27,18 @@ void magi_response_status(magi_request *r, int code, const char *description)
 void magi_response_cookie(magi_request *r, const char *name, const char *data)
 {
     magi_param addon;
+    int        nlen;
+    int        dlen;
     if (r->response->head_done) {
         return;
     }
+    nlen       = strlen(name);
+    dlen       = strlen(data);
     addon.name = magi_str_create_copy("Set-Cookie", 10);
-    /* TODO */
+    addon.data = malloc(nlen + dlen + 2);
+    memcpy(addon.data, name, nlen);
+    addon.data[nlen] = '=';
+    memcpy(addon.data + nlen + 1, data, dlen + 1);
     magi_params_add(&r->response->head_general, &addon);
 }
 
