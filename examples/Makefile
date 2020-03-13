@@ -16,7 +16,7 @@ CFLAGS   = -xc -ansi -pedantic -Wall -Wextra
 ifeq '$(DEBUG)' 'yes'
 CFLAGS  += -g -O0
 else
-CFLAGS  += -O3
+CFLAGS  += -O3 -static
 endif
 
 # Including magi library headers and setting linker to use it:

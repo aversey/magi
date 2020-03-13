@@ -91,7 +91,7 @@ void magi_response_content_length(magi_request *r, int length)
 void magi_response_content_type(magi_request *r, const char *type)
 {
     magi_param addon;
-    if (r->response->head_done || !type) {
+    if (r->response->head_done) {
         return;
     }
     addon.name = magi_str_create_copy("Content-Type", 12);

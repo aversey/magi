@@ -87,6 +87,7 @@ static void state_parse_name(automata *a, char c)
             return;
         }
         a->s = state_parse_data;
+        return;
     }
     magi_str_add(&a->name, &a->nlen, &a->nsize, c);
 }
@@ -114,6 +115,7 @@ static void state_parse_data(automata *a, char c)
         }
         add_to_list(a);
         a->s = state_parse_name;
+        return;
     }
     magi_str_add(&a->data, &a->dlen, &a->dsize, c);
 }

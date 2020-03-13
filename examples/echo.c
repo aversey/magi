@@ -28,7 +28,11 @@ void list_params(magi_request *r, magi_params *current)
 {
     for (; current; current = current->next) {
         magi_param *p = &current->item;
-        magi_response_format(r, "[%s] is [%s]<br/>", p->name, p->data);
+        magi_response(r, "[");
+        magi_response(r, p->name);
+        magi_response(r, "] is [");
+        magi_response(r, p->data);
+        magi_response(r, "]<br/>");
     }
 }
 
@@ -37,8 +41,11 @@ void list_files(magi_request *r)
     magi_files *current;
     for (current = r->files; current; current = current->next) {
         magi_file *f = &current->item;
-        magi_response_format(r, "[%s] was [%s] on clientside<br/>",
-                             f->field, f->filename);
+        magi_response(r, "[");
+        magi_response(r, f->field);
+        magi_response(r, "] was [");
+        magi_response(r, f->filename);
+        magi_response(r, "] on clientside<br/>");
     }
 }
 

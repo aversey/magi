@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern char **environ;
+extern char **const environ;
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -32,7 +32,9 @@ static char *plain_env(char *env_name)
 
 static char *lower_env(char *env_name)
 {
-    return magi_str_lowercase(plain_env(env_name));
+    char *env = plain_env(env_name);
+    magi_str_lowercase(env);
+    return env;
 }
 
 static void cgi_http_env(magi_request *r)
@@ -42,21 +44,15 @@ static void cgi_http_env(magi_request *r)
     r->meta    = 0;
     for (env = environ; *env; ++env) {
         magi_param meta;
-        char      *name_end;
-        int        dlen;
-        if (!strncmp(*env, "HTTP_COOKIE=", 12) ||
-            !strncmp(*env, "QUERY_STRING=", 13)) {
-            continue;
-        }
-        /* At least one '=' must be in *env, according to format. */
-        name_end = strchr(*env, '=');
-        dlen     = strlen(name_end + 1);
-        len     += name_end - *env + dlen;
+        char *name_end = strchr(*env, '=');
+        int   nlen     = name_end - *env;
+        int   dlen     = strlen(name_end + 1);
+        len += nlen + dlen;
         if (len > r->limits.params_meta && r->limits.params_meta) {
             r->error = magi_error_limit;
             return;
         }
-        meta.name = magi_str_create_copy(*env, name_end - *env);
+        meta.name = magi_str_create_copy(*env, nlen);
         meta.data = magi_str_create_copy(name_end + 1, dlen);
         magi_params_add(&r->meta, &meta);
     }

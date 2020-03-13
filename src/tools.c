@@ -5,15 +5,11 @@
 #include <string.h>
 
 
-char *magi_str_lowercase(char *str)
+void magi_str_lowercase(char *str)
 {
-    if (!str) {
-        return str;
-    }
-    for (; *str; ++str) {
+    for (; str && *str; ++str) {
         *str = tolower(*str);
     }
-    return str;
 }
 
 char *magi_str_create_copy(const char *first, int len)
@@ -40,6 +36,6 @@ void magi_str_add(char **str, int *len, int *size, char c)
         *size *= 2;
         *str   = realloc(*str, *size);
     }
-    *str[*len]   = c;
-    *str[++*len] = 0;
+    (*str)[*len]   = c;
+    (*str)[++*len] = 0;
 }

@@ -10,10 +10,10 @@ void magi_request_init(magi_request *request)
         request->callback.act       = 0;
         request->callback.userdata  = 0;
         request->callback.addon_max = 1024;
-        request->limits.cookies     = 1024 * 16;
-        request->limits.params_meta = 1024 * 16;
-        request->limits.params_head = 1024 * 16;
-        request->limits.params_body = 1024 * 16;
+        request->limits.cookies     = 0;
+        request->limits.params_meta = 0;
+        request->limits.params_head = 0;
+        request->limits.params_body = 0;
     }
 }
 
@@ -25,6 +25,7 @@ static void request_free(magi_request *request)
     free(request->head);
     free(request->body);
     free(request->files);
+    free(request->document_root);
     free(request->method);
     free(request->host);
     free(request->script);

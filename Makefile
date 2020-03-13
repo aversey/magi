@@ -18,7 +18,7 @@ CFLAGS  = -xc -ansi -pedantic -Wall -Wextra
 ifeq '$(DEBUG)' 'yes'
 CFLAGS += -g -O0
 else
-CFLAGS += -O3
+CFLAGS += -O3 -static
 endif
 
 # Interfacial files to compile:
