@@ -1,20 +1,20 @@
 #ifndef MAGI_INCLUDED_RESPONSE
 #define MAGI_INCLUDED_RESPONSE
-/** @file response.h
- * @brief General response functionality for magi_request.
+/* General response functionality for magi_request.
  *
  * There are two parts of response, namely header and body.
  * You can directly dive into filling the body, since default headers are set.
  * Defult content-type is XHTML, status is 200 (Ok).
  *
- * @warning Use body related functions only after dealing with headers.
- *          (Since storing possibly large body in memory is a bad idea,
- *           all headers should be sent before anything from the body.)
+ * Use body related functions only after dealing with headers.
+ * (Since storing possibly large body in memory is a bad idea,
+ *  all headers should be sent before anything from the body.)
  */
 #include "request.h"
 #include <stdio.h>
 
 
+/* * *  TODO  * * */
 typedef void (*magi_response_method_head)(void *ud, magi_param *header);
 typedef void (*magi_response_method_start_body)(void *ud);
 typedef void (*magi_response_method_body)(void *ud, const char *data, int len);

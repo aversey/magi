@@ -1,9 +1,6 @@
 #ifndef MAGI_INCLUDED_ERROR
 #define MAGI_INCLUDED_ERROR
-/** @file error.h
- * @brief blah...
- *
- * blah-blah...
+/* Error codes and messages
  */
 
 

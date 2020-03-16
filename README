@@ -1,0 +1,34 @@
+    Description
+Magi Library (libmagi) implements Gateway Interfaces, namely CGI and FastCGI.
+
+    Overview
+Magi are free and open-source software: legal info is in the 'LICENSE' file.
+They are written in ANSI C, without any dependecies, except for C standard
+library.  All source and inner header files are located in the 'src' directory.
+The 'include' directory is intended to be used in your include environment.
+Headers in it contain library interface and its description in comments.
+They are in subdirectory 'include/magi', due to their short and simple names.
+If you are not about choosing which header to include and just want everything
+to be included you can '#include <magi.h>'.
+For detailed documentation look into 'man' directory.
+
+    Compiling
+Compilation and its options are described in the Makefile.
+Running make produces libmagi.a file, which is precompiled library itself,
+ready to be statically linked into your project.
+
+    Examples
+Running 'make examples' produces executable for each example in 'examples'.
+Descriptions and details are in corresponding source files.
+
+    Usage
+magi_request handles incoming request, general workflow for CGI is to:
+1. prepare request for analysis, setup defaults via magi_request_init;
+2. analyse CGI request via magi_cgi;
+4. do your work, and response request:
+   1. specify headers (e.g. magi_response_cookie),
+   2. fill response body (e.g. magi_response);
+5. finally, free memory via magi_request_free.
+
+    Motivation
+Web must be fun.

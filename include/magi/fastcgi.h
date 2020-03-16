@@ -1,9 +1,6 @@
 #ifndef MAGI_INCLUDED_FASTCGI
 #define MAGI_INCLUDED_FASTCGI
-/** @file fastcgi.h
- * @brief blah...
- *
- * blah-blah...
+/* Fast CGI implementation
  */
 /* * *   TODO   * * */
 
