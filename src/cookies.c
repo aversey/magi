@@ -124,7 +124,7 @@ static st parse_name(automata *a, char c)
     return state;
 }
 
-static st parse_post_name(automata *a, char c)
+static st parse_post_name(char c)
 {
     st state;
     if (c == '=') {
@@ -239,7 +239,7 @@ void magi_parse_cookies(magi_request *request, const char *data)
         switch (state) {
         case st_pre_name:  state = parse_pre_name(&a, *data);  break;
         case st_name:      state = parse_name(&a, *data);      break;
-        case st_post_name: state = parse_post_name(&a, *data); break;
+        case st_post_name: state = parse_post_name(*data);     break;
         case st_pre_data:  state = parse_pre_data(&a, *data);  break;
         case st_data:      state = parse_data(&a, *data);      break;
         case st_post_data: state = parse_post_data(&a, *data); break;

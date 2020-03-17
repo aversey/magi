@@ -85,7 +85,7 @@ static void cgi_cookies(magi_request *r)
         r->cookies = 0;
         return;
     }
-    if (strlen(env) > r->limits.cookies && r->limits.cookies) {
+    if ((int)strlen(env) > r->limits.cookies && r->limits.cookies) {
         r->error = magi_error_limit;
         return;
     }
@@ -127,7 +127,7 @@ static void cgi_input_post(magi_error *e, char **input, int max)
         return;
     }
     *input = magi_str_create(input_len);
-    if (fread(*input, 1, input_len, stdin) != input_len) {
+    if ((int)fread(*input, 1, input_len, stdin) != input_len) {
         *e = magi_error_length;
         return;
     }
@@ -154,6 +154,7 @@ static int next()
 
 static void mhead(void *any, magi_param *header)
 {
+    (void)any;
     fputs(header->name, stdout);
     fputs(": ", stdout);
     fputs(header->data, stdout);
@@ -162,16 +163,25 @@ static void mhead(void *any, magi_param *header)
 
 static void mstart_body(void *any)
 {
+    (void)any;
     fputs("\r\n", stdout);
 }
 
 static void mbody(void *any, const char *data, int len)
 {
+    (void)any;
     fwrite(data, 1, len, stdout);
+}
+
+static void mformat(void *any, const char *format, va_list args)
+{
+    (void)any;
+    vprintf(format, args);
 }
 
 static void mfile(void *any, FILE *file)
 {
+    (void)any;
     while (!feof(file)) {
         char buf[64];
         int  len = fread(buf, 1, 64, file);
@@ -179,7 +189,7 @@ static void mfile(void *any, FILE *file)
     }
 }
 
-static void mclose(void *any)  {}
+static void mclose(void *any)  { (void)any; }
 
 static void setup_response(magi_request *r)
 {
@@ -187,6 +197,7 @@ static void setup_response(magi_request *r)
         mhead,
         mstart_body,
         mbody,
+        mformat,
         mfile,
         mclose
     };

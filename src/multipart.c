@@ -383,7 +383,7 @@ static st parse_data(automata *a, char c)
     return data_add(a, c);
 }
 
-static st parse_end(automata *a, char c)  { return st_end; }
+static st parse_end()  { return st_end; }
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -405,7 +405,7 @@ static void run_automata(automata *a,
         case st_pname_end: state = parse_pname_end(a, c); break;
         case st_pdata:     state = parse_pdata(a, c);     break;
         case st_data:      state = parse_data(a, c);      break;
-        case st_end:       state = parse_end(a, c);       break;
+        case st_end:       state = parse_end();           break;
         default:                                          break;
         }
         c = next(next_userdata);

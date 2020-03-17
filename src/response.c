@@ -29,7 +29,7 @@ void magi_response_cookie(magi_request *r, const char *name, const char *data)
     magi_param addon;
     int        nlen;
     int        dlen;
-    if (r->response->head_done) {
+    if (r->response->head_done || !name || !data) {
         return;
     }
     nlen       = strlen(name);
@@ -45,22 +45,59 @@ void magi_response_cookie(magi_request *r, const char *name, const char *data)
 void magi_response_cookie_complex(magi_request *r, magi_cookie *c)
 {
     magi_param addon;
-    if (r->response->head_done) {
+    char      *pointer;
+    int nlen, dlen, dsize, psize, msize;
+    const int cdsize = 9;
+    const int cpsize = 7;
+    const int cmsize = 10;
+    if (r->response->head_done || !c->name) {
         return;
     }
+    nlen       = strlen(c->name);
+    dlen       = c->data ? strlen(c->data) : 0;
+    dsize      = c->domain ? strlen(c->domain) + cdsize : 0;
+    psize      = c->path ? strlen(c->path) + cpsize : 0;
+    msize      = c->max_age ? strlen(c->max_age) + cmsize : 0;
     addon.name = magi_str_create_copy("Set-Cookie", 10);
-    /* TODO */
+    addon.data = magi_str_create(nlen + dlen + dsize + psize + msize + 1);
+    pointer    = addon.data;
+    memcpy(pointer, c->name, nlen);
+    pointer += nlen;
+    *pointer = '=';
+    ++pointer;
+    if (dlen) {
+        memcpy(pointer, c->data, dlen);
+        pointer += dlen;
+    }
+    if (dsize) {
+        memcpy(pointer, "; Domain=", cdsize);
+        memcpy(pointer + cdsize, c->domain, dsize - cdsize);
+        pointer += dsize;
+    }
+    if (psize) {
+        memcpy(pointer, "; Path=", cpsize);
+        memcpy(pointer + cpsize, c->path, psize - cpsize);
+        pointer += psize;
+    }
+    if (msize) {
+        memcpy(pointer, "; Max-Age=", cmsize);
+        memcpy(pointer + cmsize, c->max_age, msize - cmsize);
+    }
     magi_params_add(&r->response->head_general, &addon);
 }
 
 void magi_response_cookie_discard(magi_request *r, const char *name)
 {
     magi_param addon;
-    if (r->response->head_done) {
+    int len;
+    if (r->response->head_done || !name) {
         return;
     }
+    len        = strlen(name);
     addon.name = magi_str_create_copy("Set-Cookie", 10);
-    /* TODO */
+    addon.data = malloc(len + 13);
+    memcpy(addon.data, name, len);
+    memcpy(addon.data + len, "=; Max-Age=1", 13);
     magi_params_add(&r->response->head_general, &addon);
 }
 
@@ -136,8 +173,11 @@ void magi_response(magi_request *r, const char *addon)
 
 void magi_response_format(magi_request *r, const char *format, ...)
 {
+    va_list args;
     magi_response_head(r);
-    /* TODO */
+    va_start(args, format);
+    r->response->methods->format(r->response->userdata, format, args);
+    va_end(args);
 }
 
 void magi_response_file(magi_request *r, FILE *file)
@@ -149,7 +189,6 @@ void magi_response_file(magi_request *r, FILE *file)
 
 void magi_response_error(magi_request *r)
 {
-    /* TODO */
     magi_response_status(r, 400, "Bad Request");
     magi_response(r,
         "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "

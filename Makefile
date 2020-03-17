@@ -1,15 +1,13 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Compilation Options
-# Debug mode (allowing to debug the library via gdb):
-# DEBUG    = yes
-# Specify directory to store object files:
-OBJ_DIR  = build
+# Debug mode [yes/no] (allowing to debug the library via gdb):
+DEBUG   ?= no
+# Specify build directory:
+BUILD   ?= build
 # Optional modules (remove unwanted ones):
-MODULES  = cgi fastcgi loadfile urlenc
-# Examples to build with 'examples' target:
-EXAMPLES = append cookie echo upload
+MODULES ?= cgi fastcgi loadfile urlenc
 # Specify your favourite C compiler here:
-CC       = gcc
+CC      ?= gcc
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -37,10 +35,12 @@ INNER_H  = $(wildcard $(SRC_DIR)/*.h)
 INNER_C  = $(INNER_H:.h=.c)
 SRC      = $(INTER_C) $(INNER_C)
 NAMES    = $(notdir $(SRC:.c=))
-OBJ      = $(foreach name,$(NAMES),$(OBJ_DIR)/$(name).o)
+OBJ      = $(foreach name,$(NAMES),$(BUILD)/$(SRC_DIR)/$(name).o)
 
 EXDIR    = examples
-EXSRC    = $(foreach ex,$(EXAMPLES),$(EXDIR)/$(ex).c)
+EXSRC    = $(wildcard $(EXDIR)/*.c)
+EXNAMES  = $(notdir $(EXSRC:.c=))
+EXAMPLES = $(foreach ex,$(EXNAMES),$(BUILD)/$(EXDIR)/$(ex))
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -48,42 +48,45 @@ EXSRC    = $(foreach ex,$(EXAMPLES),$(EXDIR)/$(ex).c)
 .PHONY: default clean examples
 
 # 'make' produces library by default:
-default: $(OBJ_DIR) $(LIB)
+default: $(BUILD)/$(LIB)
+
+examples: $(EXAMPLES)
 
 # Cleaning means removing everything automatically produced:
 clean:
-	rm -rf $(OBJ_DIR) $(LIB) $(EXAMPLES) deps.mk
-
-examples: default $(EXAMPLES)
+	rm -rf $(BUILD)
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Compilation
 # Compile object files from corresponding source and header:
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+$(BUILD)/$(SRC_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -I $(INC_DIR) -c $< -o $@
 
 # Packing object files into library:
-$(LIB): $(OBJ)
+$(BUILD)/$(LIB): $(OBJ)
 	ar rcs $@ $^
 
-# Making directory for object files:
-$(OBJ_DIR):
-	mkdir $@
-
 # Compile executables from corresponding sources and library:
-%: $(EXDIR)/%.c
-	$(CC) $(CFLAGS) -I include $< -L. -lmagi -o $@
+$(BUILD)/$(EXDIR)/%: $(EXDIR)/%.c $(BUILD)/$(LIB)
+	$(CC) $(CFLAGS) -I include $< -L$(BUILD) -lmagi -o $@
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Dependencies
-deps.mk: $(SRC)
-	echo '' > deps.mk
-	for t in $(NAMES); do                                                     \
-	$(CC) -I $(INC_DIR) -MT $(OBJ_DIR)/$${t}.o -MM $(SRC_DIR)/$${t}.c >> $@;  \
+$(BUILD)/deps.mk: $(SRC) $(EXSRC)
+	mkdir $(BUILD) $(BUILD)/$(SRC_DIR) $(BUILD)/$(EXDIR); echo '' > $@
+	for t in $(NAMES); do                 \
+	$(CC) -I $(INC_DIR)                   \
+	      -MT $(BUILD)/$(SRC_DIR)/$${t}.o \
+	      -MM $(SRC_DIR)/$${t}.c >> $@;   \
+	done
+	for t in $(EXNAMES); do             \
+	$(CC) -I include                    \
+	      -MT $(BUILD)/$(EXDIR)/$${t}.o \
+	      -MM $(EXDIR)/$${t}.c >> $@;   \
 	done
 
 ifneq (clean, $(MAKECMDGOALS))
--include deps.mk
+-include $(BUILD)/deps.mk
 endif

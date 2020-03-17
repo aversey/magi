@@ -12,12 +12,14 @@
  */
 #include "request.h"
 #include <stdio.h>
+#include <stdarg.h>
 
 
-/* * *  TODO  * * */
+/* * *  TODO: Comments  * * */
 typedef void (*magi_response_method_head)(void *ud, magi_param *header);
 typedef void (*magi_response_method_start_body)(void *ud);
 typedef void (*magi_response_method_body)(void *ud, const char *data, int len);
+typedef void (*magi_response_method_fmt)(void *ud, const char *f, va_list a);
 typedef void (*magi_response_method_file)(void *ud, FILE *file);
 typedef void (*magi_response_method_close)(void *ud);
 
@@ -25,6 +27,7 @@ typedef struct magi_response_methods {
     magi_response_method_head       head;
     magi_response_method_start_body start_body;
     magi_response_method_body       body;
+    magi_response_method_fmt        format;
     magi_response_method_file       file;
     magi_response_method_close      close;
 } magi_response_methods;
