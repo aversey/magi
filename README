@@ -14,7 +14,7 @@ For detailed documentation look into 'man' directory.
 
     Compiling
 Compilation and its options are described in the Makefile.
-Running make produces libmagi.a file, which is precompiled library itself,
+Running make produces 'build/libmagi.a', which is precompiled library itself,
 ready to be statically linked into your project.
 
     Examples

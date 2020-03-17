@@ -19,8 +19,8 @@ void response(magi_request *r)
     }
     magi_response(r,
         "<form action='/cgi-bin/append' method='post'><fieldset>"
-        "<input type='text' name='addon' value='Whatever you want to add.'/>"
-        "<input type='submit' value='Append'/>"
+        "<input type='text' name='addon' value='Whatever you want to add.' />"
+        "<input type='submit' value='Append' />"
         "</fieldset></form>"
         "</body>"
         "</html>");

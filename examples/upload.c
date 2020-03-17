@@ -19,9 +19,9 @@ void response(magi_request *r)
     magi_response(r,
         "<form action='/cgi-bin/upload' method='post' "
         "enctype='multipart/form-data'><fieldset>"
-        "<input type='text' name='name' value='filename'/>"
-        "<input type='file' name='data'/>"
-        "<input type='submit' value='Upload'/>"
+        "<input type='text' name='name' value='filename' />"
+        "<input type='file' name='data' />"
+        "<input type='submit' value='Upload' />"
         "</fieldset></form>"
         "</body>"
         "</html>");

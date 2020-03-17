@@ -4,6 +4,7 @@
 void list_cookies(magi_request *r)
 {
     magi_cookies *current = r->cookies;
+    magi_response(r, "<p>");
     for (current = r->cookies; current; current = current->next) {
         magi_cookie *c = &current->item;
         magi_response(r, "Cookie with name [");
@@ -20,56 +21,50 @@ void list_cookies(magi_request *r)
             magi_response(r, "] for path [");
             magi_response(r, c->path);
         }
-        magi_response(r, "]<br/>");
+        magi_response(r, "]<br />");
     }
+    magi_response(r, "</p>");
 }
 
 void list_params(magi_request *r, magi_params *current)
 {
+    magi_response(r, "<p>");
     for (; current; current = current->next) {
         magi_param *p = &current->item;
-        magi_response(r, "[");
-        magi_response(r, p->name);
-        magi_response(r, "] is [");
-        magi_response(r, p->data);
-        magi_response(r, "]<br/>");
+        magi_response_format(r, "[%s] is [%s]<br />", p->name, p->data);
     }
+    magi_response(r, "</p>");
 }
 
 void list_files(magi_request *r)
 {
     magi_files *current;
+    magi_response(r, "<p>");
     for (current = r->files; current; current = current->next) {
         magi_file *f = &current->item;
-        magi_response(r, "[");
-        magi_response(r, f->field);
-        magi_response(r, "] was [");
-        magi_response(r, f->filename);
-        magi_response(r, "] on clientside<br/>");
+        magi_response_format(r, "[%s] was [%s] on clientside<br />",
+                             f->field, f->filename);
     }
+    magi_response(r, "</p>");
 }
 
 void show_meta(magi_request *r)
 {
-    magi_response(r, "I was called ");
+    magi_response(r, "<p>I was called ");
     if (r->is_secure) {
         magi_response(r, "securely ");
     }
-    magi_response(r, "with method [");
-    magi_response(r, r->method);
+    magi_response_format(r, "with method [%s", r->method);
     if (r->host) {
-        magi_response(r, "] on server [");
-        magi_response(r, r->host);
+        magi_response_format(r, "] on server [%s", r->host);
     }
     if (r->script) {
-        magi_response(r, "] being script on [");
-        magi_response(r, r->script);
+        magi_response_format(r, "] being script on [%s", r->script);
     }
     if (r->path) {
-        magi_response(r, "] with requested path [");
-        magi_response(r, r->path);
+        magi_response_format(r, "] with requested path [%s", r->path);
     }
-    magi_response(r, "]<br/>");
+    magi_response(r, "]</p>");
 }
 
 void response(magi_request *r)
