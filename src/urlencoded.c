@@ -79,17 +79,11 @@ static void state_parse_name(automata *a, char c)
 {
     if (c == '&' || c == ';') {
         a->s = 0;
-        return;
+    } else if (c == '=') {
+        a->s = deurl(&a->name) ? state_parse_data : 0;
+    } else {
+        magi_str_add(&a->name, &a->nlen, &a->nsize, c);
     }
-    if (c == '=') {
-        if (!deurl(&a->name)) {
-            a->s = 0;
-            return;
-        }
-        a->s = state_parse_data;
-        return;
-    }
-    magi_str_add(&a->name, &a->nlen, &a->nsize, c);
 }
 
 static void add_to_list(automata *a)
@@ -106,18 +100,16 @@ static void state_parse_data(automata *a, char c)
 {
     if (c == '=') {
         a->s = 0;
-        return;
-    }
-    if (c == '&' || c == ';') {
-        if (!deurl(&a->data)) {
+    } else if (c == '&' || c == ';') {
+        if (deurl(&a->data)) {
+            a->s = state_parse_name;
+            add_to_list(a);
+        } else {
             a->s = 0;
-            return;
         }
-        add_to_list(a);
-        a->s = state_parse_name;
-        return;
+    } else {
+        magi_str_add(&a->data, &a->dlen, &a->dsize, c);
     }
-    magi_str_add(&a->data, &a->dlen, &a->dsize, c);
 }
 
 magi_error magi_parse_urlencoded(magi_params **list, const char *encoded)
