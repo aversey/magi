@@ -55,11 +55,11 @@ EXAFLAGS = $(CFLAGS) -I$(INCLUDE)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Targets
-.PHONY: default examples clean
+.PHONY: all examples clean
 
-default: $(BUILD)/$(SRCDIR) $(TARGET)
+all: $(BUILD)/$(SRCDIR) $(TARGET)
 
-examples: default $(BUILD)/$(EXADIR) $(EXAMPLES)
+examples: all $(BUILD)/$(EXADIR) $(EXAMPLES)
 
 clean:
 	rm -f $(TARGET) $(OBJ) $(EXAMPLES) $(DEPS)
