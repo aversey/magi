@@ -2,10 +2,13 @@
 #define MAGI_INCLUDED_FASTCGI
 /* Fast CGI implementation
  */
-/* * *   TODO   * * */
+#include "session.h"
+#include "request.h"
 
 
-enum { magi_to_avoid_warning };
+int magi_fastcgi_head(magi_session *s, magi_request *r);
+int magi_fastcgi_body(magi_session *s, magi_request *r);
+int magi_fastcgi(magi_session *s, magi_request *r);
 
 
 #endif

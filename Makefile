@@ -2,91 +2,97 @@
 #     Compilation Options
 # Debug mode [yes/no] (allowing to debug the library via gdb):
 DEBUG   ?= no
-# Specify build directory:
-BUILD   ?= build
 # Optional modules (remove unwanted ones):
-MODULES ?= cgi fastcgi loadfile urlenc
+MODULES ?= cgi fastcgi loadfiles urlenc
 # Specify your favourite C compiler here:
 CC      ?= gcc
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Preparations
-LIB      = libmagi.a
-
 # Compile under the most strict conditions:
-CFLAGS   = -xc -ansi -pedantic -Wall -Wextra
+CFLAGS   = -xc -ansi -pedantic -Wall -Wextra -MMD
 # Debug and optimisation are not compatible:
 ifeq '$(DEBUG)' 'yes'
 CFLAGS  += -g -O0
 else
-CFLAGS  += -O3 -static
+CFLAGS  += -O3
 endif
 
-# Interfacial files to compile:
-INTER    = cookie error file param request response $(MODULES)
+# Directories definitions:
+INCLUDE  = include
+BUILD    = build
+SRCDIR   = src
+EXADIR   = examples
+# Library itself:
+LIB      = libmagi.a
+# Modules:
+EXTERNAL = cookie error file param request response session $(MODULES)
+INTERNAL = cookies multipart tools urlencoded
 
-# Object files listing:
-INC_DIR  = include/magi
-SRC_DIR  = src
-INTER_H  = $(foreach name,$(INTER),$(INC_DIR)/$(name).h)
-INTER_C  = $(foreach name,$(INTER),$(SRC_DIR)/$(name).c)
-INNER_H  = $(wildcard $(SRC_DIR)/*.h)
-INNER_C  = $(INNER_H:.h=.c)
-SRC      = $(INTER_C) $(INNER_C)
-NAMES    = $(notdir $(SRC:.c=))
-OBJ      = $(foreach name,$(NAMES),$(BUILD)/$(SRC_DIR)/$(name).o)
+# Default target is library:
+TARGET   = $(BUILD)/$(LIB)
+# Determing needed object files:
+EXTER_H  = $(foreach x,$(EXTERNAL:=.h),$(INCLUDE)/magi/$(x))
+EXTER_C  = $(foreach x,$(EXTERNAL:=.c),$(SRCDIR)/$(x))
+INTER_H  = $(foreach i,$(INTERNAL:=.h),$(SRCDIR)/$(i))
+INTER_C  = $(INTER_H:.h=.c)
+SRC      = $(INTER_C) $(EXTER_C)
+OBJ      = $(foreach o,$(SRC:.c=.o),$(BUILD)/$(o))
+# Example executables:
+EXASRC   = $(wildcard $(EXADIR)/*.c)
+EXAMPLES = $(foreach x,$(EXASRC:.c=),$(BUILD)/$(x))
+# Dependency files:
+DEPS     = $(OBJ:.o=.d) $(EXAMPLES:=.d)
 
-EXDIR    = examples
-EXSRC    = $(wildcard $(EXDIR)/*.c)
-EXNAMES  = $(notdir $(EXSRC:.c=))
-EXAMPLES = $(foreach ex,$(EXNAMES),$(BUILD)/$(EXDIR)/$(ex))
+# Flags collections:
+SRCFLAGS = $(CFLAGS) -I$(INCLUDE)/magi
+EXAFLAGS = $(CFLAGS) -I$(INCLUDE)
+LFLAGS   = -static -L$(BUILD) -lmagi
+
+# Build directories:
+BUILDIRS = $(BUILD) $(BUILD)/$(SRCDIR) $(BUILD)/$(EXADIR)
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Targets
-.PHONY: default clean examples
+.PHONY: default examples clean clean-nontarget clean-deps clean-all
 
-# 'make' produces library by default:
-default: $(BUILD)/$(LIB)
+default: $(TARGET)
 
 examples: $(EXAMPLES)
 
-# Cleaning means removing everything automatically produced:
-clean:
+clean: clean-nontarget
+	rm -f $(TARGET)
+clean-nontarget: clean-deps
+	rm -f $(OBJ) $(EXAMPLES)
+clean-deps:
+	rm -f $(DEPS)
+clean-all:
 	rm -rf $(BUILD)
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Compilation
-# Compile object files from corresponding source and header:
-$(BUILD)/$(SRC_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) $(CFLAGS) -I $(INC_DIR) -c $< -o $@
+# No product should be in case of cleaning:
+ifneq (clean,$(MAKECMDGOAL))
 
 # Packing object files into library:
-$(BUILD)/$(LIB): $(OBJ)
-	ar rcs $@ $^
+$(TARGET): $(OBJ)
+	ar -rcs $@ $^
+
+# Compile object files from corresponding source:
+$(BUILD)/%.o: %.c $(BUILDIRS)
+	$(CC) $(SRCFLAGS) -c $< -o $@
 
 # Compile executables from corresponding sources and library:
-$(BUILD)/$(EXDIR)/%: $(EXDIR)/%.c $(BUILD)/$(LIB)
-	$(CC) $(CFLAGS) -I include $< -L$(BUILD) -lmagi -o $@
+$(BUILD)/%: %.c $(TARGET) $(BUILDIRS)
+	$(CC) $(EXAFLAGS) $< $(LFLAGS) -o $@
+
+$(BUILDIRS):
+	mkdir -p $@
 
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#     Dependencies
-$(BUILD)/deps.mk: $(SRC) $(EXSRC)
-	mkdir $(BUILD) $(BUILD)/$(SRC_DIR) $(BUILD)/$(EXDIR); echo '' > $@
-	for t in $(NAMES); do                 \
-	$(CC) -I $(INC_DIR)                   \
-	      -MT $(BUILD)/$(SRC_DIR)/$${t}.o \
-	      -MM $(SRC_DIR)/$${t}.c >> $@;   \
-	done
-	for t in $(EXNAMES); do             \
-	$(CC) -I include                    \
-	      -MT $(BUILD)/$(EXDIR)/$${t}.o \
-	      -MM $(EXDIR)/$${t}.c >> $@;   \
-	done
-
-ifneq (clean, $(MAKECMDGOALS))
--include $(BUILD)/deps.mk
+# Including dependency files:
+-include $(DEPS)
 endif

@@ -12,13 +12,12 @@ void response(magi_request *r)
         "</html>");
 }
 
-int main(int argc, char const *argv[])
+int main()
 {
     magi_session session;
     magi_request request;
     magi_request_init(&request);
     magi_session_init(&session);
-    magi_session_inet(&session, "localhost", "9973");
     magi_session_unix(&session, "unix.sock");
     while (magi_fastcgi(&session, &request)) {
         if (request.error) {

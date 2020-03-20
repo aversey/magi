@@ -29,7 +29,7 @@ void magi_params_set(magi_params **params, magi_param *newitem);
 
 /* Get data of the first from top of params parameter with name,
  * null if no such parameter. */
-char *magi_params_get(magi_params *params, const char *name);
+char *magi_params_get(const magi_params *params, const char *name);
 
 
 #endif

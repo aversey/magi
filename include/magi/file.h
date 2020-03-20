@@ -25,7 +25,7 @@ void magi_files_free(magi_files *files);
 void magi_files_add(magi_files **files, magi_file *newitem);
 
 /* Get first from top of files file with name, null if no such file. */
-magi_file *magi_files_get(magi_files *files, const char *name);
+const magi_file *magi_files_get(const magi_files *files, const char *name);
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

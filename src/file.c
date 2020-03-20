@@ -14,7 +14,7 @@ void magi_files_add(magi_files **files, magi_file *newitem)
     }
 }
 
-magi_file *magi_files_get(magi_files *files, const char *name)
+const magi_file *magi_files_get(const magi_files *files, const char *name)
 {
     if (!files || !name) {
         return 0;

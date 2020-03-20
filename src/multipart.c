@@ -63,10 +63,10 @@ static char *extract_filename(char *n)
     if (!n) {
         return 0;
     }
-    n += strspn(n, " \t") + 1;
+    n += strspn(n + 1, " \t") + 1;
     if (*n == '"') {
         ++n;
-        return magi_str_create_copy(n, n - strchr(n, '"'));
+        return magi_str_create_copy(n, strchr(n, '"') - n);
     } else {
         return magi_str_create_copy(n, strcspn(n, " \t"));
     }
@@ -78,10 +78,10 @@ static int content_disposition(automata *a)
     if (!n) {
         return 0;
     }
-    n += strspn(n, " \t") + 1;
+    n += strspn(n + 1, " \t") + 1;
     if (*n == '"') {
         ++n;
-        a->param.name = magi_str_create_copy(n, n - strchr(n, '"'));
+        a->param.name = magi_str_create_copy(n, strchr(n, '"') - n);
         if (!a->param.name || !*a->param.name) {
             return 0;
         }

@@ -60,20 +60,21 @@ void magi_request_free(magi_request *r);
 
 
 /* Get value of meta-param with name. */
-char *magi_request_meta(magi_request *r, const char *name);
+char *magi_request_meta(const magi_request *r, const char *name);
 
 /* Get value of form field param (prioritising body) with name. */
-char *magi_request_param(magi_request *r, const char *name);
+char *magi_request_param(const magi_request *r, const char *name);
 /* Get value of form field param with name from url. */
-char *magi_request_urlparam(magi_request *r, const char *name);
+char *magi_request_urlparam(const magi_request *r, const char *name);
 
 /* Get metadata structure of file from file field with name. */
-magi_file *magi_request_file(magi_request *r, const char *name);
+const magi_file *magi_request_file(const magi_request *r, const char *name);
 
 /* Get value of cookie with name. */
-char        *magi_request_cookie(magi_request *r, const char *name);
+char *magi_request_cookie(const magi_request *r, const char *name);
 /* Get cookie with name. */
-magi_cookie *magi_request_cookie_complex(magi_request *r, const char *name);
+const magi_cookie *magi_request_cookie_complex(const magi_request *r,
+                                               const char *name);
 
 
 #endif

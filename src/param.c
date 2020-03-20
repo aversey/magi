@@ -28,7 +28,7 @@ void magi_params_set(magi_params **params, magi_param *newitem)
     }
 }
 
-char *magi_params_get(magi_params *params, const char *name)
+char *magi_params_get(const magi_params *params, const char *name)
 {
     if (!params || !name) {
         return 0;

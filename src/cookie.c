@@ -14,9 +14,10 @@ void magi_cookies_add(magi_cookies **cookies, magi_cookie *newitem)
     }
 }
 
-magi_cookie *magi_cookies_get(magi_cookies *cookies, const char *name)
+const magi_cookie *magi_cookies_get(const magi_cookies *cookies,
+                                    const char *name)
 {
-    magi_cookie *res = 0;
+    const magi_cookie *res = 0;
     if (!cookies || !name) {
         return 0;
     }

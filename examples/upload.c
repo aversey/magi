@@ -4,8 +4,8 @@
 
 void response(magi_request *r)
 {
-    char      *name = magi_request_param(r, "name");
-    magi_file *data = magi_request_file(r, "data");
+    char            *name = magi_request_param(r, "name");
+    const magi_file *data = magi_request_file(r, "data");
     magi_response(r,
         "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "
         "'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>"

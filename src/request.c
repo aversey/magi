@@ -69,12 +69,12 @@ void magi_request_free(magi_request *request)
 }
 
 
-char *magi_request_meta(magi_request *r, const char *name)
+char *magi_request_meta(const magi_request *r, const char *name)
 {
     return magi_params_get(r->meta, name);
 }
 
-char *magi_request_param(magi_request *r, const char *name)
+char *magi_request_param(const magi_request *r, const char *name)
 {
     char *res = magi_params_get(r->body, name);
     if (!res) {
@@ -83,26 +83,27 @@ char *magi_request_param(magi_request *r, const char *name)
     return res;
 }
 
-char *magi_request_urlparam(magi_request *r, const char *name)
+char *magi_request_urlparam(const magi_request *r, const char *name)
 {
     return magi_params_get(r->head, name);
 }
 
-magi_file *magi_request_file(magi_request *r, const char *name)
+const magi_file *magi_request_file(const magi_request *r, const char *name)
 {
     return magi_files_get(r->files, name);
 }
 
-char *magi_request_cookie(magi_request *r, const char *name)
+char *magi_request_cookie(const magi_request *r, const char *name)
 {
-    magi_cookie *res = magi_cookies_get(r->cookies, name);
+    const magi_cookie *res = magi_cookies_get(r->cookies, name);
     if (!res) {
         return 0;
     }
     return res->data;
 }
 
-magi_cookie *magi_request_cookie_complex(magi_request *r, const char *name)
+const magi_cookie *magi_request_cookie_complex(const magi_request *r,
+                                               const char *name)
 {
     return magi_cookies_get(r->cookies, name);
 }

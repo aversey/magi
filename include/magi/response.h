@@ -4,7 +4,7 @@
  *
  * There are two parts of response, namely header and body.
  * You can directly dive into filling the body, since default headers are set.
- * Defult content-type is XHTML, status is 200 (Ok).
+ * Defult content-type is HTML, status is 200 (OK).
  *
  * Use body related functions only after dealing with headers.
  * (Since storing possibly large body in memory is a bad idea,

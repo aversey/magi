@@ -161,9 +161,8 @@ static void mhead(void *any, magi_param *header)
     fputs("\r\n", stdout);
 }
 
-static void mstart_body(void *any)
+static void mstart_body()
 {
-    (void)any;
     fputs("\r\n", stdout);
 }
 
@@ -189,7 +188,7 @@ static void mfile(void *any, FILE *file)
     }
 }
 
-static void mclose(void *any)  { (void)any; }
+static void mclose()  {}
 
 static void setup_response(magi_request *r)
 {
@@ -208,7 +207,7 @@ static void setup_response(magi_request *r)
     r->response->head_general  = 0;
     r->response->head_entity   = 0;
     r->response->head_done     = 0;
-    magi_response_content_type(r, "application/xhtml+xml");
+    magi_response_content_type(r, "text/html");
     magi_response_status(r, 200, "OK");
 }
 
