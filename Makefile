@@ -50,49 +50,35 @@ SRCFLAGS = $(CFLAGS) -I$(INCLUDE)/magi
 EXAFLAGS = $(CFLAGS) -I$(INCLUDE)
 LFLAGS   = -static -L$(BUILD) -lmagi
 
-# Build directories:
-BUILDIRS = $(BUILD) $(BUILD)/$(SRCDIR) $(BUILD)/$(EXADIR)
-
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Targets
-.PHONY: default examples clean clean-nontarget clean-deps clean-all
+.PHONY: default examples clean
 
-default: $(TARGET)
+default: $(BUILD)/$(SRCDIR) $(TARGET)
 
-examples: $(EXAMPLES)
+examples: default $(BUILD)/$(EXADIR) $(EXAMPLES)
 
-clean: clean-nontarget
-	rm -f $(TARGET)
-clean-nontarget: clean-deps
-	rm -f $(OBJ) $(EXAMPLES)
-clean-deps:
-	rm -f $(DEPS)
-clean-all:
-	rm -rf $(BUILD)
+clean:
+	rm -f $(TARGET) $(OBJ) $(EXAMPLES) $(DEPS)
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Compilation
-# No product should be in case of cleaning:
-ifneq (clean,$(MAKECMDGOAL))
+# Including dependency files:
+-include $(DEPS)
 
 # Packing object files into library:
 $(TARGET): $(OBJ)
 	ar -rcs $@ $^
 
 # Compile object files from corresponding source:
-$(BUILD)/%.o: %.c $(BUILDIRS)
+$(BUILD)/%.o: %.c
 	$(CC) $(SRCFLAGS) -c $< -o $@
 
 # Compile executables from corresponding sources and library:
-$(BUILD)/%: %.c $(TARGET) $(BUILDIRS)
+$(BUILD)/%: %.c $(TARGET)
 	$(CC) $(EXAFLAGS) $< $(LFLAGS) -o $@
 
-$(BUILDIRS):
+$(BUILD)/$(SRCDIR) $(BUILD)/$(EXADIR):
 	mkdir -p $@
-
-
-# Including dependency files:
--include $(DEPS)
-endif
