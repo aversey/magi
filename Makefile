@@ -12,11 +12,14 @@ CC      ?= gcc
 #     Preparations
 # Compile under the most strict conditions:
 CFLAGS   = -xc -ansi -pedantic -Wall -Wextra -MMD
-# Debug and optimisation are not compatible:
+# Specify linker to use the library:
+LFLAGS   = -L$(BUILD) -lmagi
+# Debug and optimisation (as well as -static for valgrind) are not compatible:
 ifeq '$(DEBUG)' 'yes'
 CFLAGS  += -g -O0
 else
 CFLAGS  += -O3
+LFLAGS  += -static
 endif
 
 # Directories definitions:
@@ -45,10 +48,9 @@ EXAMPLES = $(foreach x,$(EXASRC:.c=),$(BUILD)/$(x))
 # Dependency files:
 DEPS     = $(OBJ:.o=.d) $(EXAMPLES:=.d)
 
-# Flags collections:
+# Adding special include paths to corresponding flags:
 SRCFLAGS = $(CFLAGS) -I$(INCLUDE)/magi
 EXAFLAGS = $(CFLAGS) -I$(INCLUDE)
-LFLAGS   = -static -L$(BUILD) -lmagi
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
