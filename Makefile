@@ -11,7 +11,7 @@ CC      ?= gcc
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Preparations
 # Compile under the most strict conditions:
-CFLAGS   = -xc -ansi -pedantic -Wall -Wextra -MMD
+CFLAGS   = -xc -ansi -pedantic -Wall -Wextra
 # Specify linker to use the library:
 LFLAGS   = -L$(BUILD) -lmagi
 # Debug and optimisation (as well as -static for valgrind) are not compatible:
@@ -45,21 +45,22 @@ OBJ      = $(foreach o,$(SRC:.c=.o),$(BUILD)/$(o))
 # Example executables:
 EXASRC   = $(wildcard $(EXADIR)/*.c)
 EXAMPLES = $(foreach x,$(EXASRC:.c=),$(BUILD)/$(x))
-# Dependency files:
-DEPS     = $(OBJ:.o=.d) $(EXAMPLES:=.d)
+# Dependency file:
+DEPS     = deps.mk
 
-# Adding special include paths to corresponding flags:
-SRCFLAGS = $(CFLAGS) -I$(INCLUDE)/magi
-EXAFLAGS = $(CFLAGS) -I$(INCLUDE)
+SRCINC   = -I$(INCLUDE)/magi
+EXAINC   = -I$(INCLUDE)
+SRCBUILD = $(BUILD)/$(SRCDIR)
+EXABUILD = $(BUILD)/$(EXADIR)
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Targets
 .PHONY: all examples clean
 
-all: $(BUILD)/$(SRCDIR) $(TARGET)
+all: $(SRCBUILD) $(TARGET)
 
-examples: all $(BUILD)/$(EXADIR) $(EXAMPLES)
+examples: all $(EXABUILD) $(EXAMPLES)
 
 clean:
 	rm -f $(TARGET) $(OBJ) $(EXAMPLES) $(DEPS)
@@ -67,7 +68,6 @@ clean:
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Compilation
-# Including dependency files:
 -include $(DEPS)
 
 # Packing object files into library:
@@ -76,11 +76,17 @@ $(TARGET): $(OBJ)
 
 # Compile object files from corresponding source:
 $(BUILD)/%.o: %.c
-	$(CC) $(SRCFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(SRCINC) -c $< -o $@
 
 # Compile executables from corresponding sources and library:
 $(BUILD)/%: %.c $(TARGET)
-	$(CC) $(EXAFLAGS) $< $(LFLAGS) -o $@
+	$(CC) $(CFLAGS) $(EXAINC) $< $(LFLAGS) -o $@
 
-$(BUILD)/$(SRCDIR) $(BUILD)/$(EXADIR):
+# Create build directories, if no such:
+$(SRCBUILD) $(EXABUILD):
 	mkdir -p $@
+
+# Generate dependency file, adding corresponding build prefixes:
+$(DEPS): $(SRC) $(EXASRC) $(EXTER_H) $(INTER_H) $(INCLUDE)/magi.h
+	$(CC) $(SRCINC) $(SRC) -MM | sed '/^ /!s#^#$(SRCBUILD)/#' > $@
+	$(CC) $(EXAINC) $(EXASRC) -MM | sed '/^ /!s#^#$(EXABUILD)/#;s/\.o//' >> $@
