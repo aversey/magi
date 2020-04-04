@@ -1,9 +1,11 @@
 #include "error.h"
 
+#include <stdio.h>
+
 
 const char *magi_error_message(magi_error error)
 {
-    const char *const messages[] = {
+    static const char *const messages[] = {
         0,                             /* magi_error_none */
         "No boundary for multipart.",  /* magi_error_nobound */
         "Content-Type is unknown.",    /* magi_error_unknown */
@@ -16,4 +18,19 @@ const char *magi_error_message(magi_error error)
         "Part of request was too big." /* magi_error_limit */
     };
     return messages[error];
+}
+
+void magi_error_response(magi_error error)
+{
+    fputs("Status: 400 Bad Request\r\n"
+          "Content-Type: text/html\r\n\r\n"
+          "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "
+          "'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>"
+          "<html xmlns='http://www.w3.org/1999/xhtml'>"
+          "<head><title>400 Bad Request</title></head>"
+          "<body>"
+          "<h1>400 <i>Bad Request</i></h1>"
+          "<h2>", stdout);
+    fputs(magi_error_message(error), stdout);
+    fputs("</h2></body></html>", stdout);
 }

@@ -9,8 +9,6 @@
  * RFC 3986 describes URL-encoding.  Briefly it is changing every space into
  * plus sign and every not alpha-numerical and not @c "~-._" character into
  * percent sign followed by hexadecimal representation of given character.
- *
- * This module is optional.
  */
 
 

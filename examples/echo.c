@@ -1,111 +1,111 @@
+/* This is useful example echoing request data in response.
+ */
 #include <magi.h>
 
 
 void list_cookies(magi_request *r)
 {
     magi_cookies *current = r->cookies;
-    magi_response(r, "<p>");
+    printf("<p>");
+    /* Iterate through all cookies in request to show them in body: */
     for (current = r->cookies; current; current = current->next) {
         magi_cookie *c = &current->item;
-        magi_response(r, "Cookie with name [");
-        magi_response(r, c->name);
+        printf("Cookie with name [%s", c->name);
         if (c->data) {
-            magi_response(r, "] is [");
-            magi_response(r, c->data);
+            printf("] is [%s", c->data);
         }
         if (c->domain) {
-            magi_response(r, "] for domain [");
-            magi_response(r, c->domain);
+            printf("] for domain [%s", c->domain);
         }
         if (c->path) {
-            magi_response(r, "] for path [");
-            magi_response(r, c->path);
+            printf("] for path [%s", c->path);
         }
-        magi_response(r, "]<br />");
+        printf("]<br />");
     }
-    magi_response(r, "</p>");
+    printf("</p>");
 }
 
-void list_params(magi_request *r, magi_params *current)
+void list_params(magi_params *current)
 {
-    magi_response(r, "<p>");
+    printf("<p>");
+    /* Iterate through specified params to show them in body: */
     for (; current; current = current->next) {
         magi_param *p = &current->item;
-        magi_response_format(r, "[%s] is [%s]<br />", p->name, p->data);
+        printf("[%s] is [%s]<br />", p->name, p->data);
     }
-    magi_response(r, "</p>");
+    printf("</p>");
 }
 
 void list_files(magi_request *r)
 {
     magi_files *current;
-    magi_response(r, "<p>");
+    printf("<p>");
+    /* Iterate through all field files in request to show them in body: */
     for (current = r->files; current; current = current->next) {
         magi_file *f = &current->item;
-        magi_response_format(r, "[%s] was [%s] on clientside<br />",
-                             f->field, f->filename);
+        printf("[%s] was [%s] on clientside<br />", f->field, f->filename);
     }
-    magi_response(r, "</p>");
+    printf("</p>");
 }
 
 void show_meta(magi_request *r)
 {
-    magi_response(r, "<p>I was called ");
+    printf("<p>I was called ");
     if (r->is_secure) {
-        magi_response(r, "securely ");
+        printf("securely ");
     }
-    magi_response_format(r, "with method [%s", r->method);
+    printf("with method [%s", r->method);
     if (r->host) {
-        magi_response_format(r, "] on server [%s", r->host);
+        printf("] on server [%s", r->host);
     }
     if (r->script) {
-        magi_response_format(r, "] being script on [%s", r->script);
+        printf("] being script on [%s", r->script);
     }
     if (r->path) {
-        magi_response_format(r, "] with requested path [%s", r->path);
+        printf("] with requested path [%s", r->path);
     }
-    magi_response(r, "]</p>");
+    printf("]</p>");
 }
 
 void response(magi_request *r)
 {
-    magi_response(r,
-        "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "
-        "'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>"
-        "<html xmlns='http://www.w3.org/1999/xhtml'>"
-        "<head><title>Echo</title></head>"
-        "<body>");
+    magi_response_default();  /* Pass default headers and send body: */
+    printf("<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "
+           "'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>"
+           "<html xmlns='http://www.w3.org/1999/xhtml'>"
+           "<head><title>Echo</title></head>"
+           "<body>");
 
-    magi_response(r, "<h1>Echo CGI Script</h1>");
+    printf("<h1>Echo CGI Script</h1>");
     show_meta(r);
 
-    magi_response(r, "<h2>Cookies:</h2>");
+    printf("<h2>Cookies:</h2>");
     list_cookies(r);
 
-    magi_response(r, "<h2>Parameters:</h2>");
-    list_params(r, r->meta);
+    printf("<h2>Parameters:</h2>");
+    list_params(r->meta);
 
-    magi_response(r, "<h2>URL Parameters:</h2>");
-    list_params(r, r->head);
+    printf("<h2>URL Parameters:</h2>");
+    list_params(r->head);
 
-    magi_response(r, "<h2>Body Parameters:</h2>");
-    list_params(r, r->body);
+    printf("<h2>Body Parameters:</h2>");
+    list_params(r->body);
 
-    magi_response(r, "<h2>Files:</h2>");
+    printf("<h2>Files:</h2>");
     list_files(r);
 
-    magi_response(r, "</body></html>");
+    printf("</body></html>");
 }
 
 int main()
 {
     magi_request request;
-    magi_request_init(&request);
-    if (magi_cgi(&request)) {
-        response(&request);
-    } else {
-        magi_response_error(&request);
+    magi_request_init(&request);  /* Setting defaults. */
+    if (magi_parse(&request)) {   /* If parsing was done successful */
+        response(&request);       /* we need to response the request. */
+    } else {                      /* And display error overwise: */
+        magi_error_response(request.error);
     }
-    magi_request_free(&request);
+    magi_request_free(&request);  /* Don't forget to free everything after. */
     return 0;
 }

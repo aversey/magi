@@ -6,11 +6,55 @@
 #include <string.h>
 
 
-void magi_response_status(magi_request *r, int code, const char *description)
+void magi_response_init(magi_response *r)
+{
+    r->head_response = 0;
+    r->head_general  = 0;
+    r->head_entity   = 0;
+    magi_response_status(r, 200, "OK");
+    magi_response_content_type(r, "text/html");
+}
+
+static void response_headers(magi_params *p)
+{
+    for (; p; p = p->next) {
+        fputs(p->item.name, stdout);
+        fputs(": ", stdout);
+        fputs(p->item.data, stdout);
+        fputs("\r\n", stdout);
+    }
+}
+
+void magi_response_free(magi_response *r)
+{
+    response_headers(r->head_response);
+    response_headers(r->head_general);
+    response_headers(r->head_entity);
+    fputs("\r\n", stdout);
+    magi_params_free(r->head_response);
+    magi_params_free(r->head_general);
+    magi_params_free(r->head_entity);
+    free(r->head_response);
+    free(r->head_general);
+    free(r->head_entity);
+    r->head_response = 0;
+    r->head_general  = 0;
+    r->head_entity   = 0;
+}
+
+
+void magi_response_default()
+{
+    fputs("Status: 200 Ok\r\n"
+          "Content-Type: text/html\r\n\r\n", stdout);
+}
+
+
+void magi_response_status(magi_response *r, int code, const char *description)
 {
     int        dlen;
     magi_param addon;
-    if (r->response->head_done || code <= 99 || 600 <= code) {
+    if (code <= 99 || 600 <= code) {
         return;
     }
     dlen          = strlen(description);
@@ -21,15 +65,15 @@ void magi_response_status(magi_request *r, int code, const char *description)
     addon.data[2] = '0' + code % 10;
     addon.data[3] = ' ';
     memcpy(addon.data + 4, description, dlen + 1);
-    magi_params_set(&r->response->head_response, &addon);
+    magi_params_set(&r->head_response, &addon);
 }
 
-void magi_response_cookie(magi_request *r, const char *name, const char *data)
+void magi_response_cookie(magi_response *r, const char *name, const char *data)
 {
     magi_param addon;
     int        nlen;
     int        dlen;
-    if (r->response->head_done || !name || !data) {
+    if (!name || !data) {
         return;
     }
     nlen       = strlen(name);
@@ -39,10 +83,10 @@ void magi_response_cookie(magi_request *r, const char *name, const char *data)
     memcpy(addon.data, name, nlen);
     addon.data[nlen] = '=';
     memcpy(addon.data + nlen + 1, data, dlen + 1);
-    magi_params_add(&r->response->head_general, &addon);
+    magi_params_add(&r->head_general, &addon);
 }
 
-void magi_response_cookie_complex(magi_request *r, magi_cookie *c)
+void magi_response_cookie_complex(magi_response *r, magi_cookie *c)
 {
     magi_param addon;
     char      *pointer;
@@ -50,7 +94,7 @@ void magi_response_cookie_complex(magi_request *r, magi_cookie *c)
     const int cdsize = 9;
     const int cpsize = 7;
     const int cmsize = 10;
-    if (r->response->head_done || !c->name) {
+    if (!c->name) {
         return;
     }
     nlen       = strlen(c->name);
@@ -83,14 +127,14 @@ void magi_response_cookie_complex(magi_request *r, magi_cookie *c)
         memcpy(pointer, "; Max-Age=", cmsize);
         memcpy(pointer + cmsize, c->max_age, msize - cmsize);
     }
-    magi_params_add(&r->response->head_general, &addon);
+    magi_params_add(&r->head_general, &addon);
 }
 
-void magi_response_cookie_discard(magi_request *r, const char *name)
+void magi_response_cookie_discard(magi_response *r, const char *name)
 {
     magi_param addon;
     int len;
-    if (r->response->head_done || !name) {
+    if (!name) {
         return;
     }
     len        = strlen(name);
@@ -98,29 +142,22 @@ void magi_response_cookie_discard(magi_request *r, const char *name)
     addon.data = malloc(len + 13);
     memcpy(addon.data, name, len);
     memcpy(addon.data + len, "=; Max-Age=1", 13);
-    magi_params_add(&r->response->head_general, &addon);
+    magi_params_add(&r->head_general, &addon);
 }
 
-void magi_response_header(magi_request *r, const char *name, const char *data)
+void magi_response_header(magi_response *r, const char *name, const char *data)
 {
     magi_param addon;
-    if (r->response->head_done) {
-        return;
-    }
     addon.name = magi_str_create_copy(name, strlen(name));
     addon.data = magi_str_create_copy(data, strlen(data));
-    magi_params_add(&r->response->head_general, &addon);
+    magi_params_add(&r->head_general, &addon);
 }
 
-void magi_response_content_length(magi_request *r, int length)
+void magi_response_content_length(magi_response *r, int length)
 {
     magi_param addon;
-    int        len;
-    if (r->response->head_done) {
-        return;
-    }
+    int len     = 1;
     addon.name  = magi_str_create_copy("Content-Length", 14);
-    len         = 1;
     addon.data  = malloc(len + 1);
     *addon.data = '0' + length % 10;
     while (length /= 10) {
@@ -129,75 +166,13 @@ void magi_response_content_length(magi_request *r, int length)
         ++len;
     }
     addon.data[len] = 0;
-    magi_params_set(&r->response->head_entity, &addon);
+    magi_params_set(&r->head_entity, &addon);
 }
 
-void magi_response_content_type(magi_request *r, const char *type)
+void magi_response_content_type(magi_response *r, const char *type)
 {
     magi_param addon;
-    if (r->response->head_done) {
-        return;
-    }
     addon.name = magi_str_create_copy("Content-Type", 12);
     addon.data = magi_str_create_copy(type, strlen(type));
-    magi_params_set(&r->response->head_entity, &addon);
-}
-
-static void response_headers(magi_response_implementation *r, magi_params *p)
-{
-    for (; p; p = p->next) {
-        r->methods->head(r->userdata, &p->item);
-    }
-}
-
-void magi_response_head(magi_request *r)
-{
-    if (r->response->head_done) {
-        return;
-    }
-    response_headers(r->response, r->response->head_response);
-    response_headers(r->response, r->response->head_general);
-    response_headers(r->response, r->response->head_entity);
-    r->response->methods->start_body(r->response->userdata);
-    r->response->head_done = 1;
-}
-
-void magi_response(magi_request *r, const char *addon)
-{
-    magi_response_head(r);
-    if (!addon) {
-        return;
-    }
-    r->response->methods->body(r->response->userdata, addon, strlen(addon));
-}
-
-void magi_response_format(magi_request *r, const char *format, ...)
-{
-    va_list args;
-    magi_response_head(r);
-    va_start(args, format);
-    r->response->methods->format(r->response->userdata, format, args);
-    va_end(args);
-}
-
-void magi_response_file(magi_request *r, FILE *file)
-{
-    magi_response_head(r);
-    r->response->methods->file(r->response->userdata, file);
-}
-
-
-void magi_response_error(magi_request *r)
-{
-    magi_response_status(r, 400, "Bad Request");
-    magi_response(r,
-        "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "
-        "'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>"
-        "<html xmlns='http://www.w3.org/1999/xhtml'>"
-        "<head><title>400 Bad Request</title></head>"
-        "<body>"
-        "<h1>400 <i>Bad Request</i></h1>"
-        "<h2>");
-    magi_response(r, magi_error_message(r->error));
-    magi_response(r, "</h2></body></html>");
+    magi_params_set(&r->head_entity, &addon);
 }

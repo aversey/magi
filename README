@@ -1,5 +1,5 @@
     Description
-Magi Library (libmagi) implements Gateway Interfaces, namely CGI and FastCGI.
+Magi Library (libmagi) implements Common Gateway Interface.
 
     Overview
 Magi are free and open-source software: legal info is in the 'LICENSE' file.
@@ -22,12 +22,12 @@ Running 'make examples' produces executable for each example in 'examples'.
 Descriptions and details are in corresponding source files.
 
     Usage
-magi_request handles incoming request, general workflow for CGI is to:
+magi_request handles incoming request, general workflow is to:
 1. prepare request for analysis, setup defaults via magi_request_init;
-2. analyse CGI request via magi_cgi;
+2. analyse CGI request via magi_parse;
 4. do your work, and response request:
-   1. specify headers (e.g. magi_response_cookie),
-   2. fill response body (e.g. magi_response);
+   1. specify and send headers (magi_response_...),
+   2. response body (through stdout);
 5. finally, free memory via magi_request_free.
 
     Motivation

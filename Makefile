@@ -2,8 +2,6 @@
 #     Compilation Options
 # Debug mode [yes/no] (allowing to debug the library via gdb):
 DEBUG   ?= no
-# Optional modules (remove unwanted ones):
-MODULES ?= cgi fastcgi loadfiles urlenc
 # Specify your favourite C compiler here:
 CC      ?= gcc
 
@@ -30,8 +28,8 @@ EXADIR   = examples
 # Library itself:
 LIB      = libmagi.a
 # Modules:
-EXTERNAL = cookie error file param request response session $(MODULES)
-INTERNAL = cookies multipart tools urlencoded
+EXTERNAL = $(foreach x,$(notdir $(wildcard $(INCLUDE)/magi/*.h)),$(x:.h=))
+INTERNAL = $(foreach x,$(notdir $(wildcard $(SRCDIR)/*.h)),$(x:.h=))
 
 # Default target is library:
 TARGET   = $(BUILD)/$(LIB)

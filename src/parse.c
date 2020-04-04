@@ -1,4 +1,4 @@
-#include "cgi.h"
+#include "parse.h"
 
 #include "cookie.h"
 #include "cookies.h"
@@ -152,67 +152,8 @@ static int next()
     return getchar();
 }
 
-static void mhead(void *any, magi_param *header)
-{
-    (void)any;
-    fputs(header->name, stdout);
-    fputs(": ", stdout);
-    fputs(header->data, stdout);
-    fputs("\r\n", stdout);
-}
-
-static void mstart_body()
-{
-    fputs("\r\n", stdout);
-}
-
-static void mbody(void *any, const char *data, int len)
-{
-    (void)any;
-    fwrite(data, 1, len, stdout);
-}
-
-static void mformat(void *any, const char *format, va_list args)
-{
-    (void)any;
-    vprintf(format, args);
-}
-
-static void mfile(void *any, FILE *file)
-{
-    (void)any;
-    while (!feof(file)) {
-        char buf[64];
-        int  len = fread(buf, 1, 64, file);
-        fwrite(buf, 1, len, stdout);
-    }
-}
-
-static void mclose()  {}
-
-static void setup_response(magi_request *r)
-{
-    static const magi_response_methods m = {
-        mhead,
-        mstart_body,
-        mbody,
-        mformat,
-        mfile,
-        mclose
-    };
-    r->response                = malloc(sizeof(*r->response));
-    r->response->methods       = &m;
-    r->response->userdata      = 0;
-    r->response->head_response = 0;
-    r->response->head_general  = 0;
-    r->response->head_entity   = 0;
-    r->response->head_done     = 0;
-    magi_response_content_type(r, "text/html");
-    magi_response_status(r, 200, "OK");
-}
-
 /* Interfacial CGI Request Handling */
-int magi_cgi_head(magi_request *request)
+int magi_parse_head(magi_request *request)
 {
     request->cookies = 0;
     request->files   = 0;
@@ -223,11 +164,10 @@ int magi_cgi_head(magi_request *request)
     cgi_env(request);
     cgi_cookies(request);
     cgi_url(request);
-    setup_response(request);
     return !request->error;
 }
 
-int magi_cgi_body(magi_request *request)
+int magi_parse_body(magi_request *request)
 {
     magi_error *e  = &request->error;
     request->error = magi_error_none;
@@ -260,7 +200,7 @@ int magi_cgi_body(magi_request *request)
     return !request->error;
 }
 
-int magi_cgi(magi_request *request)
+int magi_parse(magi_request *request)
 {
-    return magi_cgi_head(request) && magi_cgi_body(request);
+    return magi_parse_head(request) && magi_parse_body(request);
 }

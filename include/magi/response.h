@@ -1,66 +1,41 @@
 #ifndef MAGI_INCLUDED_RESPONSE
 #define MAGI_INCLUDED_RESPONSE
-/* General response functionality for magi_request.
+/* General CGI headers response functionality.
  *
- * There are two parts of response, namely header and body.
- * You can directly dive into filling the body, since default headers are set.
- * Defult content-type is HTML, status is 200 (OK).
- *
- * Use body related functions only after dealing with headers.
- * (Since storing possibly large body in memory is a bad idea,
- *  all headers should be sent before anything from the body.)
+ * There are two parts of response, namely head and body.
+ * You need to output head first, it is done with magi_response_free or with
+ * magi_response_default.  Default content-type is HTML, status is 200 (Ok).
+ * Body can be outputed after head into stdout.
  */
-#include "request.h"
+#include "cookie.h"
+#include "param.h"
 #include <stdio.h>
 #include <stdarg.h>
 
 
-/* * *  TODO: Comments  * * */
-typedef void (*magi_response_method_head)(void *ud, magi_param *header);
-typedef void (*magi_response_method_start_body)(void *ud);
-typedef void (*magi_response_method_body)(void *ud, const char *data, int len);
-typedef void (*magi_response_method_fmt)(void *ud, const char *f, va_list a);
-typedef void (*magi_response_method_file)(void *ud, FILE *file);
-typedef void (*magi_response_method_close)(void *ud);
-
-typedef struct magi_response_methods {
-    magi_response_method_head       head;
-    magi_response_method_start_body start_body;
-    magi_response_method_body       body;
-    magi_response_method_fmt        format;
-    magi_response_method_file       file;
-    magi_response_method_close      close;
-} magi_response_methods;
-
-typedef struct magi_response_implementation {
-    const magi_response_methods *methods;
-    void        *userdata;
+typedef struct magi_response {
     magi_params *head_response;
     magi_params *head_general;
     magi_params *head_entity;
-    int          head_done;
-} magi_response_implementation;
+} magi_response;
 
 
-void magi_response_status(magi_request *r, int code, const char *description);
+void magi_response_init(magi_response *r);
+void magi_response_free(magi_response *r);
 
-void magi_response_cookie(magi_request *r, const char *name, const char *data);
-void magi_response_cookie_complex(magi_request *r, magi_cookie *c);
-void magi_response_cookie_discard(magi_request *r, const char *name);
-
-void magi_response_header(magi_request *r, const char *name, const char *data);
-
-void magi_response_content_length(magi_request *r, int length);
-void magi_response_content_type(magi_request *r, const char *type);
-
-void magi_response_head(magi_request *r);
-
-void magi_response(magi_request *r, const char *addon);
-void magi_response_format(magi_request *r, const char *format, ...);
-void magi_response_file(magi_request *r, FILE *file);
+void magi_response_default();
 
 
-void magi_response_error(magi_request *r);
+void magi_response_status(magi_response *r, int code, const char *description);
+
+void magi_response_cookie(magi_response *r, const char *n, const char *d);
+void magi_response_cookie_complex(magi_response *r, magi_cookie *c);
+void magi_response_cookie_discard(magi_response *r, const char *name);
+
+void magi_response_header(magi_response *r, const char *n, const char *d);
+
+void magi_response_content_length(magi_response *r, int length);
+void magi_response_content_type(magi_response *r, const char *type);
 
 
 #endif

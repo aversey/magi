@@ -2,13 +2,13 @@
 #define MAGI_INCLUDED_REQUEST
 /* Request handler
  *
- * Can be created via magi_{gateway interface name}_head, but will have
- * nullified POST-related fields (params & files).  Reason is unlimited
- * POST body size, with possible dependence of wanted limits from data of
- * headers (e.g. session id from cookies, enabling some users to load more).
- * To proceed POST use magi_{gateway interface name}_body, specifying
- * settings if necessary.
- * Or just use shortcut magi_{gateway interface name} to do both parts.
+ * Can be created via magi_parse_head, but will have nullified POST-related
+ * fields (params & files).  Reason is unlimited POST body size,
+ * with possible dependence of wanted limits from data of headers
+ * (e.g. session id from cookies, enabling some users to load more); and also
+ * dependence of place to load files by callback from head data.
+ * To proceed POST use magi_parse_body, specifying settings if necessary.
+ * Or just use shortcut magi_parse to do both parts.
  */
 #include "cookie.h"
 #include "error.h"
@@ -44,12 +44,6 @@ typedef struct magi_request {
 
     magi_file_callback  callback;  /* Callback to actually load files. */
     magi_request_limits limits;
-
-    /* Implementation of response for this request.
-     * Especially helpful in case of FastCGI,
-     * when you can handle many requests simultaniously,
-     * and need to know how to response each of them. */
-    struct magi_response_implementation *response;
 } magi_request;
 
 

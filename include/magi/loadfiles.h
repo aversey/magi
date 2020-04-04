@@ -6,8 +6,6 @@
  * via magi_loadfiles_add, specifying which file-parameter to load into which
  * path, and what are size limitations for it.  When table is complete, setup
  * your request to use this callback with magi_loadfiles_set.
- *
- * This module is optional.
  */
 #include "request.h"
 
