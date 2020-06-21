@@ -11,7 +11,7 @@
 /* Call only if 0 <= num && num <= 15. */
 static char to_hex(int num)
 {
-    static const char * const hex = "0123456789ABCDEF";
+    static const char *const hex = "0123456789ABCDEF";
     return hex[num];
 }
 
@@ -24,7 +24,7 @@ static int is_url(char c)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * URL Encoding
  */
-int magi_urlenc_size(const char * plain)
+int magi_urlenc_size(const char *plain)
 {
     int size;
     if (!plain) {
@@ -38,7 +38,7 @@ int magi_urlenc_size(const char * plain)
     return size;
 }
 
-void magi_urlencode(const char * plain, char * code)
+void magi_urlenc(const char *plain, char *code)
 {
     if (!plain || !code) {
         return;

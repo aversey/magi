@@ -32,10 +32,7 @@ static int is_str_token(char *str)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Automata for multipart/form-data
  */
-typedef struct automata automata;
-typedef void (*state)(automata *a, char c);
-struct automata {
-    state         s;
+typedef struct automata {
     magi_request *request;
     magi_file     file;
     magi_param    param;
@@ -51,7 +48,8 @@ struct automata {
     int           is_CR_readed;
     int           is_quoted;
     int           readed;
-};
+} automata;
+typedef void *(*state)(automata *a, char c);
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -224,15 +222,16 @@ static void apply_callback(automata *a)
     }
 }
 
-static void state_pname_pre(automata *a, char c);
-static void data_add_act(automata *a, char c, char **dest, int *len, int *size)
+static void *state_pname_pre(automata *a, char c);
+static void *state_data(automata *a, char c);
+static void *data_add_act(automata *a, char c, char **dest, int *l, int *s)
 {
     int pos = a->boundary_pos;
     for (a->boundary_pos = 0; a->boundary_pos < pos; ++a->boundary_pos) {
         if (a->is_end_suspected) {
-            magi_str_add(dest, len, size, endget(a));
+            magi_str_add(dest, l, s, endget(a));
         } else {
-            magi_str_add(dest, len, size, sepget(a));
+            magi_str_add(dest, l, s, sepget(a));
         }
         apply_callback(a);
     }
@@ -240,24 +239,25 @@ static void data_add_act(automata *a, char c, char **dest, int *len, int *size)
     a->is_end_suspected = 0;
 
     if (sepget(a) != c) {
-        magi_str_add(dest, len, size, c);
+        magi_str_add(dest, l, s, c);
         apply_callback(a);
     } else {
         a->boundary_pos++;
         if (a->boundary_pos == seplen(a)) {
             param_end(a);
-            a->s = state_pname_pre;
+            return state_pname_pre;
         }
     }
+    return state_data;
 }
 
-static void data_add(automata *a, char c)
+static void *data_add(automata *a, char c)
 {
     if (a->file.filename) {
         int max = a->request->callback.addon_max + 1;
-        data_add_act(a, c, &a->buf, &a->buf_size, &max);
+        return data_add_act(a, c, &a->buf, &a->buf_size, &max);
     } else {
-        data_add_act(a, c, &a->param.data, &a->len, &a->size);
+        return data_add_act(a, c, &a->param.data, &a->len, &a->size);
     }
 }
 
@@ -265,113 +265,114 @@ static void data_add(automata *a, char c)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * State analysers
  */
-static void state_begin(automata *a, char c)
+static void *state_begin(automata *a, char c)
 {
     if (sepget(a) != c) {     /* 'c' is not wanted character from separator; */
         a->boundary_pos = 0;  /* so nullify progress in reading separator. */
     } else {
         a->boundary_pos++;
         if (a->boundary_pos == seplen(a)) {
-            a->s = state_pname_pre;  /* Separator is completed, so move on. */
+            return state_pname_pre;  /* Separator is completed, so move on. */
         }
     }
+    return state_begin;
 }
 
-static void state_data(automata *a, char c);
-static void state_pname(automata *a, char c);
-static void state_pname_pre(automata *a, char c)
+static void *state_pname(automata *a, char c);
+static void *state_pname_pre(automata *a, char c)
 {
     if (a->is_CR_readed) {
-        if (c == '\n') {
-            a->is_CR_readed = 0;
-            a->boundary_pos = 0;
-            a->s            = state_data;
-        } else {
-            a->s = 0;
+        if (c != '\n') {
+            return 0;
         }
+        a->is_CR_readed = 0;
+        a->boundary_pos = 0;
+        return state_data;
     } else if (c == '\r') {
         a->is_CR_readed = 1;
+        return state_pname_pre;
     } else if (is_token(c)) {
-        a->s = state_pname;
         magi_str_add(&a->subparam.name, &a->len, &a->size, c);
-    } else {
-        a->s = 0;
+        return state_pname;
     }
+    return 0;
 }
 
-static void state_pdata(automata *a, char c);
-static void state_pname_end(automata *a, char c);
-static void state_pname(automata *a, char c)
+static void *state_pdata(automata *a, char c);
+static void *state_pname_end(automata *a, char c);
+static void *state_pname(automata *a, char c)
 {
     if (c == ':') {
         a->len  = 0;
         a->size = 1;
-        a->s    = state_pdata;
+        return state_pdata;
     } else if (c == ' ' || c == '\t') {
-        a->s = state_pname_end;
+        return state_pname_end;
     } else if (is_token(c)) {
         magi_str_add(&a->subparam.name, &a->len, &a->size, c);
-    } else {
-        a->s = 0;
+        return state_pname;
     }
+    return 0;
 }
 
-static void state_pname_end(automata *a, char c)
+static void *state_pname_end(automata *a, char c)
 {
     if (c == ':') {
         a->len  = 0;
         a->size = 1;
-        a->s    = state_pdata;
-    } else if (c != ' ' && c != '\t') {
-        a->s = 0;
+        return state_pdata;
+    } else if (c == ' ' || c == '\t') {
+        return state_pname_end;
     }
+    return 0;
 }
 
-static void state_pdata(automata *a, char c)
+static void *state_pdata(automata *a, char c)
 {
     if (a->is_CR_readed) {
         a->is_CR_readed = 0;
         if (c == '\n') {
-            a->s = subparam_end(a) ? state_pname_pre : 0;
-        } else {
-            magi_str_add(&a->subparam.data, &a->len, &a->size, '\r');
-            magi_str_add(&a->subparam.data, &a->len, &a->size, c);
+            return subparam_end(a) ? state_pname_pre : 0;
         }
+        magi_str_add(&a->subparam.data, &a->len, &a->size, '\r');
+        magi_str_add(&a->subparam.data, &a->len, &a->size, c);
     } else if (c == '\r') {
         a->is_CR_readed = 1;
     } else {
         magi_str_add(&a->subparam.data, &a->len, &a->size, c);
     }
+    return state_pdata;
 }
 
-static void state_end(automata *a, char c);
-static void state_data(automata *a, char c)
+static void *state_end(automata *a, char c);
+static void *state_data(automata *a, char c)
 {
     if (a->is_end_suspected) {
         if (endget(a) != c) {
-            data_add(a, c);
+            return data_add(a, c);
         } else {
             a->boundary_pos++;
             if (a->boundary_pos == endlen(a)) {
                 param_end(a);
-                a->s = state_end;
+                return state_end;
             }
         }
     } else if (sepget(a) == c) {
         a->boundary_pos++;
         if (a->boundary_pos == seplen(a)) {
             param_end(a);
-            a->s = state_pname_pre;
+            return state_pname_pre;
         }
     } else if ((a->boundary_pos == seplen(a) - 2) && endget(a) == c) {
         a->is_end_suspected = 1;
         a->boundary_pos++;
     } else {
-        data_add(a, c);
+        return data_add(a, c);
     }
+    return state_data;
 }
 
-static void state_end(automata *a, char c)  { (void)a; (void)c; }
+static void *state_end(automata *a, char c)  { return state_end; }
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -381,19 +382,20 @@ static void run_automata(automata *a,
                          int     (*next)(void *next_userdata),
                          void     *next_userdata)
 {
-    int c     = next(next_userdata);
-    int maxr  = a->request->limits.params_body;
-    for (a->s = state_begin;
-         a->s && a->s != state_end && c != EOF && (!maxr || a->readed != maxr);
+    state s;
+    int   c    = next(next_userdata);
+    int   maxr = a->request->limits.params_body;
+    for (s = state_begin;
+         s && s != state_end && c != EOF && (!maxr || a->readed != maxr);
          c = next(next_userdata)) {
-        a->s(a, c);
+        s = s(a, c);
         ++a->readed;
     }
     if (maxr && a->readed == maxr) {
         a->request->error = magi_error_limit;
-    } else if (a->s == state_data && is_semiend(a)) {
+    } else if (s == state_data && is_semiend(a)) {
         param_end(a);
-    } else if (a->s != state_end) {
+    } else if (s != state_end) {
         a->request->error = magi_error_multipart;
         free(a->subparam.name);
         free(a->subparam.data);
@@ -410,7 +412,7 @@ void magi_parse_multipart(magi_request *request,
                           void         *next_userdata)
 {
     automata a = {
-        0, 0, { 0, 0, 0 }, { 0, 0 }, { 0, 0 }, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0
+        0, { 0, 0, 0 }, { 0, 0 }, { 0, 0 }, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0
     };
     a.request      = request;
     a.boundary     = boundary;

@@ -8,8 +8,8 @@ CC      ?= gcc
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Preparations
-# Compile under the most strict conditions:
-CFLAGS   = -xc -ansi -pedantic -Wall -Wextra
+# Compile as ANSI C code:
+CFLAGS   = -xc -ansi -Wall
 # Specify linker to use the library:
 LFLAGS   = -L$(BUILD) -lmagi
 # Debug and optimisation (as well as -static for valgrind) are not compatible:

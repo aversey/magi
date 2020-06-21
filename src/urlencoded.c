@@ -61,10 +61,7 @@ static int deurl(char **data)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Urlencoded Automata
  */
-typedef struct automata automata;
-typedef void (*state)(automata *a, char c);
-struct automata {
-    state         s;
+typedef struct automata {
     magi_params **list;
     char         *name;
     int           nlen;
@@ -72,18 +69,19 @@ struct automata {
     char         *data;
     int           dlen;
     int           dsize;
-};
+} automata;
+typedef void *(*state)(automata *a, char c);
 
-static void state_parse_data(automata *a, char c);
-static void state_parse_name(automata *a, char c)
+static void *state_parse_data(automata *a, char c);
+static void *state_parse_name(automata *a, char c)
 {
     if (c == '&' || c == ';') {
-        a->s = 0;
+        return 0;
     } else if (c == '=') {
-        a->s = deurl(&a->name) ? state_parse_data : 0;
-    } else {
-        magi_str_add(&a->name, &a->nlen, &a->nsize, c);
+        return deurl(&a->name) ? state_parse_data : 0;
     }
+    magi_str_add(&a->name, &a->nlen, &a->nsize, c);
+    return state_parse_name;
 }
 
 static void add_to_list(automata *a)
@@ -96,34 +94,34 @@ static void add_to_list(automata *a)
     a->data = 0;
 }
 
-static void state_parse_data(automata *a, char c)
+static void *state_parse_data(automata *a, char c)
 {
     if (c == '=') {
-        a->s = 0;
+        return 0;
     } else if (c == '&' || c == ';') {
-        if (deurl(&a->data)) {
-            a->s = state_parse_name;
-            add_to_list(a);
-        } else {
-            a->s = 0;
+        if (!deurl(&a->data)) {
+            return 0;
         }
-    } else {
-        magi_str_add(&a->data, &a->dlen, &a->dsize, c);
+        add_to_list(a);
+        return state_parse_name;
     }
+    magi_str_add(&a->data, &a->dlen, &a->dsize, c);
+    return state_parse_data;
 }
 
 magi_error magi_parse_urlencoded(magi_params **list, const char *encoded)
 {
-    automata a = { state_parse_name, 0, 0, 0, 0, 0, 0, 0 };
+    state    s;
+    automata a = { 0, 0, 0, 0, 0, 0, 0 };
     a.list     = list;
     *list      = 0;
     if (!encoded || !*encoded) {
         return 0;
     }
-    for (; *encoded && a.s; ++encoded) {
-        a.s(&a, *encoded);
+    for (s = state_parse_name; s && *encoded; ++encoded) {
+        s = s(&a, *encoded);
     }
-    if (a.s == state_parse_name || !a.s || !deurl(&a.data)) {
+    if (s == state_parse_name || !s || !deurl(&a.data)) {
         return magi_error_urlenc;
     }
     add_to_list(&a);

@@ -1,0 +1,69 @@
+.TH MAGI 3 2020-05-02 v0.0.1 "Library Manual"
+.SH NAME
+.B magi
+\- Common Gateway Interface (CGI) library
+.SH SYNOPSIS
+.B #include <magi.h>
+.SH DESCRIPTION
+The
+.B magi
+library gives the user a way to interact with the web server
+through CGI as described in
+.IR "RFC 3875" .
+The library is free and open source software.
+.SS Usage
+A program using
+.B magi
+library must be linked with the
+.B -lmagi
+option.
+.P
+Main task of the
+.B magi
+library is to analyse CGI request and represent it to the user in
+.B magi_request
+data structure.  This is done by calling
+.B magi_parse
+on initialized via
+.B magi_request_init
+request variable.  After initialization the user is able to configure
+limits on the input and setup callback to process files loaded as
+.IR multipart/form-data .
+The
+.B magi
+library comes with
+.B magi_loadfiles
+callback usable for the majority of cases.
+.P
+CGI response utilities are also provided.  The CGI headers are
+outputted with
+.B magi_response
+and its methods.  You can output defaults (Content-Type: text/html;
+Status: 200 Ok) by calling
+.BR magi_response_default .
+Utility to form urlencoded strings is provided via
+.BR magi_urlenc .
+.SS Error handling
+If function is returning pointer, error is only in case of null returned.
+If function is returning
+.I int
+as success mark it will be null only in case of error, and one otherwise.
+Exact
+.B magi_error
+code is in
+.B error
+field of
+.B magi_request
+structure.  For other modules error codes seem to be overkill.
+.SH AUTHORS AND LICENSE
+Copyrigth 2019-2020
+.B Aleksey Veresov
+.RI < aleksey@veresov.pro >
+.P
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from
+the use of this software.
+.P
+Permission to use, copy, modify, and distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.

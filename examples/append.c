@@ -1,5 +1,5 @@
 /* This is the very basic example, showing work with form fields to append
- * specified by user in form addon into some file (i.e. "file_to_append").
+ * addon specified by user in form into some file (i.e. "file_to_append").
  */
 #include <magi.h>
 #include <stdio.h>
@@ -26,7 +26,7 @@ void response(magi_request *r)
            "<body>");
     append(r);
     printf("<form action='/cgi-bin/append' method='post'><fieldset>"
-           "<input type='text' name='addon' value='Whatever you want to add.' />"
+           "<input type='text' name='addon' value='Enter your addon.' />"
            "<input type='submit' value='Append' />"
            "</fieldset></form>"
            "</body></html>");

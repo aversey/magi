@@ -5,22 +5,24 @@
  */
 
 
+/* Magi error codes. */
 typedef enum magi_error {
-    magi_error_none = 0,
-    magi_error_nobound,
-    magi_error_unknown,
-    magi_error_notype,
-    magi_error_length,
-    magi_error_memory,
-    magi_error_cookies,
-    magi_error_urlenc,
-    magi_error_multipart,
-    magi_error_limit
+    magi_error_none = 0,   /* No error, all is ok. */
+    magi_error_nobound,    /* No boundary provided for multipart/form-data. */
+    magi_error_unknown,    /* Unknown Content Type. */
+    magi_error_notype,     /* No Content Type provided. */
+    magi_error_length,     /* Wrong Content Length. */
+    magi_error_cookies,    /* Bad Cookies header. */
+    magi_error_urlenc,     /* Wrong url encoding. */
+    magi_error_multipart,  /* Malformed multipart/form-data. */
+    magi_error_limit       /* One of specified limits reached. */
 } magi_error;
 
+/* Get description message of given error. */
 const char *magi_error_message(magi_error error);
 
 
+/* Response default error page for given error. */
 void magi_error_response(magi_error error);
 
 

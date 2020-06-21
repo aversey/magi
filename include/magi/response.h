@@ -13,6 +13,7 @@
 #include <stdarg.h>
 
 
+/* Response headers as three sequential groups. */
 typedef struct magi_response {
     magi_params *head_response;
     magi_params *head_general;
@@ -20,21 +21,31 @@ typedef struct magi_response {
 } magi_response;
 
 
+/* Response initialiser, setup defaults. */
 void magi_response_init(magi_response *r);
+/* Send response headers and free memory used by it. */
 void magi_response_free(magi_response *r);
 
+/* Just response defaults. (text/html, 200 Ok) */
 void magi_response_default();
 
 
+/* Change resposne status header. */
 void magi_response_status(magi_response *r, int code, const char *description);
 
+/* Add cookie to response. */
 void magi_response_cookie(magi_response *r, const char *n, const char *d);
+/* Add cookie with additional information to response. */
 void magi_response_cookie_complex(magi_response *r, magi_cookie *c);
+/* Add request to discard cookie to response. */
 void magi_response_cookie_discard(magi_response *r, const char *name);
 
+/* Just add some general custom header. */
 void magi_response_header(magi_response *r, const char *n, const char *d);
 
+/* Change Content-Length header. */
 void magi_response_content_length(magi_response *r, int length);
+/* Change Content-Type header. */
 void magi_response_content_type(magi_response *r, const char *type);
 
 

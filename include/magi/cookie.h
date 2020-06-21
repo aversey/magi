@@ -27,9 +27,8 @@ void magi_cookies_free(magi_cookies *cookies);
 /* Add newitem onto top of cookies. */
 void magi_cookies_add(magi_cookies **cookies, magi_cookie *newitem);
 
-/* Get last from top of cookies cookie with name, null if no such cookie.
- * Cookies are in reversed request order, and first cookie from request is
- * the most accurate in terms of domain and path. */
+/* Get first cookie with given name, null if no such cookie.
+ * First cookie is the most accurate in terms of domain and path. */
 const magi_cookie *magi_cookies_get(const magi_cookies *cookies,
                                     const char *name);
 

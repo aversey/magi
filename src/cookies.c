@@ -7,10 +7,7 @@
 
 typedef enum dt { dt_plain = 0, dt_version, dt_path, dt_domain } dt;
 
-typedef struct automata automata;
-typedef void (*state)(automata *a, char c);
-struct automata {
-    state          s;
+typedef struct automata {
     magi_cookies **list;
     magi_cookie    cookie;
     char          *buf;
@@ -20,7 +17,8 @@ struct automata {
     int            is_advanced;
     int            is_quoted;
     dt             datatype;
-};
+} automata;
+typedef void *(*state)(automata *a, char c);
 
 
 static void nulify_cookie(automata *a)
@@ -62,6 +60,7 @@ static void end_name(automata *a)
     if (a->datatype == dt_plain) {
         if (a->cookie.name) {
             magi_cookies_add(a->list, &a->cookie);
+            a->list = &(*a->list)->next;
         }
         nulify_cookie(a);
         a->cookie.name = a->buf;
@@ -83,95 +82,100 @@ static int end_data(automata *a)
     return 1;
 }
 
-static void state_name(automata *a, char c);
-static void state_pre_name(automata *a, char c)
+static void *state_name(automata *a, char c);
+static void *state_pre_name(automata *a, char c)
 {
-    if (32 <= c && c <= 126 && !strchr("()<>@,;:\\\"/[]?={}", c)) {
-        a->s = state_name;
-        magi_str_add(&a->buf, &a->buf_len, &a->buf_size, c);
-    } else if (c != ' ' && c != '\t'){
-        a->s = 0;
-    }
-}
-
-static void state_pre_data(automata *a, char c);
-static void state_post_name(automata *a, char c);
-static void state_name(automata *a, char c)
-{
-    if (c == '=') {
-        a->s = state_pre_data;
-        end_name(a);
-    } else if (c == ' ' || c == '\t') {
-        a->s = state_post_name;
-        end_name(a);
+    if (c == ' ' || c == '\t'){
+        return state_pre_name;
     } else if (32 <= c && c <= 126 && !strchr("()<>@,;:\\\"/[]?={}", c)) {
         magi_str_add(&a->buf, &a->buf_len, &a->buf_size, c);
-    } else {
-        a->s = 0;
+        return state_name;
     }
+    return 0;
 }
 
-static void state_post_name(automata *a, char c)
+static void *state_pre_data(automata *a, char c);
+static void *state_post_name(automata *a, char c);
+static void *state_name(automata *a, char c)
 {
     if (c == '=') {
-        a->s = state_pre_data;
-    } else if (c != ' ' && c != '\t') {
-        a->s = 0;
+        end_name(a);
+        return state_pre_data;
+    } else if (c == ' ' || c == '\t') {
+        end_name(a);
+        return state_post_name;
+    } else if (32 <= c && c <= 126 && !strchr("()<>@,;:\\\"/[]?={}", c)) {
+        magi_str_add(&a->buf, &a->buf_len, &a->buf_size, c);
+        return state_name;
     }
+    return 0;
 }
 
-static void state_data(automata *a, char c);
-static void state_data_quoted(automata *a, char c);
-static void state_pre_data(automata *a, char c)
+static void *state_post_name(automata *a, char c)
+{
+    if (c == '=') {
+        return state_pre_data;
+    } else if (c == ' ' || c == '\t') {
+        return state_post_name;
+    }
+    return 0;
+}
+
+static void *state_data(automata *a, char c);
+static void *state_data_quoted(automata *a, char c);
+static void *state_pre_data(automata *a, char c)
 {
     if (c == '"') {
-        a->s = state_data_quoted;
+        return state_data_quoted;
+    } else if (c == ' ' || c == '\t') {
+        return state_pre_data;
     } else if (32 <= c && c <= 126 && !strchr("()<>@,;:\\\"/[]?={}", c)) {
-        a->s = state_data;
         magi_str_add(&a->buf, &a->buf_len, &a->buf_size, c);
-    } else if (c != ' ' && c != '\t') {
-        a->s = 0;
+        return state_data;
     }
+    return 0;
 }
 
-static void state_post_data(automata *a, char c);
-static void state_data(automata *a, char c)
+static void *state_post_data(automata *a, char c);
+static void *state_data(automata *a, char c)
 {
     if (c == ';' || (c == ',' && a->is_first)) {
         a->is_first = 0;
-        a->s        = end_data(a) ? state_pre_name : 0;
+        return end_data(a) ? state_pre_name : 0;
     } else if (c == ' ' || c == '\t') {
-        a->s = end_data(a) ? state_post_data : 0;
+        return end_data(a) ? state_post_data : 0;
     } else if (32 <= c && c <= 126 && !strchr("()<>@,;:\\\"/[]?={}", c)) {
         magi_str_add(&a->buf, &a->buf_len, &a->buf_size, c);
-    } else {
-        a->s = 0;
+        return state_data;
     }
+    return 0;
 }
 
-static void state_data_quoted(automata *a, char c)
+static void *state_data_quoted(automata *a, char c)
 {
     if (c == '"') {
-        a->s = end_data(a) ? state_post_data : 0;
+        return end_data(a) ? state_post_data : 0;
     }
+    return state_data_quoted;
 }
 
-static void state_post_data(automata *a, char c)
+static void *state_post_data(automata *a, char c)
 {
     if (c == ';' || (c == ',' && a->is_first)) {
         a->is_first = 0;
-        a->s        = state_pre_name;
-    } else if (c != ' ' && c != '\t') {
-        a->s = 0;
+        return state_pre_name;
+    } else if (c == ' ' || c == '\t') {
+        return state_post_data;
     }
+    return 0;
 }
 
 
-static void parse_end(magi_error *e, automata *a)
+static void parse_end(magi_error *e, automata *a, state s)
 {
-    if (a->s == state_data_quoted) {
+    if (s == state_data_quoted) {
         *e = magi_error_cookies;
-    } else if (a->s == state_data) {
+    } else if (s == state_data) {
         if (!a->cookie.name) {
             *e = magi_error_cookies;
         } else if (end_data(a)) {
@@ -180,7 +184,7 @@ static void parse_end(magi_error *e, automata *a)
         } else {
             *e = magi_error_cookies;
         }
-    } else if (a->s != state_post_data) {
+    } else if (s != state_post_data) {
         *e = magi_error_cookies;
     }
 }
@@ -188,13 +192,14 @@ static void parse_end(magi_error *e, automata *a)
 
 void magi_parse_cookies(magi_request *request, const char *data)
 {
-    automata a       = { 0, 0, { 0, 0, 0, 0, 0 }, 0, 0, 0, 1, 0, 0, 0 };
+    state    s;
+    automata a       = { 0, { 0, 0, 0, 0, 0 }, 0, 0, 0, 1, 0, 0, 0 };
     a.list           = &request->cookies;
     request->cookies = 0;
-    for (a.s = state_pre_name; a.s && *data; ++data) {
-        a.s(&a, *data);
+    for (s = state_pre_name; s && *data; ++data) {
+        s = s(&a, *data);
     }
-    parse_end(&request->error, &a);
+    parse_end(&request->error, &a, s);
     free(a.cookie.name);
     free(a.cookie.data);
     free(a.cookie.path);
