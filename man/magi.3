@@ -23,12 +23,22 @@ Main task of the
 library is to analyse CGI request and represent it to the user in
 .B magi_request
 data structure.  This is done by calling
-.B magi_parse
+.B magi_parse_head
+and
+.B magi_parse_body
+(such separation allows to determine body processing on head content,
+if there is no need to do so you can use shortcut
+.BR magi_parse )
 on initialized via
 .B magi_request_init
 request variable.  After initialization the user is able to configure
-limits on the input and setup callback to process files loaded as
-.IR multipart/form-data .
+limits on the input
+.RB ( magi_request_limits ,
+everything is unlimited as default)
+and setup callback to process files loaded as
+.I multipart/form-data
+.RB ( magi_file_callback ,
+with default addon_max of 1KB).
 The
 .B magi
 library comes with

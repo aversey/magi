@@ -7,7 +7,7 @@
  * will be.
  *
  * RFC 3986 describes URL-encoding.  Briefly it is changing every space into
- * plus sign and every not alpha-numerical and not @c "~-._" character into
+ * plus sign and every not alpha-numerical and not "~-._" character into
  * percent sign followed by hexadecimal representation of given character.
  */
 

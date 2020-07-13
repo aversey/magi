@@ -1,0 +1,51 @@
+.TH MAGI 3 2020-05-02 v0.0.1 "Library Manual"
+.SH NAME
+.B magi_urlenc
+\- implementation of url encoding
+.SH SYNOPSYS
+.B #include <magi.h>
+.P
+int
+.BR magi_urlenc_size "(const char *" plain );
+.P
+void
+.BR magi_urlenc "(const char *" plain ", char *" code );
+.SH DESCRIPTION
+Can be helpful in forming urls in response. Use
+.B magi_urlenc_size
+to find what the size of code will be and then call
+.B magi_urlenc
+for encoding itself.
+.P
+URL encoding is described in
+.IR "RFC 3986" .
+Briefly it is changing every space into plus sign and every not
+alpha-numerical or not one of "~-._" character into percent sign
+followed by hexademical representation of given character byte.
+.P
+.B code
+passed to
+.B magi_urlenc
+should be at least size of
+.BR magi_urlenc_size ( plain ).
+.SH RETURN VALUES
+.BR magi_urlenc_size :
+size of url encoding of
+.BR plain .
+.SH EXAMPLES
+The following forms URL to search in DuckDuckGo for provided
+.RB "char *" query
+in
+.RB "char *" url .
+.P
+.RS
+.nf
+const char *prefix     = "http://duckduckgo.com/?q=";
+const int   prelen     = strlen(prefix);
+const int   urlencsize = magi_urlenc_size(query);
+url = malloc(prelen + urlencsize + 1);
+strcpy(url, prefix);
+magi_urlenc(query, url + prelen);
+url[prelen + urlencsize] = 0;
+.fi
+.RE

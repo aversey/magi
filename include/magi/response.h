@@ -23,7 +23,9 @@ typedef struct magi_response {
 
 /* Response initialiser, setup defaults. */
 void magi_response_init(magi_response *r);
-/* Send response headers and free memory used by it. */
+/* Send response headers. */
+void magi_response_send(magi_response *r);
+/* Free memory used by response headers. */
 void magi_response_free(magi_response *r);
 
 /* Just response defaults. (text/html, 200 Ok) */

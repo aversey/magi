@@ -25,12 +25,16 @@ static void response_headers(magi_params *p)
     }
 }
 
-void magi_response_free(magi_response *r)
+void magi_response_send(magi_response *r)
 {
     response_headers(r->head_response);
     response_headers(r->head_general);
     response_headers(r->head_entity);
     fputs("\r\n", stdout);
+}
+
+void magi_response_free(magi_response *r)
+{
     magi_params_free(r->head_response);
     magi_params_free(r->head_general);
     magi_params_free(r->head_entity);

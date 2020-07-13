@@ -22,7 +22,8 @@ void response(magi_request *r)
     magi_response_init(&head);  /* Setting defaults. */
     /* Set cookie "cookie" with value "monster" on clientside: */
     magi_response_cookie(&head, "cookie", "monster");
-    magi_response_free(&head);  /* Send headers and start sending body: */
+    magi_response_send(&head);  /* Send headers, */
+    magi_response_free(&head);  /* free them and start sending body: */
     printf("<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "
            "'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>"
            "<html xmlns='http://www.w3.org/1999/xhtml'>"
