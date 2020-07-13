@@ -4,7 +4,7 @@
 #include <string.h>
 
 
-void magi_cookies_free(magi_cookies *cookies)
+void magi_cookies_free(struct magi_cookies *cookies)
 {
     if (cookies) {
         magi_cookies_free(cookies->next);
@@ -17,9 +17,10 @@ void magi_cookies_free(magi_cookies *cookies)
     }
 }
 
-void magi_cookies_add(magi_cookies **cookies, magi_cookie *newitem)
+void magi_cookies_add(struct magi_cookies **cookies,
+                      struct magi_cookie   *newitem)
 {
-    magi_cookies *node = malloc(sizeof(*node));
+    struct magi_cookies *node = malloc(sizeof(*node));
     if (node) {
         node->next = *cookies;
         node->item = *newitem;
@@ -27,8 +28,8 @@ void magi_cookies_add(magi_cookies **cookies, magi_cookie *newitem)
     }
 }
 
-const magi_cookie *magi_cookies_get(const magi_cookies *cookies,
-                                    const char *name)
+const struct magi_cookie *magi_cookies_get(const struct magi_cookies *cookies,
+                                           const char                *name)
 {
     if (!name) {
         return 0;

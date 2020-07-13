@@ -17,22 +17,22 @@
 
 
 /* Limits on possibly enormous structures.  Null means unlimited. */
-typedef struct magi_request_limits {
+struct magi_request_limits {
     int cookies;
     int params_meta;
     int params_head;
     int params_body;
     int read_buffer;
-} magi_request_limits;
+};
 
-typedef struct magi_request {
-    magi_error  error;
+struct magi_request {
+    enum magi_error error;
 
-    magi_cookies *cookies;  /* Passed HTTP cookies. */
-    magi_params  *meta;     /* Request parameters. */
-    magi_params  *head;     /* Form field values from URL. */
-    magi_params  *body;     /* Form field values from body. */
-    magi_files   *files;    /* Form field files metadatas. */
+    struct magi_cookies *cookies;  /* Passed HTTP cookies. */
+    struct magi_params  *meta;     /* Request parameters. */
+    struct magi_params  *head;     /* Form field values from URL. */
+    struct magi_params  *body;     /* Form field values from body. */
+    struct magi_files   *files;    /* Form field files metadatas. */
 
     char *document_root;  /* Server's document root (e.g. /var/www/htdocs). */
     char *method;         /* Request method (GET, HEAD, POST, etc...). */
@@ -43,33 +43,34 @@ typedef struct magi_request {
     char *path;           /* Path requested for the script (e.g. /login). */
     /* URL has form 'http[s]://{host}:{port}{script}{path}'. */
 
-    magi_file_callback  callback;  /* Callback to actually load files. */
-    magi_request_limits limits;
-} magi_request;
+    struct magi_file_callback  callback;  /* Callback to load files. */
+    struct magi_request_limits limits;
+};
 
 
 /* Request initialiser, setup defaults. */
-void magi_request_init(magi_request *r);
+void magi_request_init(struct magi_request *r);
 /* Free memory used by request. */
-void magi_request_free(magi_request *r);
+void magi_request_free(struct magi_request *r);
 
 
 /* Get value of meta-param with name. */
-char *magi_request_meta(const magi_request *r, const char *name);
+char *magi_request_meta(const struct magi_request *r, const char *name);
 
 /* Get value of form field param (prioritising body) with name. */
-char *magi_request_param(const magi_request *r, const char *name);
+char *magi_request_param(const struct magi_request *r, const char *name);
 /* Get value of form field param with name from url. */
-char *magi_request_urlparam(const magi_request *r, const char *name);
+char *magi_request_urlparam(const struct magi_request *r, const char *name);
 
 /* Get metadata structure of file from file field with name. */
-const magi_file *magi_request_file(const magi_request *r, const char *name);
+const struct magi_file *magi_request_file(const struct magi_request *r,
+                                          const char *name);
 
 /* Get value of cookie with name. */
-char *magi_request_cookie(const magi_request *r, const char *name);
+char *magi_request_cookie(const struct magi_request *r, const char *name);
 /* Get cookie with name. */
-const magi_cookie *magi_request_cookie_complex(const magi_request *r,
-                                               const char *name);
+const struct magi_cookie *
+magi_request_cookie_complex(const struct magi_request *r, const char *name);
 
 
 #endif

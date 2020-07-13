@@ -6,7 +6,7 @@
 
 
 /* Magi error codes. */
-typedef enum magi_error {
+enum magi_error {
     magi_error_none = 0,   /* No error, all is ok. */
     magi_error_nobound,    /* No boundary provided for multipart/form-data. */
     magi_error_unknown,    /* Unknown Content Type. */
@@ -16,14 +16,14 @@ typedef enum magi_error {
     magi_error_urlenc,     /* Wrong url encoding. */
     magi_error_multipart,  /* Malformed multipart/form-data. */
     magi_error_limit       /* One of specified limits reached. */
-} magi_error;
+};
 
 /* Get description message of given error. */
-const char *magi_error_message(magi_error error);
+const char *magi_error_message(enum magi_error error);
 
 
 /* Response default error page for given error. */
-void magi_error_response(magi_error error);
+void magi_error_response(enum magi_error error);
 
 
 #endif

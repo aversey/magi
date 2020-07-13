@@ -5,23 +5,23 @@
 #include <string.h>
 
 
-typedef enum dt { dt_plain = 0, dt_version, dt_path, dt_domain } dt;
+enum dt { dt_plain = 0, dt_version, dt_path, dt_domain };
 
-typedef struct automata {
-    magi_cookies **list;
-    magi_cookie    cookie;
-    char          *buf;
-    int            buf_len;
-    int            buf_size;
-    int            is_first;
-    int            is_advanced;
-    int            is_quoted;
-    dt             datatype;
-} automata;
-typedef void *(*state)(automata *a, char c);
+struct automata {
+    struct magi_cookies **list;
+    struct magi_cookie    cookie;
+    char                 *buf;
+    int                   buf_len;
+    int                   buf_size;
+    int                   is_first;
+    int                   is_advanced;
+    int                   is_quoted;
+    enum dt               datatype;
+};
+typedef void *(*state)(struct automata *a, char c);
 
 
-static void nulify_cookie(automata *a)
+static void nulify_cookie(struct automata *a)
 {
     a->cookie.name    = 0;
     a->cookie.data    = 0;
@@ -30,7 +30,7 @@ static void nulify_cookie(automata *a)
     a->cookie.max_age = 0;
 }
 
-static void buf_new(automata *a)
+static void buf_new(struct automata *a)
 {
     a->buf      = 0;
     a->buf_len  = 0;
@@ -38,9 +38,9 @@ static void buf_new(automata *a)
 }
 
 
-static dt what_is_name(const automata *a)
+static enum dt what_is_name(const struct automata *a)
 {
-    dt datatype = dt_plain;
+    enum dt datatype = dt_plain;
     if (a->is_first && !strcmp(a->buf, "$Version")) {
         datatype = dt_version;
     } else if (a->is_advanced) {
@@ -54,7 +54,7 @@ static dt what_is_name(const automata *a)
 }
 
 
-static void end_name(automata *a)
+static void end_name(struct automata *a)
 {
     a->datatype = what_is_name(a);
     if (a->datatype == dt_plain) {
@@ -70,7 +70,7 @@ static void end_name(automata *a)
     buf_new(a);
 }
 
-static int end_data(automata *a)
+static int end_data(struct automata *a)
 {
     switch (a->datatype) {
     case dt_plain:   a->cookie.data   = a->buf; break;
@@ -82,8 +82,8 @@ static int end_data(automata *a)
     return 1;
 }
 
-static void *state_name(automata *a, char c);
-static void *state_pre_name(automata *a, char c)
+static void *state_name(struct automata *a, char c);
+static void *state_pre_name(struct automata *a, char c)
 {
     if (c == ' ' || c == '\t'){
         return state_pre_name;
@@ -94,9 +94,9 @@ static void *state_pre_name(automata *a, char c)
     return 0;
 }
 
-static void *state_pre_data(automata *a, char c);
-static void *state_post_name(automata *a, char c);
-static void *state_name(automata *a, char c)
+static void *state_pre_data(struct automata *a, char c);
+static void *state_post_name(struct automata *a, char c);
+static void *state_name(struct automata *a, char c)
 {
     if (c == '=') {
         end_name(a);
@@ -111,7 +111,7 @@ static void *state_name(automata *a, char c)
     return 0;
 }
 
-static void *state_post_name(automata *a, char c)
+static void *state_post_name(struct automata *a, char c)
 {
     if (c == '=') {
         return state_pre_data;
@@ -121,9 +121,9 @@ static void *state_post_name(automata *a, char c)
     return 0;
 }
 
-static void *state_data(automata *a, char c);
-static void *state_data_quoted(automata *a, char c);
-static void *state_pre_data(automata *a, char c)
+static void *state_data(struct automata *a, char c);
+static void *state_data_quoted(struct automata *a, char c);
+static void *state_pre_data(struct automata *a, char c)
 {
     if (c == '"') {
         return state_data_quoted;
@@ -136,8 +136,8 @@ static void *state_pre_data(automata *a, char c)
     return 0;
 }
 
-static void *state_post_data(automata *a, char c);
-static void *state_data(automata *a, char c)
+static void *state_post_data(struct automata *a, char c);
+static void *state_data(struct automata *a, char c)
 {
     if (c == ';' || (c == ',' && a->is_first)) {
         a->is_first = 0;
@@ -151,7 +151,7 @@ static void *state_data(automata *a, char c)
     return 0;
 }
 
-static void *state_data_quoted(automata *a, char c)
+static void *state_data_quoted(struct automata *a, char c)
 {
     if (c == '"') {
         return end_data(a) ? state_post_data : 0;
@@ -159,7 +159,7 @@ static void *state_data_quoted(automata *a, char c)
     return state_data_quoted;
 }
 
-static void *state_post_data(automata *a, char c)
+static void *state_post_data(struct automata *a, char c)
 {
     if (c == ';' || (c == ',' && a->is_first)) {
         a->is_first = 0;
@@ -171,7 +171,7 @@ static void *state_post_data(automata *a, char c)
 }
 
 
-static void parse_end(magi_error *e, automata *a, state s)
+static void parse_end(enum magi_error *e, struct automata *a, state s)
 {
     if (s == state_data_quoted) {
         *e = magi_error_cookies;
@@ -190,12 +190,12 @@ static void parse_end(magi_error *e, automata *a, state s)
 }
 
 
-void magi_parse_cookies(magi_request *request, const char *data)
+void magi_parse_cookies(struct magi_request *request, const char *data)
 {
-    state    s;
-    automata a       = { 0, { 0, 0, 0, 0, 0 }, 0, 0, 0, 1, 0, 0, 0 };
-    a.list           = &request->cookies;
-    request->cookies = 0;
+    state           s;
+    struct automata a = { 0, { 0, 0, 0, 0, 0 }, 0, 0, 0, 1, 0, 0, 0 };
+    a.list            = &request->cookies;
+    request->cookies  = 0;
     for (s = state_pre_name; s && *data; ++data) {
         s = s(&a, *data);
     }

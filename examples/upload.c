@@ -6,17 +6,17 @@
 #include <stdio.h>
 
 
-void upload(magi_request *r)
+void upload(struct magi_request *r)
 {
-    char            *name = magi_request_param(r, "name");
-    const magi_file *data = magi_request_file(r, "data");
+    char                   *name = magi_request_param(r, "name");
+    const struct magi_file *data = magi_request_file(r, "data");
     if (name && data) {  /* If file to load and its name are in the request: */
         rename("data", name);  /* Rename loaded file to designated name. */
         printf("<p>Uploaded!</p>");  /* And display success message. */
     }
 }
 
-void response(magi_request *r)
+void response(struct magi_request *r)
 {
     magi_response_default();  /* Pass default headers and send body: */
     printf("<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "
@@ -34,9 +34,9 @@ void response(magi_request *r)
            "</body></html>");
 }
 
-void get(magi_request *r)
+void get(struct magi_request *r)
 {
-    magi_loadfiles rules = { 0, 0 };
+    struct magi_loadfiles rules = { 0, 0 };
     /* Setup callback to load file from "data" field into file "data": */
     magi_loadfiles_add(&rules, "data", "data", 0);
     magi_loadfiles_set(r, &rules);  /* Setup request to use the callback. */
@@ -46,7 +46,7 @@ void get(magi_request *r)
 
 int main()
 {
-    magi_request request;
+    struct magi_request request;
     magi_request_init(&request);
     get(&request);        /* Parse request. */
     if (request.error) {  /* If error occurred display error message: */

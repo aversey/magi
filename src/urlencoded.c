@@ -61,19 +61,19 @@ static int deurl(char **data)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Urlencoded Automata
  */
-typedef struct automata {
-    magi_params **list;
-    char         *name;
-    int           nlen;
-    int           nsize;
-    char         *data;
-    int           dlen;
-    int           dsize;
-} automata;
-typedef void *(*state)(automata *a, char c);
+struct automata {
+    struct magi_params **list;
+    char                *name;
+    int                  nlen;
+    int                  nsize;
+    char                *data;
+    int                  dlen;
+    int                  dsize;
+};
+typedef void *(*state)(struct automata *a, char c);
 
-static void *state_parse_data(automata *a, char c);
-static void *state_parse_name(automata *a, char c)
+static void *state_parse_data(struct automata *a, char c);
+static void *state_parse_name(struct automata *a, char c)
 {
     if (c == '&' || c == ';') {
         return 0;
@@ -84,9 +84,9 @@ static void *state_parse_name(automata *a, char c)
     return state_parse_name;
 }
 
-static void add_to_list(automata *a)
+static void add_to_list(struct automata *a)
 {
-    magi_param param;
+    struct magi_param param;
     param.name = a->name;
     param.data = a->data;
     magi_params_add(a->list, &param);
@@ -94,7 +94,7 @@ static void add_to_list(automata *a)
     a->data = 0;
 }
 
-static void *state_parse_data(automata *a, char c)
+static void *state_parse_data(struct automata *a, char c)
 {
     if (c == '=') {
         return 0;
@@ -109,12 +109,13 @@ static void *state_parse_data(automata *a, char c)
     return state_parse_data;
 }
 
-magi_error magi_parse_urlencoded(magi_params **list, const char *encoded)
+enum magi_error magi_parse_urlencoded(struct magi_params **list,
+                                      const char          *encoded)
 {
-    state    s;
-    automata a = { 0, 0, 0, 0, 0, 0, 0 };
-    a.list     = list;
-    *list      = 0;
+    state s;
+    struct automata a = { 0, 0, 0, 0, 0, 0, 0 };
+    a.list = list;
+    *list  = 0;
     if (!encoded || !*encoded) {
         return 0;
     }

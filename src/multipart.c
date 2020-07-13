@@ -32,25 +32,25 @@ static int is_str_token(char *str)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Automata for multipart/form-data
  */
-typedef struct automata {
-    magi_request *request;
-    magi_file     file;
-    magi_param    param;
-    magi_param    subparam;
-    char         *buf;
-    int           buf_size;
-    int           size;
-    int           len;
-    char         *boundary;
-    int           boundary_pos;
-    int           boundary_len;
-    int           is_end_suspected;
-    int           is_CR_readed;
-    int           is_quoted;
-    int           readed;
-    int           newfile;
-} automata;
-typedef void *(*state)(automata *a, char c);
+struct automata {
+    struct magi_request *request;
+    struct magi_file     file;
+    struct magi_param    param;
+    struct magi_param    subparam;
+    char                *buf;
+    int                  buf_size;
+    int                  size;
+    int                  len;
+    char                *boundary;
+    int                  boundary_pos;
+    int                  boundary_len;
+    int                  is_end_suspected;
+    int                  is_CR_readed;
+    int                  is_quoted;
+    int                  readed;
+    int                  newfile;
+};
+typedef void *(*state)(struct automata *a, char c);
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -71,7 +71,7 @@ static char *extract_filename(char *n)
     }
 }
 
-static int content_disposition(automata *a)
+static int content_disposition(struct automata *a)
 {
     char *n = strchr(a->subparam.data, '=');
     if (!n) {
@@ -103,7 +103,7 @@ static int content_disposition(automata *a)
     return 1;
 }
 
-static int subparam_end(automata *a)
+static int subparam_end(struct automata *a)
 {
     a->size = 1;
     a->len  = 0;
@@ -117,7 +117,7 @@ static int subparam_end(automata *a)
     return 1;
 }
 
-static int param_end(automata *a)
+static int param_end(struct automata *a)
 {
     if (a->file.filename) {
         a->request->callback.act(a->request->callback.userdata,
@@ -151,7 +151,7 @@ static int param_end(automata *a)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Boundary Interfaces
  */
-static char sepget(const automata *a)
+static char sepget(const struct automata *a)
 {
     char      c;
     const int pos_after = a->boundary_pos - 4 - a->boundary_len;
@@ -173,9 +173,7 @@ static char sepget(const automata *a)
     return c;
 }
 
-static int seplen(const automata *a)  { return a->boundary_len + 6; }
-
-static char endget(const automata *a)
+static char endget(const struct automata *a)
 {
     char      c;
     const int pos_after = a->boundary_pos - 4 - a->boundary_len;
@@ -199,12 +197,10 @@ static char endget(const automata *a)
     return c;
 }
 
-static int endlen(const automata *a)
-{
-    return a->boundary_len + 8;
-}
+static int seplen(const struct automata *a)  { return a->boundary_len + 6; }
+static int endlen(const struct automata *a)  { return a->boundary_len + 8; }
 
-static int is_semiend(const automata *a)
+static int is_semiend(const struct automata *a)
 {  /* Is end readed, expect last two chars, which are CR LF? */
     return a->is_end_suspected && (a->boundary_pos == endlen(a) - 2);
 }
@@ -213,7 +209,7 @@ static int is_semiend(const automata *a)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Data Reading
  */
-static void apply_callback(automata *a)
+static void apply_callback(struct automata *a)
 {
     int full = a->buf_size == a->request->callback.addon_max;
     if (a->file.filename && full) {
@@ -225,9 +221,13 @@ static void apply_callback(automata *a)
     }
 }
 
-static void *state_pname_pre(automata *a, char c);
-static void *state_data(automata *a, char c);
-static void *data_add_act(automata *a, char c, char **dest, int *l, int *s)
+static void *state_pname_pre(struct automata *a, char c);
+static void *state_data(struct automata *a, char c);
+static void *data_add_act(struct automata *a,
+                          char             c,
+                          char           **dest,
+                          int             *l,
+                          int             *s)
 {
     int pos = a->boundary_pos;
     for (a->boundary_pos = 0; a->boundary_pos < pos; ++a->boundary_pos) {
@@ -254,7 +254,7 @@ static void *data_add_act(automata *a, char c, char **dest, int *l, int *s)
     return state_data;
 }
 
-static void *data_add(automata *a, char c)
+static void *data_add(struct automata *a, char c)
 {
     if (a->file.filename) {
         int max = a->request->callback.addon_max + 1;
@@ -268,7 +268,7 @@ static void *data_add(automata *a, char c)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * State analysers
  */
-static void *state_begin(automata *a, char c)
+static void *state_begin(struct automata *a, char c)
 {
     if (sepget(a) != c) {     /* 'c' is not wanted character from separator; */
         a->boundary_pos = 0;  /* so nullify progress in reading separator. */
@@ -281,8 +281,8 @@ static void *state_begin(automata *a, char c)
     return state_begin;
 }
 
-static void *state_pname(automata *a, char c);
-static void *state_pname_pre(automata *a, char c)
+static void *state_pname(struct automata *a, char c);
+static void *state_pname_pre(struct automata *a, char c)
 {
     if (a->is_CR_readed) {
         if (c != '\n') {
@@ -301,9 +301,9 @@ static void *state_pname_pre(automata *a, char c)
     return 0;
 }
 
-static void *state_pdata(automata *a, char c);
-static void *state_pname_end(automata *a, char c);
-static void *state_pname(automata *a, char c)
+static void *state_pdata(struct automata *a, char c);
+static void *state_pname_end(struct automata *a, char c);
+static void *state_pname(struct automata *a, char c)
 {
     if (c == ':') {
         a->len  = 0;
@@ -318,7 +318,7 @@ static void *state_pname(automata *a, char c)
     return 0;
 }
 
-static void *state_pname_end(automata *a, char c)
+static void *state_pname_end(struct automata *a, char c)
 {
     if (c == ':') {
         a->len  = 0;
@@ -330,7 +330,7 @@ static void *state_pname_end(automata *a, char c)
     return 0;
 }
 
-static void *state_pdata(automata *a, char c)
+static void *state_pdata(struct automata *a, char c)
 {
     if (a->is_CR_readed) {
         a->is_CR_readed = 0;
@@ -347,8 +347,8 @@ static void *state_pdata(automata *a, char c)
     return state_pdata;
 }
 
-static void *state_end(automata *a, char c);
-static void *state_data(automata *a, char c)
+static void *state_end(struct automata *a, char c);
+static void *state_data(struct automata *a, char c)
 {
     if (a->is_end_suspected) {
         if (endget(a) != c) {
@@ -375,15 +375,15 @@ static void *state_data(automata *a, char c)
     return state_data;
 }
 
-static void *state_end(automata *a, char c)  { return state_end; }
+static void *state_end(struct automata *a, char c)  { return state_end; }
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Automata Runner
  */
-static void run_automata(automata *a,
-                         int     (*next)(void *next_userdata),
-                         void     *next_userdata)
+static void run_automata(struct automata *a,
+                         int            (*next)(void *next_userdata),
+                         void            *next_userdata)
 {
     state s;
     int   c    = next(next_userdata);
@@ -409,12 +409,12 @@ static void run_automata(automata *a,
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Automata Interfaces
  */
-void magi_parse_multipart(magi_request *request,
-                          char         *boundary,
-                          int         (*next)(void *userdata),
-                          void         *next_userdata)
+void magi_parse_multipart(struct magi_request *request,
+                          char                *boundary,
+                          int                (*next)(void *userdata),
+                          void                *next_userdata)
 {
-    automata a = {
+    struct automata a = {
         0, { 0, 0, 0 }, { 0, 0 }, { 0, 0 }, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 1
     };
     a.request      = request;

@@ -6,7 +6,8 @@
 
 
 /* Add decoded params from 'encoded' to 'list'. */
-magi_error magi_parse_urlencoded(magi_params **list, const char *encoded);
+enum magi_error magi_parse_urlencoded(struct magi_params **list,
+                                      const char          *encoded);
 
 
 #endif

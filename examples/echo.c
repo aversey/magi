@@ -4,13 +4,13 @@
 #include <stdio.h>
 
 
-void list_cookies(magi_request *r)
+void list_cookies(struct magi_request *r)
 {
-    magi_cookies *current = r->cookies;
+    struct magi_cookies *current = r->cookies;
     printf("<p>");
     /* Iterate through all cookies in request to show them in body: */
     for (current = r->cookies; current; current = current->next) {
-        magi_cookie *c = &current->item;
+        struct magi_cookie *c = &current->item;
         printf("Cookie with name [%s", c->name);
         if (c->data) {
             printf("] is [%s", c->data);
@@ -26,30 +26,30 @@ void list_cookies(magi_request *r)
     printf("</p>");
 }
 
-void list_params(magi_params *current)
+void list_params(struct magi_params *current)
 {
     printf("<p>");
     /* Iterate through specified params to show them in body: */
     for (; current; current = current->next) {
-        magi_param *p = &current->item;
+        struct magi_param *p = &current->item;
         printf("[%s] is [%s]<br />", p->name, p->data);
     }
     printf("</p>");
 }
 
-void list_files(magi_request *r)
+void list_files(struct magi_request *r)
 {
-    magi_files *current;
+    struct magi_files *current;
     printf("<p>");
     /* Iterate through all field files in request to show them in body: */
     for (current = r->files; current; current = current->next) {
-        magi_file *f = &current->item;
+        struct magi_file *f = &current->item;
         printf("[%s] was [%s] on clientside<br />", f->field, f->filename);
     }
     printf("</p>");
 }
 
-void show_meta(magi_request *r)
+void show_meta(struct magi_request *r)
 {
     printf("<p>I was called ");
     if (r->is_secure) {
@@ -68,7 +68,7 @@ void show_meta(magi_request *r)
     printf("]</p>");
 }
 
-void response(magi_request *r)
+void response(struct magi_request *r)
 {
     magi_response_default();  /* Pass default headers and send body: */
     printf("<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "
@@ -100,7 +100,7 @@ void response(magi_request *r)
 
 int main()
 {
-    magi_request request;
+    struct magi_request request;
     magi_request_init(&request);  /* Setting defaults. */
     if (magi_parse(&request)) {   /* If parsing was done successful */
         response(&request);       /* we need to response the request. */

@@ -6,20 +6,20 @@
 #include <stdio.h>
 
 
-void list_cookies(magi_request *r)
+void list_cookies(struct magi_request *r)
 {
-    magi_cookies *current;
+    struct magi_cookies *current;
     printf("Cookies:");
     /* Iterate through all cookies in request to show them in body: */
     for (current = r->cookies; current; current = current->next) {
-        magi_cookie *c = &current->item;
+        struct magi_cookie *c = &current->item;
         printf("<br />[%s]=[%s]", c->name, c->data);
     }
 }
 
-void response(magi_request *r)
+void response(struct magi_request *r)
 {
-    magi_response head;
+    struct magi_response head;
     magi_response_init(&head);  /* Setting defaults. */
     /* Set cookie "cookie" with value "monster" on clientside: */
     magi_response_cookie(&head, "cookie", "monster");
@@ -36,7 +36,7 @@ void response(magi_request *r)
 
 int main()
 {
-    magi_request request;
+    struct magi_request request;
     magi_request_init(&request);  /* Setting defaults. */
     if (magi_parse(&request)) {   /* If parsing was done successful */
         response(&request);       /* we need to response the request. */

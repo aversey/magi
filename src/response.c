@@ -6,7 +6,7 @@
 #include <string.h>
 
 
-void magi_response_init(magi_response *r)
+void magi_response_init(struct magi_response *r)
 {
     r->head_response = 0;
     r->head_general  = 0;
@@ -15,7 +15,7 @@ void magi_response_init(magi_response *r)
     magi_response_content_type(r, "text/html");
 }
 
-static void response_headers(magi_params *p)
+static void response_headers(struct magi_params *p)
 {
     for (; p; p = p->next) {
         fputs(p->item.name, stdout);
@@ -25,7 +25,7 @@ static void response_headers(magi_params *p)
     }
 }
 
-void magi_response_send(magi_response *r)
+void magi_response_send(struct magi_response *r)
 {
     response_headers(r->head_response);
     response_headers(r->head_general);
@@ -33,7 +33,7 @@ void magi_response_send(magi_response *r)
     fputs("\r\n", stdout);
 }
 
-void magi_response_free(magi_response *r)
+void magi_response_free(struct magi_response *r)
 {
     magi_params_free(r->head_response);
     magi_params_free(r->head_general);
@@ -54,10 +54,12 @@ void magi_response_default()
 }
 
 
-void magi_response_status(magi_response *r, int code, const char *description)
+void magi_response_status(struct magi_response *r,
+                          int                   code,
+                          const char           *description)
 {
-    int        dlen;
-    magi_param addon;
+    int dlen;
+    struct magi_param addon;
     if (code <= 99 || 600 <= code) {
         return;
     }
@@ -72,11 +74,13 @@ void magi_response_status(magi_response *r, int code, const char *description)
     magi_params_set(&r->head_response, &addon);
 }
 
-void magi_response_cookie(magi_response *r, const char *name, const char *data)
+void magi_response_cookie(struct magi_response *r,
+                          const char           *name,
+                          const char           *data)
 {
-    magi_param addon;
-    int        nlen;
-    int        dlen;
+    int nlen;
+    int dlen;
+    struct magi_param addon;
     if (!name || !data) {
         return;
     }
@@ -90,10 +94,11 @@ void magi_response_cookie(magi_response *r, const char *name, const char *data)
     magi_params_add(&r->head_general, &addon);
 }
 
-void magi_response_cookie_complex(magi_response *r, magi_cookie *c)
+void magi_response_cookie_complex(struct magi_response *r,
+                                  struct magi_cookie   *c)
 {
-    magi_param addon;
-    char      *pointer;
+    char *pointer;
+    struct magi_param addon;
     int nlen, dlen, dsize, psize, msize;
     const int cdsize = 9;
     const int cpsize = 7;
@@ -134,10 +139,10 @@ void magi_response_cookie_complex(magi_response *r, magi_cookie *c)
     magi_params_add(&r->head_general, &addon);
 }
 
-void magi_response_cookie_discard(magi_response *r, const char *name)
+void magi_response_cookie_discard(struct magi_response *r, const char *name)
 {
-    magi_param addon;
     int len;
+    struct magi_param addon;
     if (!name) {
         return;
     }
@@ -149,17 +154,19 @@ void magi_response_cookie_discard(magi_response *r, const char *name)
     magi_params_add(&r->head_general, &addon);
 }
 
-void magi_response_header(magi_response *r, const char *name, const char *data)
+void magi_response_header(struct magi_response *r,
+                          const char           *name,
+                          const char           *data)
 {
-    magi_param addon;
+    struct magi_param addon;
     addon.name = magi_str_create_copy(name, strlen(name));
     addon.data = magi_str_create_copy(data, strlen(data));
     magi_params_add(&r->head_general, &addon);
 }
 
-void magi_response_content_length(magi_response *r, int length)
+void magi_response_content_length(struct magi_response *r, int length)
 {
-    magi_param addon;
+    struct magi_param addon;
     int len     = 1;
     addon.name  = magi_str_create_copy("Content-Length", 14);
     addon.data  = malloc(len + 1);
@@ -173,9 +180,9 @@ void magi_response_content_length(magi_response *r, int length)
     magi_params_set(&r->head_entity, &addon);
 }
 
-void magi_response_content_type(magi_response *r, const char *type)
+void magi_response_content_type(struct magi_response *r, const char *type)
 {
-    magi_param addon;
+    struct magi_param addon;
     addon.name = magi_str_create_copy("Content-Type", 12);
     addon.data = magi_str_create_copy(type, strlen(type));
     magi_params_set(&r->head_entity, &addon);

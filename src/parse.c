@@ -37,13 +37,13 @@ static char *lower_env(char *env_name)
     return env;
 }
 
-static void cgi_http_env(magi_request *r)
+static void cgi_http_env(struct magi_request *r)
 {
     char **env;
     int    len = 0;
     r->meta    = 0;
     for (env = environ; *env; ++env) {
-        magi_param meta;
+        struct magi_param meta;
         char *name_end = strchr(*env, '=');
         int   nlen     = name_end - *env;
         int   dlen     = strlen(name_end + 1);
@@ -58,7 +58,7 @@ static void cgi_http_env(magi_request *r)
     }
 }
 
-static void cgi_env(magi_request *r)
+static void cgi_env(struct magi_request *r)
 {
     cgi_http_env(r);
     r->method        = plain_env("REQUEST_METHOD");
@@ -78,7 +78,7 @@ static void cgi_env(magi_request *r)
     r->path = plain_env("PATH_INFO");
 }
 
-static void cgi_cookies(magi_request *r)
+static void cgi_cookies(struct magi_request *r)
 {
     const char *env = getenv("HTTP_COOKIE");
     if (!env || !*env) {
@@ -92,7 +92,7 @@ static void cgi_cookies(magi_request *r)
     magi_parse_cookies(r, env);
 }
 
-static void cgi_input_get(magi_error *e, char **input, int max)
+static void cgi_input_get(enum magi_error *e, char **input, int max)
 {
     const char *env_input = getenv("QUERY_STRING");
     if (env_input) {
@@ -105,7 +105,7 @@ static void cgi_input_get(magi_error *e, char **input, int max)
     }
 }
 
-static void cgi_url(magi_request *request)
+static void cgi_url(struct magi_request *request)
 {
     char *in = 0;
     cgi_input_get(&request->error, &in, request->limits.params_head);
@@ -115,7 +115,7 @@ static void cgi_url(magi_request *request)
     }
 }
 
-static void cgi_input_post(magi_error *e, char **input, int max)
+static void cgi_input_post(enum magi_error *e, char **input, int max)
 {
     int input_len = strtoul(getenv("CONTENT_LENGTH"), 0, 10);
     if (!input_len) {
@@ -175,7 +175,7 @@ static int next(void *userdata)
 }
 
 /* Interfacial CGI Request Handling */
-int magi_parse_head(magi_request *request)
+int magi_parse_head(struct magi_request *request)
 {
     request->cookies = 0;
     request->files   = 0;
@@ -189,10 +189,10 @@ int magi_parse_head(magi_request *request)
     return !request->error;
 }
 
-int magi_parse_body(magi_request *request)
+int magi_parse_body(struct magi_request *request)
 {
-    magi_error *e  = &request->error;
-    request->error = magi_error_none;
+    enum magi_error *e  = &request->error;
+    request->error      = magi_error_none;
     if (request->method && !strcmp(request->method, "POST")) {
         const char *t = getenv("CONTENT_TYPE");
         if (!t) {
@@ -223,7 +223,7 @@ int magi_parse_body(magi_request *request)
     return !request->error;
 }
 
-int magi_parse(magi_request *request)
+int magi_parse(struct magi_request *request)
 {
     return magi_parse_head(request) && magi_parse_body(request);
 }

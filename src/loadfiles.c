@@ -5,10 +5,10 @@
 #include <string.h>
 
 
-void magi_loadfiles_add(magi_loadfiles *table,
-                        const char     *name,
-                        const char     *path,
-                        int             max)
+void magi_loadfiles_add(struct magi_loadfiles *table,
+                        const char            *name,
+                        const char            *path,
+                        int                    max)
 {
     static const int size = sizeof(*table->files);
     if (!table) {
@@ -25,7 +25,7 @@ void magi_loadfiles_add(magi_loadfiles *table,
     table->count++;
 }
 
-void magi_loadfiles_free(magi_loadfiles *table)
+void magi_loadfiles_free(struct magi_loadfiles *table)
 {
     if (!table) {
         return;
@@ -34,14 +34,14 @@ void magi_loadfiles_free(magi_loadfiles *table)
     table->count = 0;
 }
 
-static void loadfiles_callback(void      *userdata,
-                               int        newfile,
-                               magi_file *file,
-                               char      *addon,
-                               int        addon_len)
+static void loadfiles_callback(void             *userdata,
+                               int               newfile,
+                               struct magi_file *file,
+                               char             *addon,
+                               int               addon_len)
 {
-    magi_loadfiles *table = userdata;
-    int             pos;
+    int pos;
+    struct magi_loadfiles *table = userdata;
     if (!file->filename || !*file->filename) {
         return;
     }
@@ -71,7 +71,8 @@ static void loadfiles_callback(void      *userdata,
     }
 }
 
-void magi_loadfiles_set(magi_request *request, magi_loadfiles *table)
+void magi_loadfiles_set(struct magi_request   *request,
+                        struct magi_loadfiles *table)
 {
     request->callback.act      = loadfiles_callback;
     request->callback.userdata = table;

@@ -12,41 +12,49 @@
 
 
 /* Response headers as three sequential groups. */
-typedef struct magi_response {
-    magi_params *head_response;
-    magi_params *head_general;
-    magi_params *head_entity;
-} magi_response;
+struct magi_response {
+    struct magi_params *head_response;
+    struct magi_params *head_general;
+    struct magi_params *head_entity;
+};
 
 
 /* Response initialiser, setup defaults. */
-void magi_response_init(magi_response *r);
+void magi_response_init(struct magi_response *r);
 /* Send response headers. */
-void magi_response_send(magi_response *r);
+void magi_response_send(struct magi_response *r);
 /* Free memory used by response headers. */
-void magi_response_free(magi_response *r);
+void magi_response_free(struct magi_response *r);
 
 /* Just response defaults. (text/html, 200 Ok) */
 void magi_response_default();
 
 
 /* Change resposne status header. */
-void magi_response_status(magi_response *r, int code, const char *description);
+void magi_response_status(struct magi_response *r,
+                          int                   code,
+                          const char           *description);
 
 /* Add cookie to response. */
-void magi_response_cookie(magi_response *r, const char *n, const char *d);
+void magi_response_cookie(struct magi_response *r,
+                          const char           *n,
+                          const char           *d);
 /* Add cookie with additional information to response. */
-void magi_response_cookie_complex(magi_response *r, magi_cookie *c);
+void magi_response_cookie_complex(struct magi_response *r,
+                                  struct magi_cookie   *c);
 /* Add request to discard cookie to response. */
-void magi_response_cookie_discard(magi_response *r, const char *name);
+void magi_response_cookie_discard(struct magi_response *r,
+                                  const char *name);
 
 /* Just add some general custom header. */
-void magi_response_header(magi_response *r, const char *n, const char *d);
+void magi_response_header(struct magi_response *r,
+                          const char           *n,
+                          const char *d);
 
 /* Change Content-Length header. */
-void magi_response_content_length(magi_response *r, int length);
+void magi_response_content_length(struct magi_response *r, int length);
 /* Change Content-Type header. */
-void magi_response_content_type(magi_response *r, const char *type);
+void magi_response_content_type(struct magi_response *r, const char *type);
 
 
 #endif

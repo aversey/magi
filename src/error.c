@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 
-const char *magi_error_message(magi_error error)
+const char *magi_error_message(enum magi_error error)
 {
     static const char *const messages[] = {
         0,                             /* magi_error_none */
@@ -19,7 +19,7 @@ const char *magi_error_message(magi_error error)
     return messages[error];
 }
 
-void magi_error_response(magi_error error)
+void magi_error_response(enum magi_error error)
 {
     fputs("Status: 400 Bad Request\r\n"
           "Content-Type: text/html\r\n\r\n"

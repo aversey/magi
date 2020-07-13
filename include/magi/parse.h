@@ -5,14 +5,15 @@
 #include "request.h"
 
 
-/* Analyses non-post part of request from environment.  True if ok. */
-int magi_parse_head(magi_request *request);
+/* Analyses non-post part of request (everything except body and files)
+ * from environment.  True if ok. */
+int magi_parse_head(struct magi_request *request);
 
 /* Complete request with post body from standard input.  True if ok. */
-int magi_parse_body(magi_request *request);
+int magi_parse_body(struct magi_request *request);
 
 /* Shortcut for analysing both head and body of request.  True if ok. */
-int magi_parse(magi_request *request);
+int magi_parse(struct magi_request *request);
 
 
 #endif

@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 
-void append(magi_request *r)
+void append(struct magi_request *r)
 {
     char *data = magi_request_param(r, "addon");
     if (data) {  /* If field "addon" was in request: */
@@ -16,7 +16,7 @@ void append(magi_request *r)
     }
 }
 
-void response(magi_request *r)
+void response(struct magi_request *r)
 {
     magi_response_default();  /* Pass default headers and send body: */
     printf("<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' "
@@ -34,7 +34,7 @@ void response(magi_request *r)
 
 int main()
 {
-    magi_request request;
+    struct magi_request request;
     magi_request_init(&request);  /* Setting defaults. */
     if (magi_parse(&request)) {   /* If parsing was done successful */
         response(&request);       /* we need to response the request. */
