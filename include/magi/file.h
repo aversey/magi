@@ -32,11 +32,13 @@ const magi_file *magi_files_get(const magi_files *files, const char *name);
  *  Callback to load files while analysing request.
  * addon_len is not null if something to add is in addon
  * and null if file_to_add_into is ended.
+ * newfile flag is setted up in the beginning of new file.
  * Files are passed sequentialy, one by one. */
-typedef void (*magi_file_callback_act)(void *userdata,
+typedef void (*magi_file_callback_act)(void      *userdata,
+                                       int        newfile,
                                        magi_file *file_to_add_into,
-                                       char *addon,
-                                       int addon_len);
+                                       char      *addon,
+                                       int        addon_len);
 
 typedef struct magi_file_callback {
     magi_file_callback_act act;

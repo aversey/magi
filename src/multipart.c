@@ -48,6 +48,7 @@ typedef struct automata {
     int           is_CR_readed;
     int           is_quoted;
     int           readed;
+    int           newfile;
 } automata;
 typedef void *(*state)(automata *a, char c);
 
@@ -120,9 +121,10 @@ static int param_end(automata *a)
 {
     if (a->file.filename) {
         a->request->callback.act(a->request->callback.userdata,
-                                 &a->file, a->buf, a->buf_size);
+                                 a->newfile, &a->file, a->buf, a->buf_size);
         a->request->callback.act(a->request->callback.userdata,
-                                 &a->file, 0, 0);
+                                 0, &a->file, 0, 0);
+	a->newfile  = 1;
         a->readed  -= a->buf_size;
         a->buf_size = 0;
         magi_files_add(&a->request->files, &a->file);
@@ -216,7 +218,8 @@ static void apply_callback(automata *a)
     int full = a->buf_size == a->request->callback.addon_max;
     if (a->file.filename && full) {
         a->request->callback.act(a->request->callback.userdata,
-                                 &a->file, a->buf, a->buf_size);
+                                 a->newfile, &a->file, a->buf, a->buf_size);
+	a->newfile  = 0;
         a->readed  -= a->buf_size;
         a->buf_size = 0;
     }
@@ -412,7 +415,7 @@ void magi_parse_multipart(magi_request *request,
                           void         *next_userdata)
 {
     automata a = {
-        0, { 0, 0, 0 }, { 0, 0 }, { 0, 0 }, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0
+        0, { 0, 0, 0 }, { 0, 0 }, { 0, 0 }, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 1
     };
     a.request      = request;
     a.boundary     = boundary;

@@ -34,14 +34,15 @@ void magi_loadfiles_free(magi_loadfiles *table)
     table->count = 0;
 }
 
-static void loadfiles(void *userdata,
-                      magi_file *file,
-                      char      *addon,
-                      int        addon_len)
+static void loadfiles_callback(void      *userdata,
+                               int        newfile,
+                               magi_file *file,
+                               char      *addon,
+                               int        addon_len)
 {
     magi_loadfiles *table = userdata;
     int             pos;
-    if (!file->filename || !strcmp(file->filename, "")) {
+    if (!file->filename || !*file->filename) {
         return;
     }
     for (pos = 0; pos != table->count; ++pos) {
@@ -49,7 +50,7 @@ static void loadfiles(void *userdata,
             static FILE *f = 0;
             static int   unlimited;
             static int   left;
-            if (!f) {
+            if (newfile) {
                 const char *path = table->files[pos].path;
                 f                = fopen(path, "wb");
                 left             = table->files[pos].max;
@@ -62,9 +63,8 @@ static void loadfiles(void *userdata,
                 fwrite(addon, 1, min, f);
                 left -= min;
             }
-            if (!addon_len) {
+            if (!addon) {
                 fclose(f);
-                f = 0;
             }
             return;
         }
@@ -73,6 +73,6 @@ static void loadfiles(void *userdata,
 
 void magi_loadfiles_set(magi_request *request, magi_loadfiles *table)
 {
-    request->callback.act      = loadfiles;
+    request->callback.act      = loadfiles_callback;
     request->callback.userdata = table;
 }
