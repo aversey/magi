@@ -13,6 +13,7 @@ void magi_request_init(magi_request *request)
         request->limits.params_meta = 0;
         request->limits.params_head = 0;
         request->limits.params_body = 0;
+	request->limits.read_buffer = 65536;
     }
 }
 

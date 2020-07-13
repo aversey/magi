@@ -147,9 +147,31 @@ static char *bound(const char *type)
     return magi_str_create_copy(type, strcspn(type, " \t"));
 }
 
-static int next()
+static int next(void *userdata)
 {
-    return getchar();
+    int          size   = *(int *)userdata;
+    static char *buffer = 0;
+    static int   left   = 0;
+    static int   last   = 0;
+    static int   pos;
+    if (!buffer) {
+        if (last) {
+            return EOF;
+        }
+        buffer = malloc(size);
+    }
+    if (!left) {
+        if (last) {
+            free(buffer);
+            buffer = 0;
+	    return EOF;
+        }
+        left = fread(buffer, 1, size, stdin);
+        last = left != size;
+        pos  = 0;
+    }
+    left--;
+    return buffer[pos++];
 }
 
 /* Interfacial CGI Request Handling */
@@ -180,7 +202,8 @@ int magi_parse_body(magi_request *request)
         if (!strncmp(t, "multipart/form-data", 19)) {
             char *boundary = bound(t);
             if (boundary && *boundary) {
-                magi_parse_multipart(request, boundary, next, 0);
+                magi_parse_multipart(request, boundary, next,
+				     &request->limits.read_buffer);
             } else {
                 *e = magi_error_nobound;
             }

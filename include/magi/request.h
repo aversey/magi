@@ -22,6 +22,7 @@ typedef struct magi_request_limits {
     int params_meta;
     int params_head;
     int params_body;
+    int read_buffer;
 } magi_request_limits;
 
 typedef struct magi_request {
