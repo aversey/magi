@@ -6,8 +6,8 @@
  * encoding itself and magi_urlenc_size to find what the size of code
  * will be.
  *
- * RFC 3986 describes URL-encoding.  Briefly it is changing every space into
- * plus sign and every not alpha-numerical and not "~-._" character into
+ * RFC 3986 describes URL-encoding.  Briefly it is replacement of every space
+ * into plus sign and every not alpha-numerical and not "~-._" character into
  * percent sign followed by hexadecimal representation of given character.
  */
 

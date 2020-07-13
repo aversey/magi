@@ -3,6 +3,7 @@
  * showing work with headers in magi.
  */
 #include <magi.h>
+#include <stdio.h>
 
 
 void list_cookies(magi_request *r)

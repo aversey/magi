@@ -9,8 +9,6 @@
  */
 #include "cookie.h"
 #include "param.h"
-#include <stdio.h>
-#include <stdarg.h>
 
 
 /* Response headers as three sequential groups. */

@@ -1,6 +1,7 @@
 /* This is useful example echoing request data in response.
  */
 #include <magi.h>
+#include <stdio.h>
 
 
 void list_cookies(magi_request *r)
