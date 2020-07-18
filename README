@@ -15,7 +15,11 @@ For detailed documentation look into 'man' directory.
     Compiling
 Compilation and its options are described in the Makefile.
 Running make produces 'build/libmagi.a', which is precompiled library itself,
-ready to be statically linked into your project.
+ready to be statically linked into your project.  In order to install magi
+you can run 'make install', and to uninstall run 'make uninstall'.
+Since default include (/usr/include), lib (/usr/lib) and man (/usr/share/man)
+directories can be not valid for you, don't forget to specify them in either
+environment variables or the Makefile itself.
 
     Examples
 Running 'make examples' produces executable for each example in 'examples'.

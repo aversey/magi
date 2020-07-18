@@ -4,6 +4,12 @@
 DEBUG   ?= no
 # Specify your favourite C compiler here:
 CC      ?= gcc
+# Specify your include directory (headers location):
+INCDIR  ?= /usr/include
+# Specify your libraries directory:
+LIBDIR  ?= /usr/lib
+# Specify location of man pages on your machine:
+MANDIR  ?= /usr/share/man
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -25,6 +31,7 @@ INCLUDE  = include
 BUILD    = build
 SRCDIR   = src
 EXADIR   = examples
+MAN      = man
 # Library itself:
 LIB      = libmagi.a
 # Modules:
@@ -62,6 +69,16 @@ examples: all $(XBLD) $(EXAMPLES)
 
 clean:
 	rm -f $(TARGET) $(OBJ) $(EXAMPLES) $(DEPS)
+
+install: all
+	cp -r $(INCLUDE)/* $(INCDIR)
+	cp $(TARGET) $(LIBDIR)
+	cp $(MAN)/* $(MANDIR)/man3
+
+uninstall:
+	rm -r $(INCDIR)/magi.h $(INCDIR)/magi.hpp $(INCDIR)/magi
+	rm $(LIBDIR)/$(LIB)
+	rm $(MANDIR)/man3/magi.3 $(MANDIR)/man3/libmagi.3
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
