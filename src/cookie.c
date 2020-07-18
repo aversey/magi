@@ -17,8 +17,8 @@ void magi_cookies_free(struct magi_cookies *cookies)
     }
 }
 
-void magi_cookies_add(struct magi_cookies **cookies,
-                      struct magi_cookie   *newitem)
+void magi_cookies_add(struct magi_cookies     **cookies,
+                      const struct magi_cookie *newitem)
 {
     struct magi_cookies *node = malloc(sizeof(*node));
     if (node) {

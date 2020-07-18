@@ -4,7 +4,8 @@
 #include <string.h>
 
 
-void magi_params_add(struct magi_params **params, struct magi_param *newitem)
+void magi_params_add(struct magi_params     **params,
+                     const struct magi_param *newitem)
 {
     struct magi_params *node = malloc(sizeof(*node));
     if (node) {
@@ -14,7 +15,8 @@ void magi_params_add(struct magi_params **params, struct magi_param *newitem)
     }
 }
 
-void magi_params_set(struct magi_params **params, struct magi_param *newitem)
+void magi_params_set(struct magi_params     **params,
+                     const struct magi_param *newitem)
 {
     if (!*params) {
         magi_params_add(params, newitem);

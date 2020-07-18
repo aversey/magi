@@ -1,4 +1,4 @@
-.TH MAGI 3 2020-05-02 v0.0.1 "Library Manual"
+.TH MAGI 3 2020-07-14 v0.0.1 "Library Manual"
 .SH NAME
 .B magi
 \- Common Gateway Interface (CGI) library
@@ -11,7 +11,8 @@ library gives the user a way to interact with the web server
 through CGI as described in
 .IR "RFC 3875" .
 The library is free and open source software.
-.SS Usage
+It is written in ANSI C without any dependencies except C standard library.
+.SS Usage overview
 A program using
 .B magi
 library must be linked with the
@@ -22,38 +23,129 @@ Main task of the
 .B magi
 library is to analyse CGI request and represent it to the user in
 .B magi_request
-data structure.  This is done by calling
+data structure.
+CGI request is passed in environment variables and standard input.
+You can access environment directly even then using magi,
+however reading from standard input will cause a mess.
+.P
+The library also provides response functionality with
+.B magi_response
+and its methods.
+Since body can be everything and only headers have specific CGI-related
+structure,
+.B magi
+provides response functionality only for them.
+Body can be outputted directly into standard output with any method you want
+after forming and sending CGI headers via
+.BR magi_response .
+.SH REQUEST
+Request structure initializtion is done with
+.BR magi_request_init .
+Don't forget to free everything in it then the work is done via
+.BR magi_request_free .
+.P
+.RS
+.nf
+struct magi_request request;
+magi_request_init(&request);
+/* do your work with request */
+magi_request_free(&request);
+.fi
+.RE
+.P
+Obtaining of request is done in two parts, i.e. head via
 .B magi_parse_head
+and body via
+.BR magi_parse_body .
+Analysis of head will fill everything in
+.B magi_request
+structure, except
+.I body
 and
-.B magi_parse_body
-(such separation allows to determine body processing on head content,
-if there is no need to do so you can use shortcut
-.BR magi_parse )
-on initialized via
-.B magi_request_init
-request variable.  After initialization the user is able to configure
-limits on the input
-.RB ( magi_request_limits ,
-everything is unlimited as default)
-and setup callback to process files loaded as
-.I multipart/form-data
-.RB ( magi_file_callback ,
-with default addon_max of 1KB).
+.I files
+fields.
+Such separtion has place since body processing can depend on data from head,
+e.g. in case of loading files, if file size is defined by user group.
+If analysis succeeded they will return 1, otherwise 0 as error mark.
+More disctinct error code will be placed in
+.IR request.error .
+.P
+.RS
+.nf
+if (!magi_parse_head(&request)) {
+    /* handle error and exit */
+}
+/* configure body processing using head data */
+if (magi_parse_body(&request)) {
+    /* send response using request data */
+} else {
+    /* handle error */
+}
+.fi
+.RE
+.P
+If your case is not as advanced, you can use shortuct
+.B magi_parse
+to analyse both head and body.
+.BR magi_parse (&request)
+is literally
+.BR magi_parse_head (&request)
+&&
+.BR magi_parse_body (&request).
+.P
+.RS
+.nf
+if (magi_parse(&request)) {
+    /* send response using request data */
+} else {
+    /* handle error */
+}
+.fi
+.RE
+.SS What's in request?
+.SS Loading files
+.SH RESPONSE
+.SS URL encoding
+It is described in
+.IR "RFC 3986" .
+Briefly it is replacement of every space into plus sign and every not
+alpha-numerical or not one of "~-._" character inte percent sign
+followed by hexademical representation of given character byte.
+.P
 The
 .B magi
-library comes with
-.B magi_loadfiles
-callback usable for the majority of cases.
+library provides functions to form url-encoded strings, which is very useful
+in forming response.  Use
+.B magi_urlenc_size
+to find what the size of code will be and then call
+.B magi_urlenc
+for encoding itself.
 .P
-CGI response utilities are also provided.  The CGI headers are
-outputted with
-.B magi_response
-and its methods.  You can output defaults (Content-Type: text/html;
-Status: 200 Ok) by calling
-.BR magi_response_default .
-Utility to form urlencoded strings is provided via
-.BR magi_urlenc .
-.SS Error handling
+For example, lets form URL to search in DuckDuckGo for provided char
+.RI * query
+in char
+.RI * url .
+.P
+.RS
+.nf
+const char *prefix     = "http://duckduckgo.com/?q=";
+const int   prelen     = strlen(prefix);
+const int   urlencsize = magi_urlenc_size(query);
+url = malloc(prelen + urlencsize + 1);
+strcpy(url, prefix);
+magi_urlenc(query, url + prelen);
+url[prelen + urlencsize] = 0;
+.fi
+.RE
+.P
+Note that second argument of
+.B magi_urlenc
+which is encoding destination should be at least size of
+.B magi_urlenc_size
+of plain data, and that
+.B magi_urlenc
+doesn't write zero to form null-terminated string in its output.
+.SH ERRORS
 If function is returning pointer, error is only in case of null returned.
 If function is returning
 .I int
@@ -65,6 +157,20 @@ code is in
 field of
 .B magi_request
 structure.  For other modules error codes seem to be overkill.
+.SH COMPATIBILTY
+The
+.B magi
+library runs on any UNIX environment,
+i.e. Linux, OpenBSD, FreeBSD, macOS, etc.
+Windows is currently not supported.
+.P
+The library is compatible with C++, since it avoid using typedefs for structs.
+However it doesn't have 'extern "C"' in the headers, so you need to wrap your
+includes with it manually or use
+.B #include <magi.hpp>
+which is a shortcut for include of
+.I magi.h
+wrapped in 'extern "C"' construct.
 .SH AUTHORS AND LICENSE
 Copyrigth 2019-2020
 .B Aleksey Veresov

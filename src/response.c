@@ -25,7 +25,7 @@ static void response_headers(struct magi_params *p)
     }
 }
 
-void magi_response_send(struct magi_response *r)
+void magi_response_send(const struct magi_response *r)
 {
     response_headers(r->head_response);
     response_headers(r->head_general);
@@ -94,8 +94,8 @@ void magi_response_cookie(struct magi_response *r,
     magi_params_add(&r->head_general, &addon);
 }
 
-void magi_response_cookie_complex(struct magi_response *r,
-                                  struct magi_cookie   *c)
+void magi_response_cookie_complex(struct magi_response     *r,
+                                  const struct magi_cookie *c)
 {
     char *pointer;
     struct magi_param addon;

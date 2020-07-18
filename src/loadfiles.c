@@ -34,11 +34,11 @@ void magi_loadfiles_free(struct magi_loadfiles *table)
     table->count = 0;
 }
 
-static void loadfiles_callback(void             *userdata,
-                               int               newfile,
-                               struct magi_file *file,
-                               char             *addon,
-                               int               addon_len)
+static void loadfiles_callback(void                   *userdata,
+                               int                     newfile,
+                               const struct magi_file *file,
+                               const char             *addon,
+                               int                     addon_len)
 {
     int pos;
     struct magi_loadfiles *table = userdata;

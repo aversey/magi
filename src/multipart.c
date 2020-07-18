@@ -124,7 +124,7 @@ static int param_end(struct automata *a)
                                  a->newfile, &a->file, a->buf, a->buf_size);
         a->request->callback.act(a->request->callback.userdata,
                                  0, &a->file, 0, 0);
-	a->newfile  = 1;
+        a->newfile  = 1;
         a->readed  -= a->buf_size;
         a->buf_size = 0;
         magi_files_add(&a->request->files, &a->file);
@@ -215,7 +215,7 @@ static void apply_callback(struct automata *a)
     if (a->file.filename && full) {
         a->request->callback.act(a->request->callback.userdata,
                                  a->newfile, &a->file, a->buf, a->buf_size);
-	a->newfile  = 0;
+        a->newfile  = 0;
         a->readed  -= a->buf_size;
         a->buf_size = 0;
     }
@@ -270,7 +270,7 @@ static void *data_add(struct automata *a, char c)
  */
 static void *state_begin(struct automata *a, char c)
 {
-    if (sepget(a) != c) {     /* 'c' is not wanted character from separator; */
+    if (sepget(a) != c) {     /* c is not wanted character from separator; */
         a->boundary_pos = 0;  /* so nullify progress in reading separator. */
     } else {
         a->boundary_pos++;

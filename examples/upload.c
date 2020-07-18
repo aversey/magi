@@ -10,7 +10,7 @@ void upload(struct magi_request *r)
 {
     char                   *name = magi_request_param(r, "name");
     const struct magi_file *data = magi_request_file(r, "data");
-    if (name && data) {  /* If file to load and its name are in the request: */
+    if (name && data) {  /* If file and its name are in the request: */
         rename("data", name);  /* Rename loaded file to designated name. */
         printf("<p>Uploaded!</p>");  /* And display success message. */
     }

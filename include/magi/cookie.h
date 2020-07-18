@@ -8,7 +8,7 @@
 struct magi_cookie {
     char *name;     /* Cookie name. */
     char *data;     /* Cookie value. */
-    char *path;     /* Path on which cookie is set.  Without '/' at the end. */
+    char *path;     /* Path on which cookie is set, without '/' at the end. */
     char *domain;   /* Domain in wich cookie is set.
                      * With dot at the begining. */
     char *max_age;  /* In seconds until discard (response only). */
@@ -25,8 +25,8 @@ struct magi_cookies {
 void magi_cookies_free(struct magi_cookies *cookies);
 
 /* Add newitem onto top of cookies. */
-void magi_cookies_add(struct magi_cookies **cookies,
-                      struct magi_cookie   *newitem);
+void magi_cookies_add(struct magi_cookies     **cookies,
+                      const struct magi_cookie *newitem);
 
 /* Get first cookie with given name, null if no such cookie.
  * First cookie is the most accurate in terms of domain and path. */

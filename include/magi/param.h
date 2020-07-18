@@ -20,14 +20,15 @@ struct magi_params {
 void magi_params_free(struct magi_params *params);
 
 /* Add newitem onto top of params. */
-void magi_params_add(struct magi_params **params,
-                     struct magi_param   *newitem);
+void magi_params_add(struct magi_params     **params,
+                     const struct magi_param *newitem);
 
 /* Set newitem in params.
- * If param with name of newitem is in params it will be replaced with newitem,
+ * If param with name of newitem is in params
+ * it will be replaced with newitem,
  * otherwise newitem will be added into the end of params. */
-void magi_params_set(struct magi_params **params,
-                     struct magi_param   *newitem);
+void magi_params_set(struct magi_params     **params,
+                     const struct magi_param *newitem);
 
 /* Get data of the first from top of params parameter with name,
  * null if no such parameter. */

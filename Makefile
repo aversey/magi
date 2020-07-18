@@ -1,4 +1,4 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Compilation Options
 # Debug mode [yes/no] (allowing to debug the library via gdb):
 DEBUG   ?= no
@@ -6,7 +6,7 @@ DEBUG   ?= no
 CC      ?= gcc
 
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Preparations
 # Compile as ANSI C code:
 CFLAGS   = -xc -ansi -Wall
@@ -41,30 +41,30 @@ INTER_C  = $(INTER_H:.h=.c)
 SRC      = $(INTER_C) $(EXTER_C)
 OBJ      = $(foreach o,$(SRC:.c=.o),$(BUILD)/$(o))
 # Example executables:
-EXASRC   = $(wildcard $(EXADIR)/*.c)
-EXAMPLES = $(foreach x,$(EXASRC:.c=),$(BUILD)/$(x))
+XSRC     = $(wildcard $(EXADIR)/*.c)
+EXAMPLES = $(foreach x,$(XSRC:.c=),$(BUILD)/$(x))
 # Dependency file:
 DEPS     = deps.mk
 
 SRCINC   = -I$(INCLUDE)/magi
-EXAINC   = -I$(INCLUDE)
+XINC     = -I$(INCLUDE)
 SRCBUILD = $(BUILD)/$(SRCDIR)
-EXABUILD = $(BUILD)/$(EXADIR)
+XBLD     = $(BUILD)/$(EXADIR)
 
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Targets
 .PHONY: all examples clean
 
 all: $(SRCBUILD) $(TARGET)
 
-examples: all $(EXABUILD) $(EXAMPLES)
+examples: all $(XBLD) $(EXAMPLES)
 
 clean:
 	rm -f $(TARGET) $(OBJ) $(EXAMPLES) $(DEPS)
 
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Compilation
 -include $(DEPS)
 
@@ -78,13 +78,13 @@ $(BUILD)/%.o: %.c
 
 # Compile executables from corresponding sources and library:
 $(BUILD)/%: %.c $(TARGET)
-	$(CC) $(CFLAGS) $(EXAINC) $< $(LFLAGS) -o $@
+	$(CC) $(CFLAGS) $(XINC) $< $(LFLAGS) -o $@
 
 # Create build directories, if no such:
-$(SRCBUILD) $(EXABUILD):
+$(SRCBUILD) $(XBLD):
 	mkdir -p $@
 
 # Generate dependency file, adding corresponding build prefixes:
 $(DEPS): $(SRC) $(EXASRC) $(EXTER_H) $(INTER_H) $(INCLUDE)/magi.h
 	$(CC) $(SRCINC) $(SRC) -MM | sed '/^ /!s#^#$(SRCBUILD)/#' > $@
-	$(CC) $(EXAINC) $(EXASRC) -MM | sed '/^ /!s#^#$(EXABUILD)/#;s/\.o//' >> $@
+	$(CC) $(XINC) $(XSRC) -MM | sed '/^ /!s#^#$(XBLD)/#;s/\.o//' >> $@

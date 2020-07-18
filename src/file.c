@@ -4,7 +4,8 @@
 #include <string.h>
 
 
-void magi_files_add(struct magi_files **files, struct magi_file *newitem)
+void magi_files_add(struct magi_files     **files,
+                    const struct magi_file *newitem)
 {
     struct magi_files *node = malloc(sizeof(*node));
     if (node) {
@@ -15,7 +16,7 @@ void magi_files_add(struct magi_files **files, struct magi_file *newitem)
 }
 
 const struct magi_file *magi_files_get(const struct magi_files *files,
-                                       const char *name)
+                                       const char              *name)
 {
     if (!files || !name) {
         return 0;

@@ -164,7 +164,7 @@ static int next(void *userdata)
         if (last) {
             free(buffer);
             buffer = 0;
-	    return EOF;
+            return EOF;
         }
         left = fread(buffer, 1, size, stdin);
         last = left != size;
@@ -203,7 +203,7 @@ int magi_parse_body(struct magi_request *request)
             char *boundary = bound(t);
             if (boundary && *boundary) {
                 magi_parse_multipart(request, boundary, next,
-				     &request->limits.read_buffer);
+                                     &request->limits.read_buffer);
             } else {
                 *e = magi_error_nobound;
             }

@@ -22,8 +22,8 @@ struct magi_files {
 void magi_files_free(struct magi_files *files);
 
 /* Add newitem onto top of files. */
-void magi_files_add(struct magi_files **files,
-                    struct magi_file   *newitem);
+void magi_files_add(struct magi_files     **files,
+                    const struct magi_file *newitem);
 
 /* Get first from top of files file with name, null if no such file. */
 const struct magi_file *magi_files_get(const struct magi_files *files,
@@ -36,11 +36,11 @@ const struct magi_file *magi_files_get(const struct magi_files *files,
  * and null if file is ended.
  * newfile flag is setted up in the beginning of new file.
  * Files are passed sequentialy, one by one. */
-typedef void (*magi_file_callback_act)(void             *userdata,
-                                       int               newfile,
-                                       struct magi_file *file,
-                                       char             *addon,
-                                       int               addon_len);
+typedef void (*magi_file_callback_act)(void                   *userdata,
+                                       int                     newfile,
+                                       const struct magi_file *file,
+                                       const char             *addon,
+                                       int                     addon_len);
 
 struct magi_file_callback {
     magi_file_callback_act act;
