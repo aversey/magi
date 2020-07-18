@@ -157,6 +157,47 @@ code is in
 field of
 .B magi_request
 structure.  For other modules error codes seem to be overkill.
+.SH DEBUGGING
+To debug your CGI scripts with
+.I gdb
+you can include signal.h:
+.P
+.RS
+.nf
+#include <signal.h>
+.fi
+.RE
+.P
+and stop your script in the beginning with:
+.P
+.RS
+.nf
+raise(SIGSTOP);
+.fi
+.RE
+.P
+Then compile your script and place it in directory which is handled by your
+CGI server.
+Check timeout settings for CGI scripts on your server and make it big enough,
+since the server will kill your script by timeout.
+Now make request to your server and run the following in the shell:
+.P
+.RS
+.nf
+gdb name_of_your_executable `pgrep name_of_your_executable`
+.fi
+.RE
+.P
+This will connect
+.I gdb
+to your running CGI script.  It will be paused by SIGSTOP, so you will be able
+to setup your breakpoints. In order to continue run:
+.P
+.RS
+.nf
+continue
+.fi
+.RE
 .SH COMPATIBILTY
 Sine
 .B magi
