@@ -83,9 +83,6 @@ void response(struct magi_request *r)
     printf("<h2>Cookies:</h2>");
     list_cookies(r);
 
-    printf("<h2>Parameters:</h2>");
-    list_params(r->meta);
-
     printf("<h2>URL Parameters:</h2>");
     list_params(r->head);
 

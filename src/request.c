@@ -10,7 +10,6 @@ void magi_request_init(struct magi_request *request)
         request->callback.userdata  = 0;
         request->callback.addon_max = 1024;
         request->limits.cookies     = 0;
-        request->limits.params_meta = 0;
         request->limits.params_head = 0;
         request->limits.params_body = 0;
         request->limits.read_buffer = 65536;
@@ -21,7 +20,6 @@ void magi_request_init(struct magi_request *request)
 static void request_free(struct magi_request *request)
 {
     free(request->cookies);
-    free(request->meta);
     free(request->head);
     free(request->body);
     free(request->files);
@@ -35,7 +33,6 @@ static void request_free(struct magi_request *request)
 static void request_annul(struct magi_request *request)
 {
     request->cookies  = 0;
-    request->meta     = 0;
     request->head     = 0;
     request->body     = 0;
     request->files    = 0;
@@ -49,7 +46,6 @@ void magi_request_free(struct magi_request *request)
 {
     if (request) {
         magi_cookies_free(request->cookies);
-        magi_params_free(request->meta);
         magi_params_free(request->head);
         magi_params_free(request->body);
         magi_files_free(request->files);
@@ -58,11 +54,6 @@ void magi_request_free(struct magi_request *request)
     }
 }
 
-
-char *magi_request_meta(const struct magi_request *r, const char *name)
-{
-    return magi_params_get(r->meta, name);
-}
 
 char *magi_request_param(const struct magi_request *r, const char *name)
 {

@@ -158,11 +158,18 @@ field of
 .B magi_request
 structure.  For other modules error codes seem to be overkill.
 .SH COMPATIBILTY
+Sine
+.B magi
+only uses C standard library and the C language itself it should be able
+to run on every environment with them, i.e. Linux, OpenBSD, FreeBSD, macOS,
+Windows, etc.
+.P
 The
 .B magi
-library runs on any UNIX environment,
-i.e. Linux, OpenBSD, FreeBSD, macOS, etc.
-Windows is currently not supported.
+library should work well with any server supporting CGI, since it is
+compatible with
+.IR "RFC 3875" ,
+i.e. Apache, nginx, Caddy, etc.
 .P
 The library is compatible with C++, since it avoid using typedefs for structs.
 However it doesn't have 'extern "C"' in the headers, so you need to wrap your

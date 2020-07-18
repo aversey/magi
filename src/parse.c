@@ -15,8 +15,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern char **const environ;
-
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * CGI Request
@@ -37,30 +35,8 @@ static char *lower_env(char *env_name)
     return env;
 }
 
-static void cgi_http_env(struct magi_request *r)
-{
-    char **env;
-    int    len = 0;
-    r->meta    = 0;
-    for (env = environ; *env; ++env) {
-        struct magi_param meta;
-        char *name_end = strchr(*env, '=');
-        int   nlen     = name_end - *env;
-        int   dlen     = strlen(name_end + 1);
-        len += nlen + dlen;
-        if (len > r->limits.params_meta && r->limits.params_meta) {
-            r->error = magi_error_limit;
-            return;
-        }
-        meta.name = magi_str_create_copy(*env, nlen);
-        meta.data = magi_str_create_copy(name_end + 1, dlen);
-        magi_params_add(&r->meta, &meta);
-    }
-}
-
 static void cgi_env(struct magi_request *r)
 {
-    cgi_http_env(r);
     r->method        = plain_env("REQUEST_METHOD");
     r->document_root = plain_env("DOCUMENT_ROOT");
     r->script        = plain_env("SCRIPT_NAME");
@@ -179,7 +155,6 @@ int magi_parse_head(struct magi_request *request)
 {
     request->cookies = 0;
     request->files   = 0;
-    request->meta    = 0;
     request->head    = 0;
     request->body    = 0;
     request->error   = 0;

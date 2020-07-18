@@ -19,7 +19,6 @@
 /* Limits on possibly enormous structures.  Null means unlimited. */
 struct magi_request_limits {
     int cookies;
-    int params_meta;
     int params_head;
     int params_body;
     int read_buffer;
@@ -29,7 +28,6 @@ struct magi_request {
     enum magi_error error;
 
     struct magi_cookies *cookies;  /* Passed HTTP cookies. */
-    struct magi_params  *meta;     /* Request parameters. */
     struct magi_params  *head;     /* Form field values from URL. */
     struct magi_params  *body;     /* Form field values from body. */
     struct magi_files   *files;    /* Form field files metadatas. */
@@ -53,9 +51,6 @@ void magi_request_init(struct magi_request *r);
 /* Free memory used by request. */
 void magi_request_free(struct magi_request *r);
 
-
-/* Get value of meta-param with name. */
-char *magi_request_meta(const struct magi_request *r, const char *name);
 
 /* Get value of form field param (prioritising body) with name. */
 char *magi_request_param(const struct magi_request *r, const char *name);
