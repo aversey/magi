@@ -102,8 +102,122 @@ if (magi_parse(&request)) {
 }
 .fi
 .RE
-.SS What's in request?
-.SS Loading files
+.SS General information in request
+Request method is case-sensitive ("GET", "POST", etc.) and stored in
+.I method
+field.
+.P
+Server's document root (e.g. /var/www/htdocs) is in
+.I document_root
+field.  It is useful in case of processing documents on server, e.g.
+if you are building CMS.
+.P
+If request was done over HTTPS
+.I is_secure
+field will be set as 1, otherwise as zero (actually it checks port to be 443,
+which is standard HTTPS port).
+.P
+You can restore URL by following formula:
+.P
+.RS
+.nf
+http[s]://{host}:{port}{script}{path}[?...]
+.fi
+.RE
+.P
+there
+.I host
+(e.g. "example.com"),
+.I port
+(usually 80 or 443),
+.I script
+(e.g. "/cgi-bin/script") and
+.I path
+(e.g. "/login") are fields.  All that values are lowercased, since they are
+case-insensitive.
+.SS Form fields values in request
+Parameters passed in URL after question mark (e.g. "?q=example&color=red")
+are stored in linked list of key-values
+.RB ( magi_params )
+field
+.IR head ,
+while HTML form fields values passed in body (except for files,
+described lower) are stored in
+.IR body .
+To get value of parameter by its key use
+.BR magi_request_param .
+This function priorities body params, so if you need specifically
+parameter from URL use
+.B magi_request_urlparam .
+If no parameter was passed with given name, these functions will return null.
+.P
+For example, if we build search engine and want to access query passed in
+form field with name
+.IR q ,
+we must call:
+.P
+.RS
+.nf
+const char *query = magi_request_param(&request, "q");
+if (query) {
+    /* calculate and show result */
+} else {
+    /* show welcoming page */
+}
+.fi
+.RE
+.P
+Note what values returned by
+.B magi_request_urlparam
+are decoded from URL encoding, so you don't need to deal with all that
+percents and pluses.  Result of
+.B magi_request_param
+is also raw data.
+.SS Cookies in request
+Same situation with cookies, stored in
+.I cookies
+field, and accessible via
+.BR magi_request_cookie .
+.P
+For example, we can check session ID of user, stored in cookie "sid":
+.P
+.RS
+.nf
+struct awesome_session session;
+const char *sid = magi_request_cookie(&request, "sid");
+if (!sid) {
+    /* render response for unauthorised user */
+} else if (session_exists(sid)) {
+    load_session(&session, sid);
+    /* render response for this user */
+} else {
+    /* show error page of invalid session */
+}
+.fi
+.RE
+.P
+While for cookies as described in
+.I RFC 6265
+it's all you need, your server can use Cookie2, as described in
+.IR "RFC 2965" .
+In both cases
+.B magi_request_cookie
+will return the most accurate cookie for this request, however Cookie2
+allows more complex behavior, setting and receiving different host and path
+for cookies.  You able to receive all information about cookie using
+.BR magi_request_cookie_complex ,
+which returns pointer to
+.B magi_cookie
+structure.  If no cookie is found, result is null.  It has fields
+.IR name ,
+.IR data ,
+.I path
+(without '/' at the end),
+.I domain
+(with dot at the begining) and
+.I max_age
+(the last one is used only in response).
+.SS Files in request
 .SH RESPONSE
 .SS URL encoding
 It is described in
@@ -180,11 +294,11 @@ Then compile your script and place it in directory which is handled by your
 CGI server.
 Check timeout settings for CGI scripts on your server and make it big enough,
 since the server will kill your script by timeout.
-Now make request to your server and run the following in the shell:
+Now make request to your server and run the following in the shell as root:
 .P
 .RS
 .nf
-gdb name_of_your_executable `pgrep name_of_your_executable`
+gdb path_to_your_executable `pgrep name_of_your_executable`
 .fi
 .RE
 .P

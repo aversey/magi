@@ -2,9 +2,9 @@
 Magi Library (libmagi) implements Common Gateway Interface.
 
     Overview
-Magi are free and open-source software: legal info is in the 'LICENSE' file.
-They are written in ANSI C without any dependecies except for C standard
-library.  All source and inner header files are in the 'src' directory.
+Magi is free and open-source software: legal info is in the 'LICENSE' file.
+It is written in ANSI C without any dependecies except for C standard library.
+All source and inner header files are in the 'src' directory.
 The 'include' directory is intended to be used in your include environment.
 Headers in it contain library interface and its description in comments.
 They are in subdirectory 'include/magi', due to their short and simple names.
