@@ -30,6 +30,10 @@ const struct magi_file *magi_files_get(const struct magi_files *files,
                                        const char              *name);
 
 
+/* Get value of parameter with name from file->params. */
+char *magi_file_param(struct magi_file *file, const char *name);
+
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *  Callback to load files while analysing request.
  * addon_len is not null if something to add is in addon

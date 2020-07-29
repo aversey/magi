@@ -38,3 +38,9 @@ void magi_files_free(struct magi_files *files)
         free(files->item.params);
     }
 }
+
+
+char *magi_file_param(struct magi_file *file, const char *name)
+{
+    return file ? magi_params_get(file->params, name) : 0;
+}

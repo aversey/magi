@@ -37,19 +37,19 @@ void magi_response_status(struct magi_response *r,
 
 /* Add cookie to response. */
 void magi_response_cookie(struct magi_response *r,
-                          const char           *n,
-                          const char           *d);
+                          const char           *name,
+                          const char           *data);
 /* Add cookie with additional information to response. */
 void magi_response_cookie_complex(struct magi_response     *r,
                                   const struct magi_cookie *c);
 /* Add request to discard cookie to response. */
 void magi_response_cookie_discard(struct magi_response *r,
-                                  const char *name);
+                                  const char           *name);
 
 /* Just add some general custom header. */
 void magi_response_header(struct magi_response *r,
-                          const char           *n,
-                          const char *d);
+                          const char           *name,
+                          const char           *data);
 
 /* Change Content-Length header. */
 void magi_response_content_length(struct magi_response *r, int length);

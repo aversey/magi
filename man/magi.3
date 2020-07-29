@@ -218,7 +218,197 @@ structure.  If no cookie is found, result is null.  It has fields
 .I max_age
 (the last one is used only in response).
 .SS Files in request
+While ordinary parameters are not very big and don't need special processing,
+files can be huge and need specail processing.
+Due to their size, files shouldn't be loaded into memory in general.
+The
+.B magi
+library allows you to setup your own callback for file loading,
+or use predefined one,
+.BR magi_loadfiles .
+.P
+You can load file from field
+.I to_load
+into
+.I ./uploaded
+with limits on its size of 1MB as following:
+.P
+.RS
+.nf
+struct magi_loadfiles cb;
+magi_loadfiles_init(&cb);
+magi_loadfiles_add(&cb, "to_load", "./uploaded", 1024 * 1024);
+magi_loadfiles_set(&request, &cb);
+magi_parse_body(&request);
+magi_loadfiles_free(&rules);
+/* Use file ./uploaded */
+.fi
+.RE
+.P
+There
+.I request
+is initialised
+.B magi_request
+with parsed head and not parsed body.
+.P
+To access information about file, use
+.B magi_request_file .
+It will get your
+.B magi_file
+structure for file loaded from field with passed name.
+This structure have file name on user host in
+.I filename
+field.
+Other parameters (as Content-Type) are in
+.I params
+field, accessible with
+.BR magi_file_param .
+.P
+For example, we can get user feedback, returning Content-Type of loaded file:
+.P
+.RS
+.nf
+struct magi_file *loaded = magi_request_file(&request, "to_load");
+if (loaded) {
+    char *type = magi_file_param(loaded, "Content-Type");
+    if (type_to_response) {
+        /* Report the user that file of 'type' was loaded. */
+    } else {
+        /* Report the user that file was loaded without
+           specified Content-Type. */
+    }
+} else {
+    /* Report the user that file wasn't loaded. */
+}
+.SS File processing callback
+In some cases
+.B magi_loadfiles
+can be not enough.
+Then you can specify your own
+.BR magi_file_callback .
+The
+.I act
+field contains the callback function itself.
+The
+.I userdata
+field has type
+.I "void *"
+allowing you to exchange state across different calls of callback.
+The
+.I addon_max
+field specify how much bytes can be passed to your callback with one call.
+.P
+Callback function has type
+.BR magi_file_callback_act ,
+which is function returning void, with
+.IR userdata ,
+.I newfile
+flag,
+.I file
+.B magi_file
+structure,
+.I addon
+and
+.IR addon_len .
+.P
+Files are passed sequantially addon by addon.
+At the file end callback will be called with
+.I addon
+and
+.I addon_len
+as nulls.
+If current
+.I addon
+is first in current
+.I file
+.I newfile
+flag will be setted up.
+.P
+You can load file from field 'file' into current directory with name,
+as specified by
+.I filename
+field as:
+.P
+.RS
+.nf
+static void cb(void                   *userdata,
+               int                     newfile,
+               const struct magi_file *file,
+               const char             *addon,
+               int                     addon_len)
+{
+    static FILE *f = 0;
+    if (!strcmp("file", file->field)) {
+        if (newfile) {
+            f = fopen(file->filename, "wb");
+        }
+        fwrite(addon, 1, addon_len, f);
+        if (!addon) {
+            fclose(f);
+        }
+    }
+}
+.fi
+.RE
+.P
+Set it as callback for processing files for initialised
+.I request
+with parsed head and not parsed body, and then parse the body:
+.P
+.RS
+.nf
+request.callback.act = cb;
+magi_parse_body(&request);
+/* Now file is loaded into filename */
+.fi
+.RE
 .SH RESPONSE
+Response headers are formed with
+.B magi_response
+structure.
+It is initiated with
+.BR magi_response_init ,
+sent with
+.BR magi_response_send ,
+and freed with
+.BR magi_response_free .
+The only defaults are
+.I text/html
+as Content-Type and
+.I 200 Ok
+as status.
+You can send them with
+.BR magi_response_default .
+.P
+.BR magi_response_content_type ,
+.B magi_reponse_content_length
+and
+.B magi_response_status
+are used to change corresponding headers.
+Any other header can be only added, not changed with
+.BR magi_response_header .
+Don't use it in cases above.
+.P
+For cookies use
+.B magi_response_cookie
+to set cookies and
+.B magi_response_cookie_discard
+to discrad them.
+In case of Cookie2 use
+.BR magi_response_cookie_complex .
+.P
+Lets send headers for XHTML body, setting cookie 'monster' as 'cookie':
+.P
+.RS
+.nf
+struct magi_response response;
+magi_response_init(&response);
+magi_response_content_type(&response, "application/xhtml+xml");
+magi_response_cookie(&response, "monster", "cookie");
+magi_response_send(&response);
+magi_response_free(&response);
+.fi
+.RE
 .SS URL encoding
 It is described in
 .IR "RFC 3986" .
@@ -271,6 +461,11 @@ code is in
 field of
 .B magi_request
 structure.  For other modules error codes seem to be overkill.
+.P
+You can access default error message with
+.B magi_error_message
+or send default error page with
+.BR magi_error_response .
 .SH DEBUGGING
 To debug your CGI scripts with
 .I gdb

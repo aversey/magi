@@ -18,30 +18,31 @@ struct magi_loadfile {
     int         max;   /* Limit in bytes. Null means unlimited. */
 };
 
-/* Table of rules for loading files.
- * Set count and files as null to initialize. */
+/* Table of rules for loading files as linked list. */
 struct magi_loadfiles {
-    int                   count;  /* Size of files array.*/
-    struct magi_loadfile *files;  /* Dynamic array of rules to load files. */
+    struct magi_loadfile  *item;
+    struct magi_loadfiles *next;
 };
 
 
-/* Free memory used by table.  Request using table will become invalid. */
-void magi_loadfiles_free(struct magi_loadfiles *table);
+/* Initialise loadfiles. */
+void magi_loadfiles_init(struct magi_loadfiles **loadfiles);
+/* Free memory used by loadfiles.  Request using table will become invalid. */
+void magi_loadfiles_free(struct magi_loadfiles **loadfiles);
 
-/* Add entity into table.
+/* Add entity into loadfiles.
  * Specify form field to load file from with name,
  * wnated loaction to load file with path,
  * and file size limit in bytes with max (pass null to unlimit). */
-void magi_loadfiles_add(struct magi_loadfiles *table,
-                        const char            *name,
-                        const char            *path,
-                        int                    max);
+void magi_loadfiles_add(struct magi_loadfiles **loadfiles,
+                        const char             *name,
+                        const char             *path,
+                        int                     max);
 
 
-/* Setup request to use loadfiles callback with table. */
-void magi_loadfiles_set(struct magi_request   *request,
-                        struct magi_loadfiles *table);
+/* Setup request to use loadfiles callback. */
+void magi_loadfiles_set(struct magi_request    *request,
+                        struct magi_loadfiles **loadfiles);
 
 
 #endif

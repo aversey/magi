@@ -36,12 +36,13 @@ void response(struct magi_request *r)
 
 void get(struct magi_request *r)
 {
-    struct magi_loadfiles rules = { 0, 0 };
+    struct magi_loadfiles *cb;
+    magi_loadfiles_init(&cb);
     /* Setup callback to load file from "data" field into file "data": */
-    magi_loadfiles_add(&rules, "data", "data", 0);
-    magi_loadfiles_set(r, &rules);  /* Setup request to use the callback. */
+    magi_loadfiles_add(&cb, "data", "data", 0);
+    magi_loadfiles_set(r, &cb);  /* Setup request to use the callback. */
     magi_parse(r);
-    magi_loadfiles_free(&rules);  /* Free data of callback. */
+    magi_loadfiles_free(&cb);  /* Free data of callback. */
 }
 
 int main()

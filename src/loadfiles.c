@@ -5,55 +5,25 @@
 #include <string.h>
 
 
-void magi_loadfiles_add(struct magi_loadfiles *table,
-                        const char            *name,
-                        const char            *path,
-                        int                    max)
-{
-    static const int size = sizeof(*table->files);
-    if (!table) {
-        return;
-    }
-    if (table->count) {
-        table->files = realloc(table->files, size * table->count + size);
-    } else {
-        table->files = malloc(size);
-    }
-    table->files[table->count].name = name;
-    table->files[table->count].path = path;
-    table->files[table->count].max  = max;
-    table->count++;
-}
-
-void magi_loadfiles_free(struct magi_loadfiles *table)
-{
-    if (!table) {
-        return;
-    }
-    free(table->files);
-    table->count = 0;
-}
-
 static void loadfiles_callback(void                   *userdata,
                                int                     newfile,
                                const struct magi_file *file,
                                const char             *addon,
                                int                     addon_len)
 {
-    int pos;
-    struct magi_loadfiles *table = userdata;
+    struct magi_loadfiles *loadfiles = *(struct magi_loadfiles **)userdata;
     if (!file->filename || !*file->filename) {
         return;
     }
-    for (pos = 0; pos != table->count; ++pos) {
-        if (!strcmp(table->files[pos].name, file->field)) {
+    for (; loadfiles; loadfiles = loadfiles->next) {
+        if (!strcmp(loadfiles->item->name, file->field)) {
             static FILE *f = 0;
             static int   unlimited;
             static int   left;
             if (newfile) {
-                const char *path = table->files[pos].path;
+                const char *path = loadfiles->item->path;
                 f                = fopen(path, "wb");
-                left             = table->files[pos].max;
+                left             = loadfiles->item->max;
                 unlimited        = !left;
             }
             if (unlimited) {
@@ -71,9 +41,45 @@ static void loadfiles_callback(void                   *userdata,
     }
 }
 
-void magi_loadfiles_set(struct magi_request   *request,
-                        struct magi_loadfiles *table)
+
+void magi_loadfiles_init(struct magi_loadfiles **loadfiles)
+{
+    *loadfiles = 0;
+}
+
+void magi_loadfiles_free(struct magi_loadfiles **loadfiles)
+{
+    if (!loadfiles || !*loadfiles) {
+        return;
+    }
+    free((*loadfiles)->item);
+    magi_loadfiles_free(&(*loadfiles)->next);
+    free(*loadfiles);
+}
+
+
+void magi_loadfiles_add(struct magi_loadfiles **loadfiles,
+                        const char             *name,
+                        const char             *path,
+                        int                     max)
+{
+    struct magi_loadfiles *next;
+    if (!loadfiles) {
+        return;
+    }
+    next                     = *loadfiles ? (*loadfiles)->next : 0;
+    *loadfiles               = malloc(sizeof(**loadfiles));
+    (*loadfiles)->item       = malloc(sizeof(struct magi_loadfile));
+    (*loadfiles)->item->name = name;
+    (*loadfiles)->item->path = path;
+    (*loadfiles)->item->max  = max;
+    (*loadfiles)->next       = next;
+}
+
+
+void magi_loadfiles_set(struct magi_request    *request,
+                        struct magi_loadfiles **loadfiles)
 {
     request->callback.act      = loadfiles_callback;
-    request->callback.userdata = table;
+    request->callback.userdata = loadfiles;
 }
