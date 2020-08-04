@@ -61,7 +61,7 @@ XBLD     = $(BUILD)/$(EXADIR)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Targets
-.PHONY: all examples clean
+.PHONY: all examples clean install uninstall
 
 all: $(SRCBUILD) $(TARGET)
 
