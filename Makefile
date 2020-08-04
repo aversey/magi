@@ -1,15 +1,15 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Compilation Options
 # Debug mode [yes/no] (allowing to debug the library via gdb):
-DEBUG    = no
+DEBUG   ?= no
 # Specify your favourite C compiler here:
-CC       = gcc
+COMPILE ?= gcc
 # Specify your include directory (headers location):
-INCDIR   = /usr/include
+INCDIR  ?= /usr/include
 # Specify your libraries directory:
-LIBDIR   = /usr/lib
+LIBDIR  ?= /usr/lib
 # Specify location of man pages on your machine:
-MANDIR   = /usr/share/man
+MANDIR  ?= /usr/share/man
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -91,11 +91,11 @@ $(TARGET): $(OBJ)
 
 # Compile object files from corresponding source:
 $(BUILD)/%.o: %.c
-	$(CC) $(CFLAGS) $(SRCINC) -c $< -o $@
+	$(COMPILE) $(CFLAGS) $(SRCINC) -c $< -o $@
 
 # Compile executables from corresponding sources and library:
 $(BUILD)/%: %.c $(TARGET)
-	$(CC) $(CFLAGS) $(XINC) $< $(LFLAGS) -o $@
+	$(COMPILE) $(CFLAGS) $(XINC) $< $(LFLAGS) -o $@
 
 # Create build directories, if no such:
 $(SRCBUILD) $(XBLD):
@@ -103,5 +103,5 @@ $(SRCBUILD) $(XBLD):
 
 # Generate dependency file, adding corresponding build prefixes:
 $(DEPS): $(SRC) $(EXASRC) $(EXTER_H) $(INTER_H) $(INCLUDE)/magi.h
-	$(CC) $(SRCINC) $(SRC) -MM | sed '/^ /!s#^#$(SRCBUILD)/#' > $@
-	$(CC) $(XINC) $(XSRC) -MM | sed '/^ /!s#^#$(XBLD)/#;s/\.o//' >> $@
+	$(COMPILE) $(SRCINC) $(SRC) -MM | sed '/^ /!s#^#$(SRCBUILD)/#' >$@
+	$(COMPILE) $(XINC) $(XSRC) -MM | sed '/^ /!s#^#$(XBLD)/#;s/\.o//' >>$@

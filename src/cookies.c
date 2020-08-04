@@ -85,7 +85,7 @@ static int end_data(struct automata *a)
 static void *state_name(struct automata *a, char c);
 static void *state_pre_name(struct automata *a, char c)
 {
-    if (c == ' ' || c == '\t'){
+    if (c == ' ' || c == '\t') {
         return state_pre_name;
     } else if (32 <= c && c <= 126 && !strchr("()<>@,;:\\\"/[]?={}", c)) {
         magi_str_add(&a->buf, &a->buf_len, &a->buf_size, c);
@@ -185,7 +185,10 @@ static void parse_end(enum magi_error *e, struct automata *a, state s)
         } else {
             *e = magi_error_cookies;
         }
-    } else if (s != state_post_data) {
+    } else if (s == state_post_data) {
+        magi_cookies_add(a->list, &a->cookie);
+        nullify_cookie(a);
+    } else {
         *e = magi_error_cookies;
     }
 }
