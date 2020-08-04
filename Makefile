@@ -1,15 +1,15 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #     Compilation Options
 # Debug mode [yes/no] (allowing to debug the library via gdb):
-DEBUG   ?= no
+DEBUG    = no
 # Specify your favourite C compiler here:
-CC      ?= gcc
+CC       = gcc
 # Specify your include directory (headers location):
-INCDIR  ?= /usr/include
+INCDIR   = /usr/include
 # Specify your libraries directory:
-LIBDIR  ?= /usr/lib
+LIBDIR   = /usr/lib
 # Specify location of man pages on your machine:
-MANDIR  ?= /usr/share/man
+MANDIR   = /usr/share/man
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
