@@ -156,6 +156,7 @@ static void *state_data_quoted(struct automata *a, char c)
     if (c == '"') {
         return end_data(a) ? state_post_data : 0;
     }
+    magi_str_add(&a->buf, &a->buf_len, &a->buf_size, c);
     return state_data_quoted;
 }
 

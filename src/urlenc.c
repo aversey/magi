@@ -45,11 +45,11 @@ void magi_urlenc(const char *plain, char *code)
     }
     while (*plain) {
         if (is_url(*plain)) {
-            *++code = *plain;
+            *(code++) = *plain;
         } else {
-            *++code = '%';
-            *++code = to_hex(*plain & 0x0F);
-            *++code = to_hex(*plain >> 4);
+            *(code++) = '%';
+            *(code++) = to_hex(*plain & 0x0F);
+            *(code++) = to_hex(*plain >> 4);
         }
         ++plain;
     }
