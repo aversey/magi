@@ -21,7 +21,7 @@ struct automata {
 typedef void *(*state)(struct automata *a, char c);
 
 
-static void nulify_cookie(struct automata *a)
+static void nullify_cookie(struct automata *a)
 {
     a->cookie.name    = 0;
     a->cookie.data    = 0;
@@ -62,7 +62,7 @@ static void end_name(struct automata *a)
             magi_cookies_add(a->list, &a->cookie);
             a->list = &(*a->list)->next;
         }
-        nulify_cookie(a);
+        nullify_cookie(a);
         a->cookie.name = a->buf;
     } else {
         free(a->buf);
@@ -181,7 +181,7 @@ static void parse_end(enum magi_error *e, struct automata *a, state s)
             *e = magi_error_cookies;
         } else if (end_data(a)) {
             magi_cookies_add(a->list, &a->cookie);
-            nulify_cookie(a);
+            nullify_cookie(a);
         } else {
             *e = magi_error_cookies;
         }
