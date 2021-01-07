@@ -1,0 +1,29 @@
+.TH MAGI_REQUEST_PARAM 3 2021-01-07 v0.0.1 "Magi Library Manual"
+.SH NAME
+.BR magi_request_param ,
+.B magi_request_urlparam
+\- get a parameter from request
+.SH SYNOPSIS
+.B #include <magi/request.h>
+.P
+.RB "char *" magi_request_param "(struct magi_request *" r ,
+.RB                             "const char *" name ");"
+.P
+.RB "char *" magi_request_urlparam "(struct magi_request *" r ,
+.RB                                "const char *" name ");"
+.SH DESCRIPTION
+.BR magi_request_param ()
+gets the parameter from both request body and URL query,
+prioritizing parameters from the body.
+.P
+.BR magi_request_urlparam ()
+gets the parameter from URL query.
+.SH RETURN VALUE
+.BR magi_request_param ()
+and
+.BR magi_request_urlparam ()
+return value of found parameter with
+.I name
+as URL-decoded string, or
+.B 0
+in case such parameter is not found.

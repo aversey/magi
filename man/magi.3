@@ -1,4 +1,4 @@
-.TH MAGI 3 2020-07-14 v0.0.1 "Library Manual"
+.TH MAGI 3 2021-01-07 v0.0.1 "Magi Library Manual"
 .SH NAME
 .B magi
 \- Common Gateway Interface (CGI) library
@@ -12,16 +12,94 @@ through CGI as described in
 .IR "RFC 3875" .
 The library is free and open source software.
 It is written in ANSI C without any dependencies except C standard library.
-.SS Usage overview
-A program using
-.B magi
-library must be linked with the
-.B -lmagi
-option.
+.SH GETTING STARTED
+Once you have obtained the sources (from
+.I http://git.veresov.xyz/aversey/magi
+or other way) run
 .P
+.RS
+.nf
+make
+.fi
+.RE
+.P
+in order to build the library.  The results will be in the
+.I build
+directory.
+.P
+To build the examples run:
+.P
+.RS
+.nf
+make examples
+.fi
+.RE
+.P
+Add any single-file C program using
+.B magi
+into the
+.I examples
+directory in order to build it with the same command.
+.P
+To give you a
+.B magi
+try here is the minimal program:
+.P
+.RS
+.nf
+#include <magi.h>
+#include <stdio.h>
+
+int main()
+{
+    struct magi_request request;
+    magi_request_init(&request);
+    if (magi_parse(&request)) {
+        magi_response_default();
+        puts("<html><head><title>Hi!</title></head><body>Hi!</body></html>");
+    } else {
+        magi_error_response(request.error);
+    }
+    magi_request_free(&request);
+    return 0;
+}
+.fi
+.RE
+.P
+You can install
+.B magi
+system-wide once you have got root privileges by running:
+.P
+.RS
+.nf
+make install
+.fi
+.RE
+.P
+Once you have installed the library system-wide all you need to do to compile
+you programs is to specify
+.I -lmagi
+flag.  So to compile
+.I some.c
+using this library you can run:
+.P
+.RS
+.nf
+gcc some.c -lmagi
+.fi
+.RE
+.P
+Default installation locations are
+.I /usr/include
+for the headers,
+.I /usr/lib
+for library binaries and
+.I /usr/share/man
+for this manual.
+.SH OVERVIEW
 Main task of the
 .B magi
-library is to analyse CGI request and represent it to the user in
+library is to analyze CGI request and represent it to the user in
 .B magi_request
 data structure.
 CGI request is passed in environment variables and standard input.
@@ -39,10 +117,10 @@ Body can be outputted directly into standard output with any method you want
 after forming and sending CGI headers via
 .BR magi_response .
 .SH REQUEST
-Request structure initializtion is done with
-.BR magi_request_init .
+Request structure initialization is done with
+.BR magi_request_init ().
 Don't forget to free everything in it then the work is done via
-.BR magi_request_free .
+.BR magi_request_free ().
 .P
 .RS
 .nf
@@ -54,9 +132,9 @@ magi_request_free(&request);
 .RE
 .P
 Obtaining of request is done in two parts, i.e. head via
-.B magi_parse_head
+.BR magi_parse_head ()
 and body via
-.BR magi_parse_body .
+.BR magi_parse_body ().
 Analysis of head will fill everything in
 .B magi_request
 structure, except
@@ -64,10 +142,10 @@ structure, except
 and
 .I files
 fields.
-Such separtion has place since body processing can depend on data from head,
+Such separation has place since body processing can depend on data from head,
 e.g. in case of loading files, if file size is defined by user group.
 If analysis succeeded they will return 1, otherwise 0 as error mark.
-More disctinct error code will be placed in
+More distinct error code will be placed in
 .IR request.error .
 .P
 .RS
@@ -84,9 +162,9 @@ if (magi_parse_body(&request)) {
 .fi
 .RE
 .P
-If your case is not as advanced, you can use shortuct
-.B magi_parse
-to analyse both head and body.
+If your case is not as advanced, you can use shortcut
+.BR magi_parse ()
+to analyze both head and body.
 .BR magi_parse (&request)
 is literally
 .BR magi_parse_head (&request)
@@ -145,10 +223,10 @@ while HTML form fields values passed in body (except for files,
 described lower) are stored in
 .IR body .
 To get value of parameter by its key use
-.BR magi_request_param .
+.BR magi_request_param ().
 This function priorities body params, so if you need specifically
 parameter from URL use
-.B magi_request_urlparam .
+.B magi_request_urlparam ().
 If no parameter was passed with given name, these functions will return null.
 .P
 For example, if we build search engine and want to access query passed in
@@ -168,16 +246,16 @@ if (query) {
 .RE
 .P
 Note what values returned by
-.B magi_request_urlparam
+.BR magi_request_urlparam ()
 are decoded from URL encoding, so you don't need to deal with all that
 percents and pluses.  Result of
-.B magi_request_param
+.BR magi_request_param ()
 is also raw data.
 .SS Cookies in request
 Same situation with cookies, stored in
 .I cookies
 field, and accessible via
-.BR magi_request_cookie .
+.BR magi_request_cookie ().
 .P
 For example, we can check session ID of user, stored in cookie "sid":
 .P
@@ -186,7 +264,7 @@ For example, we can check session ID of user, stored in cookie "sid":
 struct awesome_session session;
 const char *sid = magi_request_cookie(&request, "sid");
 if (!sid) {
-    /* render response for unauthorised user */
+    /* render response for unauthorized user */
 } else if (session_exists(sid)) {
     load_session(&session, sid);
     /* render response for this user */
@@ -201,11 +279,11 @@ While for cookies as described in
 it's all you need, your server can use Cookie2, as described in
 .IR "RFC 2965" .
 In both cases
-.B magi_request_cookie
+.BR magi_request_cookie ()
 will return the most accurate cookie for this request, however Cookie2
 allows more complex behavior, setting and receiving different host and path
 for cookies.  You able to receive all information about cookie using
-.BR magi_request_cookie_complex ,
+.BR magi_request_cookie_complex (),
 which returns pointer to
 .B magi_cookie
 structure.  If no cookie is found, result is null.  It has fields
@@ -214,12 +292,12 @@ structure.  If no cookie is found, result is null.  It has fields
 .I path
 (without '/' at the end),
 .I domain
-(with dot at the begining) and
+(with dot at the beginning) and
 .I max_age
 (the last one is used only in response).
 .SS Files in request
 While ordinary parameters are not very big and don't need special processing,
-files can be huge and need specail processing.
+files can be huge and need special processing.
 Due to their size, files shouldn't be loaded into memory in general.
 The
 .B magi
@@ -247,12 +325,12 @@ magi_loadfiles_free(&rules);
 .P
 There
 .I request
-is initialised
+is initialized
 .B magi_request
 with parsed head and not parsed body.
 .P
 To access information about file, use
-.B magi_request_file .
+.B magi_request_file ().
 It will get your
 .B magi_file
 structure for file loaded from field with passed name.
@@ -262,7 +340,7 @@ field.
 Other parameters (as Content-Type) are in
 .I params
 field, accessible with
-.BR magi_file_param .
+.BR magi_file_param ().
 .P
 For example, we can get user feedback, returning Content-Type of loaded file:
 .P
@@ -311,7 +389,7 @@ structure,
 and
 .IR addon_len .
 .P
-Files are passed sequantially addon by addon.
+Files are passed sequentially addon by addon.
 At the file end callback will be called with
 .I addon
 and
@@ -322,7 +400,7 @@ If current
 is first in current
 .I file
 .I newfile
-flag will be setted up.
+flag will be set up.
 .P
 You can load file from field 'file' into current directory with name,
 as specified by
@@ -351,7 +429,7 @@ static void cb(void                   *userdata,
 .fi
 .RE
 .P
-Set it as callback for processing files for initialised
+Set it as callback for processing files for initialized
 .I request
 with parsed head and not parsed body, and then parse the body:
 .P
@@ -367,35 +445,35 @@ Response headers are formed with
 .B magi_response
 structure.
 It is initiated with
-.BR magi_response_init ,
+.BR magi_response_init (),
 sent with
-.BR magi_response_send ,
+.BR magi_response_send (),
 and freed with
-.BR magi_response_free .
+.BR magi_response_free ().
 The only defaults are
 .I text/html
 as Content-Type and
 .I 200 Ok
 as status.
 You can send them with
-.BR magi_response_default .
+.BR magi_response_default ().
 .P
-.BR magi_response_content_type ,
-.B magi_reponse_content_length
+.BR magi_response_content_type (),
+.BR magi_reponse_content_length ()
 and
-.B magi_response_status
+.BR magi_response_status ()
 are used to change corresponding headers.
 Any other header can be only added, not changed with
-.BR magi_response_header .
+.BR magi_response_header ().
 Don't use it in cases above.
 .P
 For cookies use
-.B magi_response_cookie
+.BR magi_response_cookie ()
 to set cookies and
-.B magi_response_cookie_discard
-to discrad them.
+.BR magi_response_cookie_discard ()
+to discard them.
 In case of Cookie2 use
-.BR magi_response_cookie_complex .
+.BR magi_response_cookie_complex ().
 .P
 Lets send headers for XHTML body, setting cookie 'monster' as 'cookie':
 .P
@@ -413,16 +491,16 @@ magi_response_free(&response);
 It is described in
 .IR "RFC 3986" .
 Briefly it is replacement of every space into plus sign and every not
-alpha-numerical or not one of "~-._" character inte percent sign
-followed by hexademical representation of given character byte.
+alpha-numerical or not one of "~-._" character into percent sign
+followed by hexadecimal representation of given character byte.
 .P
 The
 .B magi
 library provides functions to form url-encoded strings, which is very useful
 in forming response.  Use
-.B magi_urlenc_size
+.BR magi_urlenc_size ()
 to find what the size of code will be and then call
-.B magi_urlenc
+.BR magi_urlenc ()
 for encoding itself.
 .P
 For example, lets form URL to search in DuckDuckGo for provided char
@@ -443,11 +521,11 @@ url[prelen + urlencsize] = 0;
 .RE
 .P
 Note that second argument of
-.B magi_urlenc
+.BR magi_urlenc ()
 which is encoding destination should be at least size of
-.B magi_urlenc_size
+.BR magi_urlenc_size ()
 of plain data, and that
-.B magi_urlenc
+.BR magi_urlenc ()
 doesn't write zero to form null-terminated string in its output.
 .SH ERRORS
 If function is returning pointer, error is only in case of null returned.
@@ -457,15 +535,15 @@ as success mark it will be null only in case of error, and one otherwise.
 Exact
 .B magi_error
 code is in
-.B error
+.I error
 field of
 .B magi_request
 structure.  For other modules error codes seem to be overkill.
 .P
 You can access default error message with
-.B magi_error_message
+.BR magi_error_message ()
 or send default error page with
-.BR magi_error_response .
+.BR magi_error_response ().
 .SH DEBUGGING
 To debug your CGI scripts with
 .I gdb
@@ -508,7 +586,7 @@ continue
 .fi
 .RE
 .SH COMPATIBILTY
-Sine
+Since
 .B magi
 only uses C standard library and the C language itself it should be able
 to run on every environment with them, i.e. Linux, OpenBSD, FreeBSD, macOS,
@@ -529,7 +607,7 @@ which is a shortcut for include of
 .I magi.h
 wrapped in 'extern "C"' construct.
 .SH AUTHORS AND LICENSE
-Copyrigth 2019-2020
+Copyright 2019-2021
 .B Aleksey Veresov
 .RI < aleksey@veresov.pro >
 .P

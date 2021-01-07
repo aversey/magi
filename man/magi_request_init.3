@@ -1,0 +1,23 @@
+.TH MAGI_REQUEST_INIT 3 2021-01-07 v0.0.1 "Magi Library Manual"
+.SH NAME
+.B magi_request_init
+\-
+.B magi_request
+initialization
+.SH SYNOPSIS
+.B #include <magi/request.h>
+.P
+.RB "void " magi_request_init "(struct magi_request *" r ");"
+.SH DESCRIPTION
+.BR magi_request_init ()
+initializes
+.I r
+with default values.
+It is usable for parsing the input after the call.
+.P
+Defaults are: read buffer of 64KB, unlimited space for cookies and parameters,
+no callback for loading files.
+.SH SEE ALSO
+.BR magi_parse_head (3),
+.BR magi_parse_body (3),
+.BR magi_parse (3)

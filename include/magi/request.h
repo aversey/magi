@@ -52,7 +52,7 @@ void magi_request_init(struct magi_request *r);
 void magi_request_free(struct magi_request *r);
 
 
-/* Get value of form field param (prioritising body) with name. */
+/* Get value of form field param (prioritizing body) with name. */
 char *magi_request_param(const struct magi_request *r, const char *name);
 /* Get value of form field param with name from url. */
 char *magi_request_urlparam(const struct magi_request *r, const char *name);
