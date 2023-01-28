@@ -167,14 +167,18 @@ void magi_response_header(struct magi_response *r,
 void magi_response_content_length(struct magi_response *r, int length)
 {
     struct magi_param addon;
-    int len     = 1;
-    addon.name  = magi_str_create_copy("Content-Length", 14);
-    addon.data  = malloc(len + 1);
-    *addon.data = '0' + length % 10;
-    while (length /= 10) {
-        addon.data      = realloc(addon.data, len + 2);
-        addon.data[len] = '0' + length % 10;
+    int len    = 1;
+    int tmp    = length;
+    addon.name = magi_str_create_copy("Content-Length", 14);
+    while (tmp /= 10) {
         ++len;
+    }
+    addon.data  = malloc(len + 1);
+    addon.data[len - 1] = '0' + length % 10;
+    length /= 10;
+    for (tmp = len - 2; tmp >= 0; --tmp) {
+        addon.data[tmp] = '0' + length % 10;
+        length /= 10;
     }
     addon.data[len] = 0;
     magi_params_set(&r->head_entity, &addon);
